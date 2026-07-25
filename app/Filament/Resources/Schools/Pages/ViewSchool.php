@@ -17,7 +17,9 @@ class ViewSchool extends ViewRecord
         return [
             Actions\EditAction::make(),
         ];
+        
     }
+    
 
 
     protected function getHeaderWidgets(): array

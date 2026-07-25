@@ -2,66 +2,284 @@
 
 namespace App\Filament\Resources\Schools\RelationManagers;
 
+
+use App\Models\Student;
+use App\Models\StudentEnrollment;
+
+
 use App\Filament\Resources\Students\StudentResource;
+
+
+use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+
+
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
+
+
 use Filament\Tables;
 use Filament\Tables\Table;
 
+
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+
+
+use Illuminate\Support\Facades\DB;
+
+
+
 class StudentsRelationManager extends RelationManager
 {
+
+
     protected static string $relationship = 'students';
+
 
 
     protected static ?string $title = 'Students';
 
 
+
+
+
     public function table(Table $table): Table
     {
+
         return $table
+
+
             ->recordTitleAttribute('user.name')
+
+
 
             ->columns([
 
+
                 Tables\Columns\TextColumn::make('user.name')
+
                     ->label('Student')
+
                     ->searchable()
+
                     ->sortable(),
 
 
+
                 Tables\Columns\TextColumn::make('admission_no')
-                    ->label('Admission No')
-                    ->searchable(),
+
+                    ->label('Admission No'),
 
 
-                Tables\Columns\TextColumn::make('currentEnrollment.grade.name')
+
+                Tables\Columns\TextColumn::make('enrollments.grade.name')
+
                     ->label('Grade'),
 
 
+
                 Tables\Columns\TextColumn::make('phone')
+
                     ->label('Phone'),
 
 
             ])
 
-            ->recordActions([
 
-                ViewAction::make()
-                    ->url(fn ($record) =>
-                        StudentResource::getUrl('view', [
-                            'record' => $record,
+
+
+
+            ->headerActions([
+
+
+
+                Action::make('attachStudent')
+
+
+                    ->label('Add Existing Student')
+
+
+                    ->icon('heroicon-o-link')
+
+
+
+                    ->form([
+
+
+
+                        Select::make('student_id')
+
+                            ->label('Student')
+
+                            ->options(
+
+                                Student::query()
+
+                                    ->whereDoesntHave(
+                                        'enrollments',
+                                        function($query){
+
+                                            $query->where(
+                                                'school_id',
+                                                $this->getOwnerRecord()->id
+                                            );
+
+                                        }
+                                    )
+
+                                    ->with('user')
+
+                                    ->get()
+
+                                    ->pluck('user.name','id')
+
+                            )
+
+                            ->searchable()
+
+                            ->required(),
+
+
+
+
+
+                        Select::make('grade_id')
+
+
+                            ->label('Grade')
+
+
+                            ->options(
+
+                                $this->getOwnerRecord()
+
+                                    ->grades()
+
+                                    ->pluck('name','id')
+
+                            )
+
+
+                            ->required(),
+
+
+
+
+
+                        TextInput::make('academic_year')
+
+                            ->default(date('Y'))
+
+                            ->required(),
+
+
+
+                    ])
+
+
+
+
+                    ->action(function(array $data){
+
+
+
+                        $school =
+                            $this->getOwnerRecord();
+
+
+
+
+                        $enrollment =
+                            StudentEnrollment::create([
+
+
+
+                                'student_id'=>
+                                    $data['student_id'],
+
+
+
+                                'school_id'=>
+                                    $school->id,
+
+
+
+                                'grade_id'=>
+                                    $data['grade_id'],
+
+
+
+                                'academic_year'=>
+                                    $data['academic_year'],
+
+
+
+                                'status'=>
+                                    'active',
+
+
+                            ]);
+
+
+
+                    }),
+
+
+
+
+
+                    Action::make('createStudent')
+
+                    ->label('Add New Student')
+                
+                    ->icon('heroicon-o-user-plus')
+                
+                    ->url(fn () =>
+                        StudentResource::getUrl('create', [
+                            'school_id' => $this->getOwnerRecord()->id,
                         ])
                     ),
+
+
+
+            ])
+
+
+
+
+
+            ->recordActions([
+
+
+
+                ViewAction::make()
+
+
+
+                    ->url(
+                        fn($record)=>
+
+                        StudentResource::getUrl(
+                            'view',
+                            [
+                                'record'=>$record
+                            ]
+                        )
+                    ),
+
 
 
                 EditAction::make(),
 
 
+
                 DeleteAction::make(),
 
+
             ]);
+
     }
+
 }
