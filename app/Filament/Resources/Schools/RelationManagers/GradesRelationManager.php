@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Filament\Resources\Schools\RelationManagers;
+
+use App\Filament\Resources\Grades\GradeResource;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class GradesRelationManager extends RelationManager
+{
+    protected static string $relationship = 'grades';
+
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+
+                TextInput::make('name')
+                    ->label('Grade Name')
+                    ->required(),
+
+                Toggle::make('is_active')
+                    ->default(true),
+
+            ]);
+    }
+
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->recordTitleAttribute('name')
+
+            ->columns([
+
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Grade')
+                    ->searchable(),
+
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
+
+                Tables\Columns\TextColumn::make('learning_classes_count')
+                    ->counts('learningClasses')
+                    ->label('Classes'),
+
+            ])
+
+            ->headerActions([
+                CreateAction::make(),
+            ])
+
+            ->recordActions([
+
+                ViewAction::make()
+                    ->url(fn ($record) =>
+                        GradeResource::getUrl('view', [
+                            'record' => $record,
+                        ])
+                    ),
+
+                EditAction::make(),
+
+                DeleteAction::make(),
+
+            ]);
+    }
+}
