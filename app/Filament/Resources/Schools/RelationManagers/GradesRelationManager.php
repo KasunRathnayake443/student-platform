@@ -45,15 +45,22 @@ class GradesRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('name')
                     ->label('Grade')
                     ->searchable(),
-
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
-                    ->boolean(),
-
+            
+            
+                Tables\Columns\TextColumn::make('students_count')
+                    ->counts('students')
+                    ->label('Students'),
+            
+            
                 Tables\Columns\TextColumn::make('learning_classes_count')
                     ->counts('learningClasses')
                     ->label('Classes'),
-
+            
+            
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
+            
             ])
 
             ->headerActions([
@@ -75,4 +82,6 @@ class GradesRelationManager extends RelationManager
 
             ]);
     }
+
+    
 }

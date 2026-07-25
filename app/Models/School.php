@@ -44,10 +44,10 @@ class School extends Model
         return $this->hasManyThrough(
             Student::class,
             StudentEnrollment::class,
-            'school_id',        
-            'id',               
-            'id',               
-            'student_id'        
+            'school_id',
+            'id',
+            'id',
+            'student_id'
         );
     }
 
@@ -58,5 +58,17 @@ class School extends Model
             LearningClass::class,
             Grade::class
         );
+    }
+
+
+    public function teachingTeachers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'teacher_schools',
+            'school_id',
+            'teacher_id'
+        )
+        ->withTimestamps();
     }
 }

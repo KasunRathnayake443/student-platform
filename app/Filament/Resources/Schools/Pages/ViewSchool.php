@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Schools\Pages;
 
 use App\Filament\Resources\Schools\SchoolResource;
+use App\Filament\Resources\Schools\Widgets\SchoolStats;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use App\Filament\Resources\Schools\RelationManagers\GradesRelationManager;
 
 class ViewSchool extends ViewRecord
 {
@@ -20,10 +20,18 @@ class ViewSchool extends ViewRecord
     }
 
 
-    public function getRelationManagers(): array
+    protected function getHeaderWidgets(): array
     {
         return [
-            GradesRelationManager::class,
+            SchoolStats::class,
+        ];
+    }
+
+
+    public function getHeaderWidgetsData(): array
+    {
+        return [
+            'record' => $this->record,
         ];
     }
 }
