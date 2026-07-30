@@ -64,9 +64,23 @@ class GradesRelationManager extends RelationManager
             ])
 
             ->headerActions([
-                CreateAction::make(),
-            ])
 
+                \Filament\Actions\Action::make('addGrade')
+            
+                    ->label('Add New Grade')
+            
+                    ->icon('heroicon-o-plus')
+            
+                    ->url(fn () =>
+                        \App\Filament\Resources\Grades\GradeResource::getUrl(
+                            'create',
+                            [
+                                'school_id' => $this->getOwnerRecord()->id,
+                            ]
+                        )
+                    ),
+            
+            ])
             ->recordActions([
 
                 ViewAction::make()

@@ -118,17 +118,27 @@ class StudentForm
 
                 Toggle::make('assign_school')
 
-                    ->label('Assign Student To School')
-
-                    ->default(false)
-
-                    ->live(),
+                ->label('Assign Student To School')
+            
+                ->default(fn () => request()->has('school_id'))
+            
+                ->disabled(fn () => request()->has('school_id'))
+            
+                ->live(),
 
 
 
                 Select::make('school_id')
 
-                    ->label('School')
+                ->label('School')
+            
+                ->default(fn () =>
+                    request()->get('school_id')
+                )
+            
+                ->disabled(fn () =>
+                    request()->has('school_id')
+                )
 
                     ->options(
                         School::query()
