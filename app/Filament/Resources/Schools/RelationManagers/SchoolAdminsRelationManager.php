@@ -43,7 +43,9 @@ class SchoolAdminsRelationManager extends RelationManager
 
             ->columns([
 
-
+                Tables\Columns\ImageColumn::make('schoolAdmin.profile_photo')
+                ->label('Admin Photo')
+                ->circular(),
 
                 Tables\Columns\TextColumn::make('name')
 

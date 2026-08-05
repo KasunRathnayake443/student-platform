@@ -57,10 +57,13 @@ class StudentsRelationManager extends RelationManager
 
             ->columns([
 
+                Tables\Columns\ImageColumn::make('profile_photo')
+                ->label('Profie Photo')
+                ->circular(),
 
                 Tables\Columns\TextColumn::make('user.name')
 
-                    ->label('Student')
+                    ->label('Student Name')
 
                     ->searchable()
 
