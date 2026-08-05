@@ -26,6 +26,7 @@ class School extends Model
     }
 
 
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
@@ -33,10 +34,33 @@ class School extends Model
     }
 
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | School Admins
+    |--------------------------------------------------------------------------
+    */
+
+    public function schoolAdmins(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'school_user',
+            'school_id',
+            'user_id'
+        )
+        ->whereHas('schoolAdmin')
+        ->withTimestamps();
+    }
+
+
+
+
     public function studentEnrollments(): HasMany
     {
         return $this->hasMany(StudentEnrollment::class);
     }
+
 
 
     public function students(): HasManyThrough
@@ -52,6 +76,7 @@ class School extends Model
     }
 
 
+
     public function classes()
     {
         return $this->hasManyThrough(
@@ -59,6 +84,7 @@ class School extends Model
             Grade::class
         );
     }
+
 
 
     public function teachingTeachers(): BelongsToMany

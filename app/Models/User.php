@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 
 
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
@@ -31,7 +32,10 @@ class User extends Authenticatable
 
     public function schools(): BelongsToMany
     {
-        return $this->belongsToMany(School::class);
+        return $this->belongsToMany(
+            School::class
+        )
+        ->withTimestamps();
     }
 
 
@@ -76,5 +80,13 @@ public function student(): HasOne
 {
     return $this->hasOne(Student::class);
 }
+public function schoolAdmin(): HasOne
+{
+    return $this->hasOne(
+        SchoolAdmin::class
+    );
+}
+
+
 
 }

@@ -5,10 +5,10 @@ namespace App\Filament\Resources\SchoolAdmins\Schemas;
 
 use Filament\Schemas\Schema;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
 
-use App\Models\School;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
 
 
 
@@ -42,12 +42,21 @@ class SchoolAdminForm
 
 
 
-
                 TextInput::make('password')
 
                     ->password()
 
-                    ->required(fn($record)=> !$record),
+                    ->required(fn ($record)=>!$record),
+
+
+
+
+                TextInput::make('phone'),
+
+
+
+
+                Textarea::make('address'),
 
 
 
@@ -55,18 +64,16 @@ class SchoolAdminForm
 
                 Select::make('schools')
 
-
                     ->label('Assigned Schools')
-
 
                     ->multiple()
 
-
-                    ->relationship(
-                        'schools',
-                        'name'
+                    ->options(
+                        \App\Models\School::pluck(
+                            'name',
+                            'id'
+                        )
                     )
-
 
                     ->searchable()
 
@@ -75,6 +82,7 @@ class SchoolAdminForm
 
 
             ]);
+
 
     }
 

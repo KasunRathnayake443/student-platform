@@ -2,12 +2,17 @@
 
 namespace App\Filament\Resources\Schools\RelationManagers;
 
+
 use App\Models\User;
+
 use Filament\Actions\Action;
 use Filament\Actions\DetachAction;
+
 use Filament\Resources\RelationManagers\RelationManager;
+
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -15,44 +20,55 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Builder;
 
 
+
 class SchoolAdminsRelationManager extends RelationManager
 {
 
-    protected static string $relationship = 'users';
+
+    protected static string $relationship = 'schoolAdmins';
+
 
 
     protected static ?string $title = 'School Admins';
 
 
 
+
     public function table(Table $table): Table
     {
 
+
         return $table
-
-            ->modifyQueryUsing(function (Builder $query) {
-
-                return $query->role('school_admin');
-
-            })
 
 
             ->columns([
 
 
+
                 Tables\Columns\TextColumn::make('name')
+
                     ->label('Name')
+
                     ->searchable()
+
                     ->sortable(),
 
 
+
+
                 Tables\Columns\TextColumn::make('email')
+
                     ->label('Email')
+
                     ->searchable(),
 
 
+
+
                 Tables\Columns\TextColumn::make('created_at')
+
                     ->label('Joined')
+
                     ->date(),
 
 
@@ -60,15 +76,9 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
 
+
             ->headerActions([
 
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Add Existing Admin
-                |--------------------------------------------------------------------------
-                */
 
 
                 Action::make('addExistingAdmin')
@@ -81,24 +91,33 @@ class SchoolAdminsRelationManager extends RelationManager
                     ->form([
 
 
+
                         Select::make('user_id')
 
                             ->label('School Admin')
 
+
                             ->options(function(){
 
 
-                                $existingAdmins = 
-                                    $this->getOwnerRecord()
-                                        ->users()
-                                        ->pluck('users.id');
-
-
                                 return User::role('school_admin')
-                                    ->whereNotIn(
-                                        'users.id',
-                                        $existingAdmins
+
+                                    ->whereHas(
+                                        'schoolAdmin'
                                     )
+
+                                    ->whereNotIn(
+
+                                        'id',
+
+                                        $this->getOwnerRecord()
+
+                                            ->schoolAdmins()
+
+                                            ->pluck('users.id')
+
+                                    )
+
                                     ->pluck(
                                         'name',
                                         'id'
@@ -106,6 +125,7 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
                             })
+
 
                             ->searchable()
 
@@ -119,18 +139,16 @@ class SchoolAdminsRelationManager extends RelationManager
                     ->action(function(array $data){
 
 
+
                         $this->getOwnerRecord()
-                            ->users()
+
+                            ->schoolAdmins()
+
                             ->syncWithoutDetaching([
 
                                 $data['user_id']
 
                             ]);
-
-
-                        $this->dispatch(
-                            'refresh'
-                        );
 
 
                     }),
@@ -139,11 +157,6 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Create New Admin
-                |--------------------------------------------------------------------------
-                */
 
 
                 Action::make('createAdmin')
@@ -153,14 +166,11 @@ class SchoolAdminsRelationManager extends RelationManager
                     ->icon('heroicon-o-plus')
 
 
-
                     ->form([
 
 
 
                         TextInput::make('name')
-
-                            ->label('Name')
 
                             ->required(),
 
@@ -168,8 +178,6 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
                         TextInput::make('email')
-
-                            ->label('Email')
 
                             ->email()
 
@@ -183,10 +191,7 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
 
-
                         TextInput::make('password')
-
-                            ->label('Password')
 
                             ->password()
 
@@ -195,17 +200,13 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
 
-                        TextInput::make('phone')
-
-                            ->label('Phone'),
+                        TextInput::make('phone'),
 
 
 
 
+                        TextInput::make('address'),
 
-                        TextInput::make('address')
-
-                            ->label('Address'),
 
 
                     ])
@@ -221,30 +222,27 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
 
-                            'name' => 
+                            'name'=>
                                 $data['name'],
 
 
 
-                            'email' => 
+                            'email'=>
                                 $data['email'],
 
 
 
-                            'password' =>
+                            'password'=>
                                 Hash::make(
                                     $data['password']
                                 ),
 
 
 
-                            'must_change_password' =>
-                                true,
-
+                            'must_change_password'=>true,
 
 
                         ]);
-
 
 
 
@@ -256,26 +254,39 @@ class SchoolAdminsRelationManager extends RelationManager
 
 
 
+                        $user->schoolAdmin()->create([
+
+
+
+                            'phone'=>
+                                $data['phone'] ?? null,
+
+
+
+                            'address'=>
+                                $data['address'] ?? null,
+
+
+                        ]);
+
+
+
 
                         $this->getOwnerRecord()
-                            ->users()
+
+                            ->schoolAdmins()
+
                             ->attach(
                                 $user->id
                             );
 
 
-
-
-
-                        $this->dispatch(
-                            'refresh'
-                        );
-
-
                     }),
 
 
+
             ])
+
 
 
 

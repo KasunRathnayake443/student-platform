@@ -19,14 +19,8 @@ class SchoolAdminsTable
     public static function configure(Table $table): Table
     {
 
+
         return $table
-
-
-            ->modifyQueryUsing(function($query){
-
-                return $query->role('school_admin');
-
-            })
 
 
 
@@ -34,7 +28,7 @@ class SchoolAdminsTable
 
 
 
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('user.name')
 
                     ->label('Name')
 
@@ -45,11 +39,20 @@ class SchoolAdminsTable
 
 
 
-                Tables\Columns\TextColumn::make('email')
+
+                Tables\Columns\TextColumn::make('user.email')
 
                     ->label('Email')
 
                     ->searchable(),
+
+
+
+
+
+                Tables\Columns\TextColumn::make('phone')
+
+                    ->label('Phone'),
 
 
 
@@ -60,6 +63,7 @@ class SchoolAdminsTable
                     ->counts('schools')
 
                     ->label('Schools'),
+
 
 
 
@@ -80,15 +84,20 @@ class SchoolAdminsTable
             ->recordActions([
 
 
+
                 ViewAction::make(),
 
+
+
                 EditAction::make(),
+
+
 
                 DeleteAction::make(),
 
 
-            ]);
 
+            ]);
 
     }
 

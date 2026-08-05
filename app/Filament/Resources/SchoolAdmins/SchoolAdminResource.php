@@ -2,15 +2,21 @@
 
 namespace App\Filament\Resources\SchoolAdmins;
 
-use App\Models\User;
+
+use App\Models\SchoolAdmin;
+
 
 use App\Filament\Resources\SchoolAdmins\Pages\CreateSchoolAdmin;
 use App\Filament\Resources\SchoolAdmins\Pages\EditSchoolAdmin;
 use App\Filament\Resources\SchoolAdmins\Pages\ListSchoolAdmins;
 use App\Filament\Resources\SchoolAdmins\Pages\ViewSchoolAdmin;
 
+
 use App\Filament\Resources\SchoolAdmins\Schemas\SchoolAdminForm;
+use App\Filament\Resources\SchoolAdmins\Schemas\SchoolAdminInfolist;
+
 use App\Filament\Resources\SchoolAdmins\Tables\SchoolAdminsTable;
+
 
 use BackedEnum;
 
@@ -20,10 +26,13 @@ use Filament\Tables\Table;
 use Filament\Support\Icons\Heroicon;
 
 
+
 class SchoolAdminResource extends Resource
 {
 
-    protected static ?string $model = User::class;
+
+    protected static ?string $model = SchoolAdmin::class;
+
 
 
     protected static string|BackedEnum|null $navigationIcon =
@@ -37,14 +46,20 @@ class SchoolAdminResource extends Resource
 
 
     protected static ?string $recordTitleAttribute =
-        'name';
-
+        'id';
 
 
 
     public static function form(Schema $schema): Schema
     {
         return SchoolAdminForm::configure($schema);
+    }
+
+
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return SchoolAdminInfolist::configure($schema);
     }
 
 
@@ -56,8 +71,10 @@ class SchoolAdminResource extends Resource
 
 
 
+
     public static function getPages(): array
     {
+
         return [
 
             'index' =>
@@ -76,6 +93,7 @@ class SchoolAdminResource extends Resource
                 EditSchoolAdmin::route('/{record}/edit'),
 
         ];
+
     }
 
 
