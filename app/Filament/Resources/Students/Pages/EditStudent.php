@@ -162,6 +162,10 @@ class EditStudent extends EditRecord
             $record->update([
 
 
+                'profile_photo' =>
+                    $data['profile_photo'] ?? $record->profile_photo,
+            
+            
                 'admission_no' =>
                     $data['admission_no'],
 

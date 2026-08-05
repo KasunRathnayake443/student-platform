@@ -7,7 +7,7 @@ use Filament\Schemas\Schema;
 
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\IconEntry;
-
+use Filament\Infolists\Components\ImageEntry;
 
 
 class SchoolAdminInfolist
@@ -22,7 +22,12 @@ class SchoolAdminInfolist
 
             ->components([
 
+                ImageEntry::make('profile_photo')
 
+                ->label('Profile Picture')
+            
+                ->circular(),
+                
 
                 TextEntry::make('user.name')
 

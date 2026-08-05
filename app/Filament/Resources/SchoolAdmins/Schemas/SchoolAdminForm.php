@@ -9,6 +9,7 @@ use Filament\Schemas\Schema;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
 
 
 
@@ -24,7 +25,19 @@ class SchoolAdminForm
 
             ->components([
 
+                FileUpload::make('profile_photo')
 
+                    ->label('Profile Picture')
+
+                    ->image()
+
+                    ->directory('school-admins/profile')
+
+                    ->imageEditor()
+
+                    ->avatar()
+
+                    ->nullable(),
 
                 TextInput::make('name')
 

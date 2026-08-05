@@ -70,19 +70,14 @@ class CreateSchoolAdmin extends CreateRecord
 
             $schoolAdmin = SchoolAdmin::create([
 
-
-                'user_id' =>
-                    $user->id,
-
-
-                'phone' =>
-                    $data['phone'] ?? null,
-
-
-                'address' =>
-                    $data['address'] ?? null,
-
-
+                'user_id'=>$user->id,
+            
+                'profile_photo'=>$data['profile_photo'] ?? null,
+            
+                'phone'=>$data['phone'] ?? null,
+            
+                'address'=>$data['address'] ?? null,
+            
             ]);
 
 

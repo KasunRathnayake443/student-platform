@@ -16,10 +16,15 @@ class StudentsTable
             ->columns([
 
 
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Name')
-                    ->searchable()
-                    ->sortable(),
+                Tables\Columns\ImageColumn::make('profile_photo')
+                ->label('Photo')
+                ->circular(),
+            
+            
+            Tables\Columns\TextColumn::make('user.name')
+                ->label('Name')
+                ->searchable()
+                ->sortable(),
 
 
                 Tables\Columns\TextColumn::make('admission_no')

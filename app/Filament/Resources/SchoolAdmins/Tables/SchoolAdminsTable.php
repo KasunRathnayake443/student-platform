@@ -26,7 +26,8 @@ class SchoolAdminsTable
 
             ->columns([
 
-
+                Tables\Columns\ImageColumn::make('profile_photo')
+                ->circular(),
 
                 Tables\Columns\TextColumn::make('user.name')
 

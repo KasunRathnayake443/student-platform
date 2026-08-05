@@ -11,6 +11,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\FileUpload;
 
 use Filament\Schemas\Schema;
 
@@ -29,6 +30,19 @@ class StudentForm
                 |--------------------------------------------------------------------------
                 */
 
+                FileUpload::make('profile_photo')
+
+                    ->label('Profile Picture')
+
+                    ->image()
+
+                    ->directory('students/profile')
+
+                    ->imageEditor()
+
+                    ->avatar()
+
+                    ->nullable(),
 
                 TextInput::make('name')
                     ->label('Student Name')

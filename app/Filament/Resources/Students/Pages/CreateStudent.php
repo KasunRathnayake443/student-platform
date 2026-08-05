@@ -82,8 +82,12 @@ class CreateStudent extends CreateRecord
 
 
                 'user_id' => $user->id,
-
-
+            
+            
+                'profile_photo' =>
+                    $data['profile_photo'] ?? null,
+            
+            
                 'admission_no' =>
                     $data['admission_no'],
 

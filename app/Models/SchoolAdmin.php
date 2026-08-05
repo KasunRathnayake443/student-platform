@@ -10,6 +10,7 @@ class SchoolAdmin extends Model
 {
     protected $fillable = [
         'user_id',
+        'profile_photo',
         'phone',
         'address',
     ];

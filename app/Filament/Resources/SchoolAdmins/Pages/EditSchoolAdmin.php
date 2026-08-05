@@ -47,7 +47,8 @@ class EditSchoolAdmin extends EditRecord
                 ->pluck('schools.id')
                 ->toArray();
 
-
+        $data['profile_photo'] =
+                $this->record->profile_photo;
 
         return $data;
 
@@ -96,18 +97,14 @@ class EditSchoolAdmin extends EditRecord
 
 
 
-
         $this->record->update([
 
-
-            'phone'=>
-                $data['phone'] ?? null,
-
-
-            'address'=>
-                $data['address'] ?? null,
-
-
+            'profile_photo'=>$data['profile_photo'] ?? null,
+        
+            'phone'=>$data['phone'] ?? null,
+        
+            'address'=>$data['address'] ?? null,
+        
         ]);
 
 
