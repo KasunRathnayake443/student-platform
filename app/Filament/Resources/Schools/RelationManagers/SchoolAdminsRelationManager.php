@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Builder;
 
 
+use App\Filament\Resources\SchoolAdmins\SchoolAdminResource;
+use Filament\Actions\ViewAction;
+
 
 class SchoolAdminsRelationManager extends RelationManager
 {
@@ -296,15 +299,28 @@ class SchoolAdminsRelationManager extends RelationManager
             ->recordActions([
 
 
-
+                ViewAction::make()
+            
+                    ->url(
+                        fn ($record) =>
+                            SchoolAdminResource::getUrl(
+                                'view',
+                                [
+                                    'record' => $record->schoolAdmin->id
+                                ]
+                            )
+                    ),
+            
+            
+            
                 DetachAction::make()
-
+            
                     ->label(
                         'Remove From School'
                     ),
-
-
-            ]);
+            
+            
+                ]);
 
 
     }

@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+
 class LearningClass extends Model
 {
+
     protected $fillable = [
         'grade_id',
         'name',
@@ -16,10 +18,13 @@ class LearningClass extends Model
     ];
 
 
+
     public function grade(): BelongsTo
     {
         return $this->belongsTo(Grade::class);
     }
+
+
 
 
     public function students(): BelongsToMany
@@ -34,11 +39,18 @@ class LearningClass extends Model
     }
 
 
+
+
+
     public function teachers(): BelongsToMany
     {
         return $this->belongsToMany(
             Teacher::class,
-            'learning_class_teacher'
-        )->withTimestamps();
+            'learning_class_teacher',
+            'learning_class_id',
+            'teacher_id'
+        )
+        ->withTimestamps();
     }
+
 }

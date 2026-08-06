@@ -34,11 +34,14 @@ class Teacher extends Model
     }
 
 
-    public function teachers(): BelongsToMany
+    public function classes(): BelongsToMany
     {
         return $this->belongsToMany(
-            Teacher::class,
-            'learning_class_teacher'
-        )->withTimestamps();
+            LearningClass::class,
+            'learning_class_teacher',
+            'teacher_id',
+            'learning_class_id'
+        )
+        ->withTimestamps();
     }
 }

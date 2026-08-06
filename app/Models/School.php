@@ -91,7 +91,9 @@ class School extends Model
     {
         return $this->belongsToMany(
             Teacher::class,
-            'school_teacher'
+            'school_teacher',
+            'school_id',
+            'teacher_id'
         )
         ->withTimestamps();
     }

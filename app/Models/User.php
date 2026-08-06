@@ -41,17 +41,6 @@ class User extends Authenticatable
 
 
 
-    public function teachingClasses(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            LearningClass::class,
-            'class_teacher',
-            'teacher_id'
-        )
-        ->withPivot('role')
-        ->withTimestamps();
-    }
-
 public function learningClasses(): BelongsToMany
 {
     return $this->belongsToMany(
