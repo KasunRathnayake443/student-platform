@@ -87,14 +87,14 @@ class School extends Model
 
 
 
-    public function teachingTeachers(): BelongsToMany
+    public function teachers(): BelongsToMany
     {
         return $this->belongsToMany(
-            User::class,
-            'teacher_schools',
-            'school_id',
-            'teacher_id'
+            Teacher::class,
+            'school_teacher'
         )
         ->withTimestamps();
     }
+
+
 }

@@ -41,15 +41,6 @@ class User extends Authenticatable
 
 
 
-    public function teachingSchools(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            School::class,
-            'teacher_schools',
-            'teacher_id'
-        )->withTimestamps();
-    }
-
     public function teachingClasses(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -87,6 +78,9 @@ public function schoolAdmin(): HasOne
     );
 }
 
-
+public function teacher()
+{
+    return $this->hasOne(Teacher::class);
+}
 
 }

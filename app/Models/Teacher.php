@@ -6,31 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class LearningClass extends Model
+class Teacher extends Model
 {
     protected $fillable = [
-        'grade_id',
-        'name',
-        'medium',
-        'is_active',
+
+        'user_id',
+        'profile_photo',
+        'employee_no',
+        'phone',
+        'address',
+
     ];
 
 
-    public function grade(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Grade::class);
+        return $this->belongsTo(User::class);
     }
 
 
-    public function students(): BelongsToMany
+    public function schools(): BelongsToMany
     {
         return $this->belongsToMany(
-            Student::class,
-            'class_student',
-            'learning_class_id',
-            'student_id'
-        )
-        ->withTimestamps();
+            School::class,
+            'school_teacher'
+        )->withTimestamps();
     }
 
 
