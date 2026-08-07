@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Students\Schemas;
 
+
 use App\Models\School;
 use App\Models\Grade;
 use App\Models\LearningClass;
+
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
@@ -13,22 +15,24 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
 
+
 use Filament\Schemas\Schema;
+
 
 
 class StudentForm
 {
+
+
     public static function configure(Schema $schema): Schema
     {
+
+
         return $schema
+
             ->components([
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Account Information
-                |--------------------------------------------------------------------------
-                */
 
                 FileUpload::make('profile_photo')
 
@@ -40,40 +44,61 @@ class StudentForm
 
                     ->imageEditor()
 
-                    ->avatar()
+                    ->avatar(),
 
-                    ->nullable(),
+
+
+
 
                 TextInput::make('name')
+
                     ->label('Student Name')
+
                     ->required()
+
                     ->maxLength(255),
 
 
+
+
+
                 TextInput::make('email')
+
                     ->label('Email Address')
+
                     ->email()
+
                     ->required(),
+
+
+
 
 
                 TextInput::make('password')
+
                     ->label('Password')
+
                     ->password()
-                    ->required(),
+
+                    ->required(fn($context) => $context === 'create'),
 
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Student Information
-                |--------------------------------------------------------------------------
-                */
 
 
                 TextInput::make('admission_no')
+
                     ->label('Admission Number')
+
                     ->required()
-                    ->unique('students', 'admission_no'),
+
+                    ->unique(
+                        'students',
+                        'admission_no',
+                        ignoreRecord: true
+                    ),
+
+
 
 
 
@@ -82,34 +107,42 @@ class StudentForm
 
 
 
+
+
                 Select::make('gender')
+
                     ->options([
 
-                        'male' => 'Male',
-                        'female' => 'Female',
-                        'other' => 'Other',
+                        'male'=>'Male',
+
+                        'female'=>'Female',
+
+                        'other'=>'Other',
 
                     ]),
 
 
 
+
+
                 TextInput::make('phone')
+
                     ->label('Student Phone')
+
                     ->tel(),
 
 
 
+
+
                 Textarea::make('address')
+
                     ->label('Address')
+
                     ->columnSpanFull(),
 
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Parent Information
-                |--------------------------------------------------------------------------
-                */
 
 
                 TextInput::make('parent_name')
@@ -117,116 +150,208 @@ class StudentForm
 
 
 
+
+
                 TextInput::make('parent_phone')
+
                     ->label('Parent Phone')
+
                     ->tel(),
 
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Enrollment
-                |--------------------------------------------------------------------------
-                */
 
 
                 Toggle::make('assign_school')
 
-                ->label('Assign Student To School')
-            
-                ->default(fn () => request()->has('school_id'))
-            
-                ->disabled(fn () => request()->has('school_id'))
-            
-                ->live(),
+                    ->label('Assign Student To School')
+
+                    ->default(
+                        fn() =>
+                        request()->has('school_id')
+                    )
+
+                    ->live(),
 
 
 
-                Select::make('school_id')
 
-                ->label('School')
-            
-                ->default(fn () =>
-                    request()->get('school_id')
-                )
-            
-                ->disabled(fn () =>
-                    request()->has('school_id')
-                )
+
+
+                Select::make('schools')
+
+                    ->label('Schools')
+
+                    ->multiple()
 
                     ->options(
-                        School::query()
-                            ->where('is_active', true)
-                            ->pluck('name','id')
-                    )
 
-                    ->searchable()
-
-                    ->visible(fn ($get) =>
-                        $get('assign_school')
-                    )
-
-                    ->live(),
-
-
-
-
-                Select::make('grade_id')
-
-                    ->label('Grade')
-
-                    ->options(function($get){
-
-                        if(!$get('school_id')) {
-                            return [];
-                        }
-
-
-                        return Grade::where(
-                            'school_id',
-                            $get('school_id')
+                        School::where(
+                            'is_active',
+                            true
                         )
-                        ->where('is_active',true)
-                        ->pluck('name','id');
 
-                    })
+                        ->pluck(
+                            'name',
+                            'id'
+                        )
 
-                    ->searchable()
-
-                    ->visible(fn ($get)=>
-                        $get('assign_school')
                     )
 
-                    ->live(),
+                    ->default(
 
+                        fn() =>
 
+                        request()->has('school_id')
 
+                            ? [
+                                request()->get('school_id')
+                              ]
 
-                Select::make('learning_class_id')
+                            : []
 
-                    ->label('Class')
-
-                    ->options(function($get){
-
-                        if(!$get('grade_id')) {
-                            return [];
-                        }
-
-
-                        return LearningClass::where(
-                            'grade_id',
-                            $get('grade_id')
-                        )
-                        ->where('is_active',true)
-                        ->pluck('name','id');
-
-                    })
+                    )
 
                     ->searchable()
 
-                    ->visible(fn ($get)=>
+                    ->preload()
+
+                    ->live()
+
+                    ->visible(
+                        fn($get)=>
                         $get('assign_school')
                     ),
+
+
+
+
+
+
+
+                Select::make('grades')
+
+                    ->label('Grades')
+
+                    ->multiple()
+
+                    ->options(function($get){
+
+
+                        if(!$get('schools')){
+
+                            return [];
+
+                        }
+
+
+
+                        return Grade::whereIn(
+
+                            'school_id',
+
+                            $get('schools')
+
+                        )
+
+                        ->where(
+                            'is_active',
+                            true
+                        )
+
+                        ->get()
+
+                        ->mapWithKeys(fn($grade)=>[
+
+                            $grade->id =>
+
+                            $grade->school->name
+                            .' → Grade '
+                            .$grade->name
+
+                        ]);
+
+                    })
+
+
+                    ->searchable()
+
+                    ->preload()
+
+                    ->live()
+
+                    ->visible(
+                        fn($get)=>
+                        $get('assign_school')
+                    ),
+
+
+
+
+
+
+
+
+                Select::make('classes')
+
+                    ->label('Learning Classes')
+
+                    ->multiple()
+
+                    ->options(function($get){
+
+
+                        if(!$get('grades')){
+
+                            return [];
+
+                        }
+
+
+
+                        return LearningClass::whereIn(
+
+                            'grade_id',
+
+                            $get('grades')
+
+                        )
+
+                        ->where(
+                            'is_active',
+                            true
+                        )
+
+                        ->with([
+                            'grade.school'
+                        ])
+
+                        ->get()
+
+                        ->mapWithKeys(fn($class)=>[
+
+                            $class->id =>
+
+                            $class->grade->school->name
+                            .' → Grade '
+                            .$class->grade->name
+                            .' → '
+                            .$class->name
+
+                        ]);
+
+                    })
+
+                    ->searchable()
+
+                    ->preload()
+
+                    ->visible(
+                        fn($get)=>
+                        $get('assign_school')
+                    ),
+
+
 
 
 
@@ -235,11 +360,15 @@ class StudentForm
 
                     ->label('Academic Year')
 
-                    ->default(date('Y'))
+                    ->default(
+                        date('Y')
+                    )
 
-                    ->visible(fn ($get)=>
+                    ->visible(
+                        fn($get)=>
                         $get('assign_school')
                     ),
+
 
 
 
@@ -251,17 +380,22 @@ class StudentForm
                     ->options([
 
                         'active'=>'Active',
+
                         'inactive'=>'Inactive',
 
                     ])
 
                     ->default('active')
 
-                    ->visible(fn ($get)=>
+                    ->visible(
+                        fn($get)=>
                         $get('assign_school')
                     ),
 
 
+
             ]);
+
     }
-}
+
+}   

@@ -11,6 +11,8 @@ use App\Filament\Resources\Students\Schemas\StudentForm;
 use App\Filament\Resources\Students\Schemas\StudentInfolist;
 use App\Filament\Resources\Students\Tables\StudentsTable;
 
+use App\Filament\Resources\Students\RelationManagers;
+
 use App\Models\Student;
 
 use BackedEnum;
@@ -59,7 +61,13 @@ class StudentResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+    
+            RelationManagers\StudentEnrollmentsRelationManager::class,
+    
+            RelationManagers\StudentClassesRelationManager::class,
+    
+        ];
     }
 
 

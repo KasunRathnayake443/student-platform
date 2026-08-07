@@ -2,78 +2,107 @@
 
 namespace App\Filament\Resources\Students\Pages;
 
+
 use App\Filament\Resources\Students\StudentResource;
+
 
 use App\Models\User;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
-use App\Models\School;
+use App\Models\Grade;
+use App\Models\LearningClass;
+
 
 use Filament\Resources\Pages\CreateRecord;
+
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 
+
 class CreateStudent extends CreateRecord
 {
 
+
     protected static string $resource = StudentResource::class;
+
+
+
+
+
 
 
 
     protected function handleRecordCreation(array $data): Student
     {
 
+
         return DB::transaction(function () use ($data) {
+
 
 
             /*
             |--------------------------------------------------------------------------
-            | Create User Account
+            | Create User
             |--------------------------------------------------------------------------
             */
 
 
             $user = User::create([
 
-                'name' => $data['name'],
 
-                'email' => $data['email'],
+                'name' =>
+                    $data['name'],
 
-                'password' => Hash::make(
-                    $data['password']
-                ),
 
-                'must_change_password' => true,
+                'email' =>
+                    $data['email'],
+
+
+                'password' =>
+                    Hash::make(
+                        $data['password']
+                    ),
+
+
+                'must_change_password' =>
+                    true,
+
 
             ]);
 
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | Assign Student Role
-            |--------------------------------------------------------------------------
-            */
 
 
-            if (
+
+
+
+            if(
                 \Spatie\Permission\Models\Role::where(
                     'name',
                     'student'
                 )->exists()
-            ) {
+            ){
+
 
                 $user->assignRole('student');
+
 
             }
 
 
 
+
+
+
+
+
+
             /*
             |--------------------------------------------------------------------------
-            | Create Student Profile
+            | Create Student
             |--------------------------------------------------------------------------
             */
 
@@ -81,13 +110,14 @@ class CreateStudent extends CreateRecord
             $student = Student::create([
 
 
-                'user_id' => $user->id,
-            
-            
+                'user_id' =>
+                    $user->id,
+
+
                 'profile_photo' =>
                     $data['profile_photo'] ?? null,
-            
-            
+
+
                 'admission_no' =>
                     $data['admission_no'],
 
@@ -122,98 +152,217 @@ class CreateStudent extends CreateRecord
 
 
 
+
+
+
+
             /*
             |--------------------------------------------------------------------------
-            | Optional Enrollment
+            | Create Enrollments
             |--------------------------------------------------------------------------
             */
 
 
-            if (
-                isset($data['assign_school'])
+            if(
+                !empty($data['assign_school'])
                 &&
-                $data['assign_school']
-            ) {
-
-
-                StudentEnrollment::create([
-
-
-                    'student_id' =>
-                        $student->id,
-
-
-                    'school_id' =>
-                        $data['school_id'],
-
-
-                    'grade_id' =>
-                        $data['grade_id'],
-
-
-                    'academic_year' =>
-                        $data['academic_year'] ?? date('Y'),
-
-
-                    'status' =>
-                        $data['status'] ?? 'active',
-
-
-                ]);
+                !empty($data['schools'])
+            ){
 
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Attach Class
-                |--------------------------------------------------------------------------
-                */
+                foreach(
+                    $data['schools']
+                    as $schoolId
+                ){
 
 
-                if (
-                    !empty($data['learning_class_id'])
-                ) {
+
+                    $grades =
+                        Grade::whereIn(
+                            'id',
+                            $data['grades'] ?? []
+                        )
+                        ->where(
+                            'school_id',
+                            $schoolId
+                        )
+                        ->get();
 
 
-                    $student
-                        ->classes()
-                        ->attach(
-                            $data['learning_class_id']
-                        );
+
+
+
+
+
+                    foreach(
+                        $grades
+                        as $grade
+                    ){
+
+
+
+                        $enrollment =
+                            StudentEnrollment::create([
+
+
+                                'student_id' =>
+                                    $student->id,
+
+
+                                'school_id' =>
+                                    $schoolId,
+
+
+                                'grade_id' =>
+                                    $grade->id,
+
+
+                                'academic_year' =>
+                                    $data['academic_year']
+                                    ??
+                                    date('Y'),
+
+
+                                'status' =>
+                                    $data['status']
+                                    ??
+                                    'active',
+
+
+                            ]);
+
+
+
+
+
+
+
+
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Attach Classes
+                        |--------------------------------------------------------------------------
+                        */
+
+
+                        foreach(
+                            $data['classes'] ?? []
+                            as $classId
+                        ){
+
+
+
+                            $classExists =
+                                LearningClass::where(
+                                    'id',
+                                    $classId
+                                )
+                                ->where(
+                                    'grade_id',
+                                    $grade->id
+                                )
+                                ->exists();
+
+
+
+
+
+                            if($classExists){
+
+
+
+                                $student
+                                    ->classes()
+                                    ->attach(
+
+                                        $classId,
+
+                                        [
+
+                                            'student_enrollment_id' =>
+                                                $enrollment->id
+
+                                        ]
+
+                                    );
+
+
+                            }
+
+
+                        }
+
+
+
+
+
+                    }
+
+
 
 
                 }
+
+
 
 
             }
 
 
 
+
+
+
             return $student;
+
 
 
         });
 
 
+
     }
+
+
+
+
+
+
+
+
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
 
-        if (
+
+        if(
             request()->has('school_id')
-        ) {
+        ){
+
 
             $data['assign_school'] = true;
 
-            $data['school_id'] =
-                request()->get('school_id');
+
+            $data['schools'] = [
+
+                request()->get('school_id')
+
+            ];
+
 
         }
 
 
+
+
         return $data;
 
+
     }
+
+
 
 }

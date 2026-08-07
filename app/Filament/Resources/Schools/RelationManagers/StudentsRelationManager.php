@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Schools\RelationManagers;
 
 use App\Models\Student;
 use App\Models\StudentEnrollment;
+use App\Models\LearningClass;
 
 
 use App\Filament\Resources\Students\StudentResource;
@@ -45,10 +46,15 @@ class StudentsRelationManager extends RelationManager
 
 
 
+
+
+
     public function table(Table $table): Table
     {
 
+
         return $table
+
 
 
             ->recordTitleAttribute('user.name')
@@ -57,9 +63,15 @@ class StudentsRelationManager extends RelationManager
 
             ->columns([
 
+
+
                 Tables\Columns\ImageColumn::make('profile_photo')
-                ->label('Profie Photo')
-                ->circular(),
+
+                    ->label('Profile Photo')
+
+                    ->circular(),
+
+
 
                 Tables\Columns\TextColumn::make('user.name')
 
@@ -94,7 +106,11 @@ class StudentsRelationManager extends RelationManager
 
 
 
+
+
             ->headerActions([
+
+
 
 
 
@@ -102,7 +118,6 @@ class StudentsRelationManager extends RelationManager
 
 
                     ->label('Add Existing Student')
-
 
                     ->icon('heroicon-o-link')
 
@@ -112,31 +127,21 @@ class StudentsRelationManager extends RelationManager
 
 
 
+
                         Select::make('student_id')
 
                             ->label('Student')
 
                             ->options(
 
-                                Student::query()
-
-                                    ->whereDoesntHave(
-                                        'enrollments',
-                                        function($query){
-
-                                            $query->where(
-                                                'school_id',
-                                                $this->getOwnerRecord()->id
-                                            );
-
-                                        }
-                                    )
-
-                                    ->with('user')
+                                Student::with('user')
 
                                     ->get()
 
-                                    ->pluck('user.name','id')
+                                    ->pluck(
+                                        'user.name',
+                                        'id'
+                                    )
 
                             )
 
@@ -150,9 +155,7 @@ class StudentsRelationManager extends RelationManager
 
                         Select::make('grade_id')
 
-
                             ->label('Grade')
-
 
                             ->options(
 
@@ -160,12 +163,67 @@ class StudentsRelationManager extends RelationManager
 
                                     ->grades()
 
-                                    ->pluck('name','id')
+                                    ->where(
+                                        'is_active',
+                                        true
+                                    )
+
+                                    ->pluck(
+                                        'name',
+                                        'id'
+                                    )
 
                             )
 
+                            ->required()
 
-                            ->required(),
+                            ->live(),
+
+
+
+
+
+
+                        Select::make('learning_class_ids')
+
+                            ->label('Classes')
+
+                            ->multiple()
+
+                            ->options(function($get){
+
+
+                                if(!$get('grade_id')){
+
+                                    return [];
+
+                                }
+
+
+
+                                return LearningClass::where(
+
+                                    'grade_id',
+
+                                    $get('grade_id')
+
+                                )
+
+                                ->where(
+                                    'is_active',
+                                    true
+                                )
+
+                                ->pluck(
+                                    'name',
+                                    'id'
+                                );
+
+
+                            })
+
+                            ->searchable(),
+
 
 
 
@@ -173,7 +231,11 @@ class StudentsRelationManager extends RelationManager
 
                         TextInput::make('academic_year')
 
-                            ->default(date('Y'))
+                            ->label('Academic Year')
+
+                            ->default(
+                                date('Y')
+                            )
 
                             ->required(),
 
@@ -184,46 +246,103 @@ class StudentsRelationManager extends RelationManager
 
 
 
+
                     ->action(function(array $data){
 
 
-
-                        $school =
-                            $this->getOwnerRecord();
+                        DB::transaction(function() use ($data){
 
 
 
+                            $student =
 
-                        $enrollment =
-                            StudentEnrollment::create([
-
-
-
-                                'student_id'=>
-                                    $data['student_id'],
+                                Student::findOrFail(
+                                    $data['student_id']
+                                );
 
 
 
-                                'school_id'=>
-                                    $school->id,
+                            $school =
+
+                                $this->getOwnerRecord();
 
 
 
-                                'grade_id'=>
-                                    $data['grade_id'],
 
 
 
-                                'academic_year'=>
-                                    $data['academic_year'],
+                            $enrollment =
+
+                                StudentEnrollment::create([
 
 
 
-                                'status'=>
-                                    'active',
+                                    'student_id' =>
+                                        $student->id,
 
 
-                            ]);
+
+                                    'school_id' =>
+                                        $school->id,
+
+
+
+                                    'grade_id' =>
+                                        $data['grade_id'],
+
+
+
+                                    'academic_year' =>
+                                        $data['academic_year'],
+
+
+
+                                    'status' =>
+                                        'active',
+
+
+                                ]);
+
+
+
+
+
+
+
+
+                            foreach(
+                                $data['learning_class_ids'] ?? []
+                                as $classId
+                            ){
+
+
+
+                                $student
+                                    ->classes()
+                                    ->attach(
+
+
+                                        $classId,
+
+
+                                        [
+
+
+                                            'student_enrollment_id' =>
+
+                                                $enrollment->id
+
+
+                                        ]
+
+                                    );
+
+
+                            }
+
+
+
+                        });
 
 
 
@@ -233,17 +352,42 @@ class StudentsRelationManager extends RelationManager
 
 
 
-                    Action::make('createStudent')
+
+
+
+
+
+                Action::make('createStudent')
+
 
                     ->label('Add New Student')
-                
+
+
                     ->icon('heroicon-o-user-plus')
-                
+
+
+
                     ->url(fn () =>
-                        StudentResource::getUrl('create', [
-                            'school_id' => $this->getOwnerRecord()->id,
-                        ])
+
+
+                        StudentResource::getUrl(
+
+                            'create',
+
+                            [
+
+                                'school_id' =>
+
+                                    $this->getOwnerRecord()->id,
+
+                            ]
+
+                        )
+
+
                     ),
+
+
 
 
 
@@ -253,24 +397,38 @@ class StudentsRelationManager extends RelationManager
 
 
 
+
+
+
             ->recordActions([
+
 
 
 
                 ViewAction::make()
 
 
-
                     ->url(
-                        fn($record)=>
 
-                        StudentResource::getUrl(
-                            'view',
-                            [
-                                'record'=>$record
-                            ]
-                        )
+                        fn($record) =>
+
+
+                            StudentResource::getUrl(
+
+                                'view',
+
+                                [
+
+                                    'record' => $record,
+
+                                ]
+
+                            )
+
                     ),
+
+
+
 
 
 
@@ -278,11 +436,20 @@ class StudentsRelationManager extends RelationManager
 
 
 
+
+
+
                 DeleteAction::make(),
+
+
 
 
             ]);
 
+
+
     }
+
+
 
 }

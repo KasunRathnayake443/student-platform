@@ -2,33 +2,50 @@
 
 namespace App\Filament\Resources\Students\Pages;
 
+
 use App\Filament\Resources\Students\StudentResource;
 
+
 use App\Models\StudentEnrollment;
+use App\Models\Grade;
+use App\Models\LearningClass;
+
 
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 
+
 class EditStudent extends EditRecord
 {
 
+
     protected static string $resource = StudentResource::class;
+
+
+
+
+
 
 
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
 
+
         $student = $this->record;
+
+
+
 
 
         /*
         |--------------------------------------------------------------------------
-        | Load User Data
+        | User Data
         |--------------------------------------------------------------------------
         */
 
@@ -42,66 +59,133 @@ class EditStudent extends EditRecord
 
 
 
+
+
+
+
+
+
         /*
         |--------------------------------------------------------------------------
-        | Load Current Enrollment
+        | Enrollment Data
         |--------------------------------------------------------------------------
         */
 
 
-        $enrollment =
-            $student->enrollments()
-                ->latest()
-                ->first();
+        $enrollments =
+            $student
+                ->enrollments()
+                ->get();
 
 
 
-        if ($enrollment) {
+
+
+        if($enrollments->count())
+        {
 
 
             $data['assign_school'] = true;
 
 
-            $data['school_id'] =
-                $enrollment->school_id;
 
 
-            $data['grade_id'] =
-                $enrollment->grade_id;
+            $data['schools'] =
+
+                $enrollments
+
+                    ->pluck('school_id')
+
+                    ->unique()
+
+                    ->values()
+
+                    ->toArray();
+
+
+
+
+
+
+
+            $data['grades'] =
+
+                $enrollments
+
+                    ->pluck('grade_id')
+
+                    ->unique()
+
+                    ->values()
+
+                    ->toArray();
+
+
+
+
+
+
+
+            $data['classes'] =
+
+                $student
+
+                    ->classes()
+
+                    ->pluck('learning_classes.id')
+
+                    ->unique()
+
+                    ->values()
+
+                    ->toArray();
+
+
+
+
+
+
+
+            $latest =
+
+                $enrollments->sortByDesc('id')->first();
+
+
+
 
 
             $data['academic_year'] =
-                $enrollment->academic_year;
+
+                $latest?->academic_year;
+
+
+
 
 
             $data['status'] =
-                $enrollment->status;
 
+                $latest?->status;
 
-
-            $class =
-                $student->classes()
-                    ->where(
-                        'learning_classes.grade_id',
-                        $enrollment->grade_id
-                    )
-                    ->first();
-
-
-
-            if ($class) {
-
-                $data['learning_class_id'] =
-                    $class->id;
-
-            }
 
         }
 
 
+
+
+
+
         return $data;
 
+
     }
+
+
+
+
+
+
+
+
 
 
 
@@ -114,10 +198,12 @@ class EditStudent extends EditRecord
     {
 
 
-        return DB::transaction(function () use (
-            $record,
-            $data
-        ) {
+        return DB::transaction(function () use ($record, $data) {
+
+
+
+
+
 
 
             /*
@@ -139,14 +225,19 @@ class EditStudent extends EditRecord
 
 
                 'password' =>
+
                     !empty($data['password'])
 
-                        ? Hash::make($data['password'])
+                    ? Hash::make($data['password'])
 
-                        : $record->user->password,
+                    : $record->user->password,
 
 
             ]);
+
+
+
+
 
 
 
@@ -163,9 +254,11 @@ class EditStudent extends EditRecord
 
 
                 'profile_photo' =>
-                    $data['profile_photo'] ?? $record->profile_photo,
-            
-            
+                    $data['profile_photo']
+                    ??
+                    $record->profile_photo,
+
+
                 'admission_no' =>
                     $data['admission_no'],
 
@@ -201,130 +294,197 @@ class EditStudent extends EditRecord
 
 
 
+
+
+
             /*
             |--------------------------------------------------------------------------
-            | Enrollment Update
+            | Remove Old Enrollment + Class Links
             |--------------------------------------------------------------------------
             */
 
 
-            $enrollment =
-                $record->enrollments()
-                    ->latest()
-                    ->first();
+            $record
+                ->classes()
+                ->detach();
+
+
+
+            $record
+                ->enrollments()
+                ->delete();
 
 
 
 
-            if (
+
+
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Recreate Enrollment Structure
+            |--------------------------------------------------------------------------
+            */
+
+
+            if(
                 !empty($data['assign_school'])
                 &&
-                $data['assign_school']
-            ) {
-
-
-                if ($enrollment) {
-
-
-                    $enrollment->update([
-
-
-                        'school_id' =>
-                            $data['school_id'],
-
-
-                        'grade_id' =>
-                            $data['grade_id'],
-
-
-                        'academic_year' =>
-                            $data['academic_year'] ?? date('Y'),
-
-
-                        'status' =>
-                            $data['status'] ?? 'active',
-
-                    ]);
+                !empty($data['schools'])
+            )
+            {
 
 
 
-                } else {
+
+                foreach(
+                    $data['schools']
+                    as $schoolId
+                )
+                {
 
 
-                    StudentEnrollment::create([
 
 
-                        'student_id' =>
-                            $record->id,
+                    $grades =
+
+                        Grade::whereIn(
+                            'id',
+                            $data['grades'] ?? []
+                        )
+
+                        ->where(
+                            'school_id',
+                            $schoolId
+                        )
+
+                        ->get();
 
 
-                        'school_id' =>
-                            $data['school_id'],
 
 
-                        'grade_id' =>
-                            $data['grade_id'],
 
 
-                        'academic_year' =>
-                            $data['academic_year'] ?? date('Y'),
+
+                    foreach(
+                        $grades
+                        as $grade
+                    )
+                    {
 
 
-                        'status' =>
-                            $data['status'] ?? 'active',
 
 
-                    ]);
+                        $enrollment =
+
+                            StudentEnrollment::create([
+
+
+                                'student_id' =>
+                                    $record->id,
+
+
+                                'school_id' =>
+                                    $schoolId,
+
+
+                                'grade_id' =>
+                                    $grade->id,
+
+
+                                'academic_year' =>
+                                    $data['academic_year']
+                                    ??
+                                    date('Y'),
+
+
+                                'status' =>
+                                    $data['status']
+                                    ??
+                                    'active',
+
+
+                            ]);
+
+
+
+
+
+
+
+
+                        foreach(
+                            $data['classes'] ?? []
+                            as $classId
+                        )
+                        {
+
+
+
+                            $validClass =
+
+                                LearningClass::where(
+                                    'id',
+                                    $classId
+                                )
+
+                                ->where(
+                                    'grade_id',
+                                    $grade->id
+                                )
+
+                                ->exists();
+
+
+
+
+
+
+
+                            if($validClass)
+                            {
+
+
+                                $record
+                                    ->classes()
+                                    ->attach(
+
+                                        $classId,
+
+                                        [
+
+                                            'student_enrollment_id' =>
+                                                $enrollment->id
+
+                                        ]
+
+                                    );
+
+
+                            }
+
+
+                        }
+
+
+
+
+
+                    }
+
+
 
                 }
 
 
-
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Update Class
-                |--------------------------------------------------------------------------
-                */
-
-
-                if (
-                    !empty($data['learning_class_id'])
-                ) {
-
-
-                    $record
-                        ->classes()
-                        ->sync([
-                            $data['learning_class_id']
-                        ]);
-
-
-                }
-
-
-
-            } else {
-
-
-                /*
-                Remove enrollment if school assignment removed
-                */
-
-
-                $record
-                    ->enrollments()
-                    ->delete();
-
-
-
-                $record
-                    ->classes()
-                    ->detach();
 
 
             }
+
+
+
 
 
 
@@ -334,20 +494,34 @@ class EditStudent extends EditRecord
         });
 
 
+
     }
+
+
+
+
+
 
 
 
 
     protected function getHeaderActions(): array
     {
+
         return [
+
 
             Actions\ViewAction::make(),
 
+
             Actions\DeleteAction::make(),
 
+
         ];
+
+
     }
+
+
 
 }
