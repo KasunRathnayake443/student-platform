@@ -191,4 +191,12 @@ class LearningClass extends Model
     )->orderBy('sort_order');
 }
 
+
+public function assignments(): HasMany
+{
+    return $this->hasMany(
+        Assignment::class
+    );
+}
+
 }
