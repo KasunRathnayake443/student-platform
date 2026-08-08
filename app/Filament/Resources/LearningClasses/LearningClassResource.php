@@ -93,18 +93,13 @@ class LearningClassResource extends Resource
 
     public static function getRelations(): array
     {
-
         return [
-
-
-            RelationManagers\TeachersRelationManager::class,
-
-
-            RelationManagers\StudentsRelationManager::class,
-
-
+            \App\Filament\Resources\LearningClasses\RelationManagers\StudentsRelationManager::class,
+    
+            \App\Filament\Resources\LearningClasses\RelationManagers\TeachersRelationManager::class,
+    
+            \App\Filament\Resources\LearningClasses\RelationManagers\LessonsRelationManager::class,
         ];
-
     }
 
 

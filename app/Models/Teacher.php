@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Teacher extends Model
 {
@@ -44,4 +45,12 @@ class Teacher extends Model
         )
         ->withTimestamps();
     }
+
+    public function lessons(): HasMany
+{
+    return $this->hasMany(
+        Lesson::class,
+        'teacher_id'
+    );
+}
 }
