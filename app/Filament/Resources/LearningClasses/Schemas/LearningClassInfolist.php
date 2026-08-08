@@ -5,6 +5,9 @@ namespace App\Filament\Resources\LearningClasses\Schemas;
 
 use Filament\Schemas\Schema;
 
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+
 use Filament\Infolists\Components\TextEntry;
 
 
@@ -20,39 +23,82 @@ class LearningClassInfolist
             ->components([
 
 
-                TextEntry::make('name')
+                Section::make('Class Information')
 
-                    ->label('Class Name'),
-
-
+                    ->schema([
 
 
-                TextEntry::make('grade.school.name')
+                        Grid::make(2)
 
-                    ->label('School'),
+                            ->schema([
 
 
 
+                                TextEntry::make('name')
 
-                TextEntry::make('grade.name')
-
-                    ->label('Grade'),
+                                    ->label('Class Name'),
 
 
 
 
-                TextEntry::make('medium')
 
-                    ->label('Medium'),
+                                TextEntry::make('medium')
+
+                                    ->label('Medium'),
 
 
 
 
-                TextEntry::make('is_active')
 
-                    ->label('Status')
+                                TextEntry::make('grade.school.name')
 
-                    ->badge(),
+                                    ->label('School'),
+
+
+
+
+
+                                TextEntry::make('grade.name')
+
+                                    ->label('Grade'),
+
+
+
+
+
+                                TextEntry::make('students_count')
+
+                                    ->label('Students')
+
+                                    ->badge(),
+
+
+
+
+
+                                TextEntry::make('teachers_count')
+
+                                    ->label('Teachers')
+
+                                    ->badge(),
+
+
+
+
+
+                                TextEntry::make('is_active')
+
+                                    ->label('Status')
+
+                                    ->badge(),
+
+
+
+                            ]),
+
+
+
+                    ]),
 
 
 
