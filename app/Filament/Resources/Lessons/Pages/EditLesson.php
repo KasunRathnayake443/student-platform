@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Lessons\Pages;
 
 use App\Filament\Resources\Lessons\LessonResource;
-use App\Models\LessonAttachment;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,138 +10,155 @@ class EditLesson extends EditRecord
 {
     protected static string $resource = LessonResource::class;
 
-    /**
-     * Attachment paths that existed when the edit page was opened.
-     */
-    protected array $originalAttachmentPaths = [];
+    /*
+    |--------------------------------------------------------------------------
+    | Fill Existing Attachments
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Fill the edit form.
-     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $this->record->load('attachments');
 
-        $attachments = $this->record
+        $data['existing_attachments'] = $this->record
             ->attachments
-            ->sortBy('sort_order')
-            ->values();
+            ->map(function ($attachment) {
 
-        $paths = $attachments
-            ->pluck('file_path')
-            ->filter()
+                return [
+                    'id' => $attachment->id,
+
+                    'original_name' =>
+                        $attachment->original_name,
+
+                    'file_path' =>
+                        $attachment->file_path,
+
+                    'attachment_size' =>
+                        $attachment->file_size,
+
+                    'mime_type' =>
+                        $attachment->mime_type,
+                ];
+            })
             ->values()
             ->toArray();
 
-        $data['attachments'] = $paths;
+        /*
+        |--------------------------------------------------------------------------
+        | New attachments start empty
+        |--------------------------------------------------------------------------
+        */
 
-        $this->originalAttachmentPaths = $paths;
+        $data['new_attachments'] = [];
 
         return $data;
     }
 
-    /**
-     * Prevent attachments from being saved
-     * into the lessons table.
-     */
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        unset($data['attachments']);
 
-        return $data;
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\DeleteAction::make()
+                ->label('Delete Lesson')
+                ->icon('heroicon-o-trash')
+                ->requiresConfirmation()
+                ->modalHeading('Delete Lesson')
+                ->modalDescription(
+                    'This will permanently delete the lesson and all of its attached files.'
+                )
+                ->modalSubmitActionLabel('Yes, Delete Lesson'),
+        ];
     }
 
-    /**
-     * Synchronize attachments after the Lesson
-     * itself has been saved.
-     */
-    protected function afterSave(): void
-    {
-        $this->syncAttachments();
-    }
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Don't Save Attachment Fields Into Lessons Table
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Synchronize lesson attachment records.
-     */
-    protected function syncAttachments(): void
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | Get current form state
-        |--------------------------------------------------------------------------
-        */
+    protected function mutateFormDataBeforeSave(
+        array $data
+    ): array {
 
-        $formState = $this->form->getState();
-
-        $currentPaths = $formState['attachments'] ?? [];
-
-        if (! is_array($currentPaths)) {
-            $currentPaths = [];
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Normalize paths
-        |--------------------------------------------------------------------------
-        |
-        | Filament may return temporary upload objects or strings.
-        | We only need the final stored paths here.
-        |
-        */
-
-        $normalizedPaths = [];
-
-        foreach ($currentPaths as $file) {
-
-            if (is_string($file)) {
-
-                $normalizedPaths[] = $file;
-
-                continue;
-            }
-
-            /*
-             * Handle UploadedFile-like objects.
-             */
-
-            if (
-                is_object($file) &&
-                method_exists($file, 'getRealPath')
-            ) {
-
-                /*
-                 * The FileUpload component normally stores the file
-                 * before the form is submitted, so this is primarily
-                 * a safety fallback.
-                 */
-
-                continue;
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Remove duplicate paths
-        |--------------------------------------------------------------------------
-        */
-
-        $normalizedPaths = array_values(
-            array_unique(
-                array_filter($normalizedPaths)
-            )
+        unset(
+            $data['existing_attachments'],
+            $data['new_attachments']
         );
 
+        return $data;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | After Lesson Saved
+    |--------------------------------------------------------------------------
+    */
+
+    protected function afterSave(): void
+    {
+        $this->processExistingAttachments();
+
+        $this->processNewAttachments();
+
         /*
         |--------------------------------------------------------------------------
-        | Load existing attachments
+        | Reload relationship
         |--------------------------------------------------------------------------
         */
 
-        $this->record->load('attachments');
+        $this->record->unsetRelation('attachments');
 
-        $existingAttachments = $this->record
-            ->attachments
-            ->keyBy('file_path');
+        $this->record->load('attachments');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Existing Attachments
+    |--------------------------------------------------------------------------
+    |
+    | Anything removed from the repeater gets deleted from:
+    |
+    | 1. lesson_attachments table
+    | 2. public storage
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    protected function processExistingAttachments(): void
+    {
+        $formState = $this->form->getState();
+
+        $existingAttachments =
+            $formState['existing_attachments']
+            ?? [];
+
+        if (! is_array($existingAttachments)) {
+            $existingAttachments = [];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | IDs still present in the form
+        |--------------------------------------------------------------------------
+        */
+
+        $remainingIds = collect($existingAttachments)
+            ->pluck('id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->toArray();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Get database attachments
+        |--------------------------------------------------------------------------
+        */
+
+        $attachments = $this->record
+            ->attachments()
+            ->get();
 
         /*
         |--------------------------------------------------------------------------
@@ -150,12 +166,12 @@ class EditLesson extends EditRecord
         |--------------------------------------------------------------------------
         */
 
-        foreach ($existingAttachments as $path => $attachment) {
+        foreach ($attachments as $attachment) {
 
             if (
                 ! in_array(
-                    $path,
-                    $normalizedPaths,
+                    (int) $attachment->id,
+                    $remainingIds,
                     true
                 )
             ) {
@@ -172,6 +188,7 @@ class EditLesson extends EditRecord
                         $attachment->file_path
                     )
                 ) {
+
                     Storage::disk('public')->delete(
                         $attachment->file_path
                     );
@@ -186,42 +203,61 @@ class EditLesson extends EditRecord
                 $attachment->delete();
             }
         }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | New Attachments
+    |--------------------------------------------------------------------------
+    */
+
+    protected function processNewAttachments(): void
+    {
+        $formState = $this->form->getState();
+
+        $newAttachments =
+            $formState['new_attachments']
+            ?? [];
+
+        if (! is_array($newAttachments)) {
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | Reload remaining attachments
-        |--------------------------------------------------------------------------
-        */
-
-        $this->record->unsetRelation('attachments');
-
-        $this->record->load('attachments');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Existing attachment paths
+        | Existing database paths
         |--------------------------------------------------------------------------
         */
 
         $existingPaths = $this->record
-            ->attachments
+            ->attachments()
             ->pluck('file_path')
-            ->filter()
             ->toArray();
 
         /*
         |--------------------------------------------------------------------------
-        | Create database records for new files
+        | Process uploaded files
         |--------------------------------------------------------------------------
         */
 
         foreach (
-            $normalizedPaths as $index => $path
+            $newAttachments
+            as $index => $path
         ) {
 
             /*
             |--------------------------------------------------------------------------
-            | Already registered
+            | Filament FileUpload should give us a string path
+            |--------------------------------------------------------------------------
+            */
+
+            if (! is_string($path)) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Prevent duplicates
             |--------------------------------------------------------------------------
             */
 
@@ -237,7 +273,7 @@ class EditLesson extends EditRecord
 
             /*
             |--------------------------------------------------------------------------
-            | Make sure the uploaded file exists
+            | Make sure file exists
             |--------------------------------------------------------------------------
             */
 
@@ -249,7 +285,7 @@ class EditLesson extends EditRecord
 
             /*
             |--------------------------------------------------------------------------
-            | Get file metadata
+            | Get metadata
             |--------------------------------------------------------------------------
             */
 
@@ -278,65 +314,38 @@ class EditLesson extends EditRecord
 
             /*
             |--------------------------------------------------------------------------
-            | Create attachment
+            | Create Attachment
             |--------------------------------------------------------------------------
             */
 
-            $this->record->attachments()->create([
+            $this->record
+                ->attachments()
+                ->create([
 
-                'original_name' =>
-                    basename($path),
+                    'original_name' =>
+                        basename($path),
 
-                'file_path' =>
-                    $path,
+                    'file_path' =>
+                        $path,
 
-                'mime_type' =>
-                    $mimeType,
+                    'mime_type' =>
+                        $mimeType,
 
-                'file_size' =>
-                    $fileSize,
+                    'file_size' =>
+                        $fileSize,
 
-                'sort_order' =>
-                    $index,
+                    'sort_order' =>
+                        $index,
 
-            ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update attachment ordering
-        |--------------------------------------------------------------------------
-        */
-
-        $this->record->load('attachments');
-
-        foreach (
-            $normalizedPaths as $index => $path
-        ) {
-
-            $attachment = $this->record
-                ->attachments
-                ->firstWhere(
-                    'file_path',
-                    $path
-                );
-
-            if ($attachment) {
-
-                $attachment->update([
-                    'sort_order' => $index,
                 ]);
-            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remember path so duplicates aren't created
+            |--------------------------------------------------------------------------
+            */
+
+            $existingPaths[] = $path;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Reload final relationship
-        |--------------------------------------------------------------------------
-        */
-
-        $this->record->unsetRelation('attachments');
-
-        $this->record->load('attachments');
     }
 }

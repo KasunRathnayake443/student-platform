@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Lesson extends Model
 {
@@ -24,12 +25,6 @@ class Lesson extends Model
         'sort_order' => 'integer',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Learning Class
-    |--------------------------------------------------------------------------
-    */
-
     public function learningClass(): BelongsTo
     {
         return $this->belongsTo(
@@ -38,31 +33,39 @@ class Lesson extends Model
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Teacher
-    |--------------------------------------------------------------------------
-    */
-
     public function teacher(): BelongsTo
     {
-        return $this->belongsTo(
-            Teacher::class,
-            'teacher_id'
-        );
+        return $this->belongsTo(Teacher::class);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Attachments
-    |--------------------------------------------------------------------------
-    */
 
     public function attachments(): HasMany
     {
         return $this->hasMany(
-            LessonAttachment::class,
-            'lesson_id'
+            LessonAttachment::class
         )->orderBy('sort_order');
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Lesson $lesson) {
+
+            $lesson->loadMissing('attachments');
+
+            foreach ($lesson->attachments as $attachment) {
+
+                if (
+                    $attachment->file_path &&
+                    Storage::disk('public')->exists(
+                        $attachment->file_path
+                    )
+                ) {
+                    Storage::disk('public')->delete(
+                        $attachment->file_path
+                    );
+                }
+
+                $attachment->delete();
+            }
+        });
     }
 }
