@@ -6,6 +6,7 @@ use App\Models\LearningClass;
 use App\Models\Teacher;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class AssignmentForm
@@ -24,7 +26,7 @@ class AssignmentForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | Basic Information
+                | Assignment Information
                 |--------------------------------------------------------------------------
                 */
 
@@ -60,7 +62,7 @@ class AssignmentForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | Learning Class
+                | Class & Teacher
                 |--------------------------------------------------------------------------
                 */
 
@@ -82,7 +84,7 @@ class AssignmentForm
                             ->required(),
 
                         Select::make('teacher_id')
-                            ->label('Teacher')
+                            ->label('Responsible Teacher')
                             ->options(
                                 fn () => Teacher::query()
                                     ->with('user')
@@ -120,6 +122,7 @@ class AssignmentForm
                         TextInput::make('max_score')
                             ->label('Maximum Score')
                             ->numeric()
+                            ->integer()
                             ->minValue(1)
                             ->default(100)
                             ->required()
@@ -131,7 +134,7 @@ class AssignmentForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | Availability
+                | Assignment Availability
                 |--------------------------------------------------------------------------
                 */
 
@@ -145,9 +148,43 @@ class AssignmentForm
                             ->label('Available Immediately')
                             ->default(true)
                             ->live()
+                            ->afterStateUpdated(
+                                function (
+                                    Set $set,
+                                    bool $state
+                                ): void {
+
+                                    $set(
+                                        'availability_type',
+                                        $state
+                                            ? 'immediate'
+                                            : 'scheduled'
+                                    );
+
+                                    /*
+                                     * If assignment is made immediately
+                                     * available, there is no need for a
+                                     * scheduled start date.
+                                     */
+                                    if ($state) {
+                                        $set('start_at', null);
+                                    }
+                                }
+                            )
                             ->helperText(
-                                'Turn this off if students should wait for a scheduled start date.'
+                                'Turn this off if students should wait until a specific date and time.'
                             ),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Hidden database field
+                        |--------------------------------------------------------------------------
+                        */
+
+                        TextInput::make('availability_type')
+                            ->hidden()
+                            ->dehydrated(true)
+                            ->default('immediate'),
 
                         DateTimePicker::make('start_at')
                             ->label('Start Date & Time')
@@ -155,11 +192,11 @@ class AssignmentForm
                             ->native(false)
                             ->required(
                                 fn (Get $get): bool =>
-                                    ! $get('available_immediately')
+                                    ! (bool) $get('available_immediately')
                             )
                             ->hidden(
                                 fn (Get $get): bool =>
-                                    $get('available_immediately')
+                                    (bool) $get('available_immediately')
                             ),
 
                         DateTimePicker::make('end_at')
@@ -169,7 +206,14 @@ class AssignmentForm
                             ->required()
                             ->after('start_at')
                             ->helperText(
-                                'Students cannot make normal submissions after this time.'
+                                'Normal submissions are closed after this time.'
+                            ),
+
+                        Toggle::make('is_published')
+                            ->label('Published')
+                            ->default(true)
+                            ->helperText(
+                                'Students will only see published assignments.'
                             ),
 
                     ])
@@ -189,43 +233,83 @@ class AssignmentForm
                     )
                     ->schema([
 
-                        Toggle::make('allow_late_submission')
+                        Toggle::make('allow_late_submissions')
                             ->label('Allow Late Submissions')
                             ->default(false)
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(
+                                function (
+                                    Set $set,
+                                    bool $state
+                                ): void {
 
-                        TextInput::make('late_submission_minutes')
+                                    if (! $state) {
+                                        $set(
+                                            'late_submission_value',
+                                            null
+                                        );
+
+                                        $set(
+                                            'late_submission_unit',
+                                            null
+                                        );
+                                    }
+                                }
+                            ),
+
+                        TextInput::make('late_submission_value')
                             ->label('Late Submission Period')
                             ->numeric()
                             ->integer()
                             ->minValue(1)
-                            ->suffix('minutes')
                             ->required(
                                 fn (Get $get): bool =>
-                                    (bool) $get('allow_late_submission')
+                                    (bool) $get(
+                                        'allow_late_submissions'
+                                    )
                             )
                             ->visible(
                                 fn (Get $get): bool =>
-                                    (bool) $get('allow_late_submission')
+                                    (bool) $get(
+                                        'allow_late_submissions'
+                                    )
+                            ),
+
+                        Select::make('late_submission_unit')
+                            ->label('Period Unit')
+                            ->options([
+                                'minutes' => 'Minutes',
+                                'hours' => 'Hours',
+                                'days' => 'Days',
+                            ])
+                            ->default('minutes')
+                            ->required(
+                                fn (Get $get): bool =>
+                                    (bool) $get(
+                                        'allow_late_submissions'
+                                    )
                             )
-                            ->helperText(
-                                'Students can submit during this period after the normal deadline.'
+                            ->visible(
+                                fn (Get $get): bool =>
+                                    (bool) $get(
+                                        'allow_late_submissions'
+                                    )
                             ),
 
                     ])
-                    ->columns(2)
+                    ->columns(3)
                     ->columnSpanFull(),
 
 
                 /*
                 |--------------------------------------------------------------------------
-                | Submission Types
+                | Student Submission Types
                 |--------------------------------------------------------------------------
                 */
 
                 Section::make('Student Submission Settings')
                     ->description(
-                        'Choose which types of files students are allowed to submit.'
+                        'Choose exactly what students are allowed to submit.'
                     )
                     ->schema([
 
@@ -234,44 +318,31 @@ class AssignmentForm
                             ->multiple()
                             ->options([
 
-                                'text' =>
-                                    'Text Answer',
+                                'text' => 'Text Answer',
 
-                                'pdf' =>
-                                    'PDF',
+                                'pdf' => 'PDF',
 
-                                'doc' =>
-                                    'Word Document (.doc)',
+                                'doc' => 'Word Document (.doc)',
 
-                                'docx' =>
-                                    'Word Document (.docx)',
+                                'docx' => 'Word Document (.docx)',
 
-                                'ppt' =>
-                                    'PowerPoint (.ppt)',
+                                'ppt' => 'PowerPoint (.ppt)',
 
-                                'pptx' =>
-                                    'PowerPoint (.pptx)',
+                                'pptx' => 'PowerPoint (.pptx)',
 
-                                'xls' =>
-                                    'Excel (.xls)',
+                                'xls' => 'Excel (.xls)',
 
-                                'xlsx' =>
-                                    'Excel (.xlsx)',
+                                'xlsx' => 'Excel (.xlsx)',
 
-                                'image' =>
-                                    'Images',
+                                'image' => 'Images',
 
-                                'video' =>
-                                    'Video',
+                                'video' => 'Video',
 
-                                'audio' =>
-                                    'Audio / MP3',
+                                'audio' => 'Audio / MP3',
 
-                                'zip' =>
-                                    'ZIP Archive',
+                                'zip' => 'ZIP Archive',
 
-                                'txt' =>
-                                    'Text File (.txt)',
+                                'txt' => 'Text File (.txt)',
 
                             ])
                             ->searchable()
@@ -288,63 +359,53 @@ class AssignmentForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | Assignment Attachments
+                | Existing Attachments
                 |--------------------------------------------------------------------------
+                |
+                | IMPORTANT:
+                |
+                | This is deliberately separate from new_attachments.
+                |
+                | Existing files are represented by database records.
+                | Removing a repeater item tells EditAssignment to delete
+                | that attachment.
+                |
                 */
 
-                Section::make('Assignment Attachments')
+                Section::make('Existing Assignment Attachments')
                     ->description(
-                        'Files provided to students with this assignment.'
+                        'These files are already attached to this assignment. Remove files you no longer need.'
                     )
                     ->schema([
 
-                        FileUpload::make('attachments')
-                            ->label('Assignment Files')
-                            ->multiple()
-                            ->reorderable()
-                            ->downloadable()
-                            ->openable()
-                            ->disk('public')
-                            ->directory('assignments')
-                            ->preserveFilenames()
-                            ->acceptedFileTypes([
+                        Repeater::make('existing_attachments')
+                            ->label('')
+                            ->schema([
 
-                                'application/pdf',
+                                TextInput::make('original_name')
+                                    ->label('File')
+                                    ->disabled()
+                                    ->dehydrated(false),
 
-                                'application/msword',
+                                TextInput::make('file_size')
+                                    ->label('Size')
+                                    ->disabled()
+                                    ->dehydrated(false),
 
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-
-                                'application/vnd.ms-powerpoint',
-
-                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-
-                                'application/vnd.ms-excel',
-
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-
-                                'image/jpeg',
-
-                                'image/png',
-
-                                'image/webp',
-
-                                'video/mp4',
-
-                                'video/webm',
-
-                                'audio/mpeg',
-
-                                'audio/wav',
-
-                                'application/zip',
-
-                                'application/x-rar-compressed',
-
-                                'text/plain',
+                                TextInput::make('attachment_id')
+                                    ->hidden()
+                                    ->dehydrated(true),
 
                             ])
-                            ->maxSize(102400)
+                            ->columns(2)
+                            ->addable(false)
+                            ->reorderable(false)
+                            ->deletable(true)
+                            ->itemLabel(
+                                fn (array $state): string =>
+                                    $state['original_name']
+                                    ?? 'Attachment'
+                            )
                             ->columnSpanFull(),
 
                     ])
@@ -353,19 +414,97 @@ class AssignmentForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | Publication
+                | NEW Attachments
                 |--------------------------------------------------------------------------
+                |
+                | IMPORTANT:
+                |
+                | This field ONLY handles newly uploaded files.
+                |
+                | It does not contain existing database attachments.
+                |
                 */
 
-                Section::make('Publication')
+                Section::make('Add New Assignment Attachments')
+                    ->description(
+                        'Upload additional files that students will receive with the assignment.'
+                    )
                     ->schema([
 
-                        Toggle::make('is_published')
-                            ->label('Published')
-                            ->default(false)
-                            ->helperText(
-                                'Students will only see published assignments.'
-                            ),
+                        FileUpload::make('new_attachments')
+                            ->label('New Assignment Files')
+                            ->multiple()
+                            ->reorderable()
+                            ->downloadable()
+                            ->openable()
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | Storage
+                            |--------------------------------------------------------------------------
+                            */
+
+                            ->disk('public')
+                            ->directory('assignments')
+                            ->preserveFilenames()
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | Accepted Files
+                            |--------------------------------------------------------------------------
+                            */
+
+                            ->acceptedFileTypes([
+
+                                // PDF
+                                'application/pdf',
+
+                                // Word
+                                'application/msword',
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+
+                                // PowerPoint
+                                'application/vnd.ms-powerpoint',
+                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
+                                // Excel
+                                'application/vnd.ms-excel',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+
+                                // Images
+                                'image/jpeg',
+                                'image/png',
+                                'image/webp',
+
+                                // Video
+                                'video/mp4',
+                                'video/webm',
+
+                                // Audio
+                                'audio/mpeg',
+                                'audio/wav',
+
+                                // Archives
+                                'application/zip',
+                                'application/x-rar-compressed',
+
+                                // Text
+                                'text/plain',
+
+                            ])
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | Maximum File Size
+                            |--------------------------------------------------------------------------
+                            |
+                            | 50 MB per file.
+                            |
+                            */
+
+                            ->maxSize(51200)
+
+                            ->columnSpanFull(),
 
                     ])
                     ->columnSpanFull(),
