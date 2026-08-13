@@ -97,7 +97,7 @@ class AssignmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\Assignments\RelationManagers\SubmissionsRelationManager::class,
         ];
     }
 
