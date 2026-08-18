@@ -47,10 +47,18 @@ class Teacher extends Model
     }
 
     public function lessons(): HasMany
-{
-    return $this->hasMany(
-        Lesson::class,
-        'teacher_id'
-    );
-}
+    {
+        return $this->hasMany(
+            Lesson::class,
+            'teacher_id'
+        );
+    }
+
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(
+            Quiz::class,
+            'teacher_id'
+        );
+    }
 }

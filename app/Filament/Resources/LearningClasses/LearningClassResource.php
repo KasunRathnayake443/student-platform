@@ -16,6 +16,7 @@ use App\Filament\Resources\LearningClasses\RelationManagers\StudentsRelationMana
 use App\Filament\Resources\LearningClasses\RelationManagers\TeachersRelationManager;
 use App\Filament\Resources\LearningClasses\RelationManagers\LessonsRelationManager;
 use App\Filament\Resources\LearningClasses\RelationManagers\AssignmentsRelationManager;
+use App\Filament\Resources\LearningClasses\RelationManagers\QuizzesRelationManager;
 
 use App\Models\LearningClass;
 
@@ -62,6 +63,8 @@ class LearningClassResource extends Resource
             LessonsRelationManager::class,
 
             AssignmentsRelationManager::class,
+
+            QuizzesRelationManager::class,
         ];
     }
 

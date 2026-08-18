@@ -7,6 +7,11 @@ use App\Models\AssignmentSubmission;
 use App\Models\Grade;
 use App\Models\LearningClass;
 use App\Models\Lesson;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
+use App\Models\QuizAttemptAnswer;
+use App\Models\QuizQuestion;
+use App\Models\QuizQuestionOption;
 use App\Models\School;
 use App\Models\SchoolAdmin;
 use App\Models\Student;
@@ -781,7 +786,475 @@ class PlatformSeeder extends Seeder
                 ]
             );
 
+            /*
+            |--------------------------------------------------------------------------
+            | 11. Quizzes, Questions & Multiple Choice Options
+            |--------------------------------------------------------------------------
+            */
+            $this->command->info('12. Creating Quizzes & Questions...');
+
+            // Quiz 1: Mathematics
+            $quiz1 = Quiz::firstOrCreate(
+                [
+                    'learning_class_id' => $class1->id,
+                    'title' => 'Quadratic Functions & Algebra Mastery Quiz',
+                ],
+                [
+                    'teacher_id' => $teacherSarah->id,
+                    'description' => 'Test your understanding of quadratic formulas, discriminants, and parabolic graphs.',
+                    'instructions' => '<p>Answer all 4 questions. You have 30 minutes. Each question has 4-5 options and exactly one correct answer.</p>',
+                    'time_limit_minutes' => 30,
+                    'max_attempts' => 2,
+                    'passing_percentage' => 60,
+                    'total_points' => 0,
+                    'show_correct_answers_after_submission' => true,
+                    'shuffle_questions' => false,
+                    'shuffle_options' => true,
+                    'availability_type' => 'immediate',
+                    'start_at' => now()->subDays(5),
+                    'end_at' => now()->addDays(10),
+                    'is_published' => true,
+                ]
+            );
+
+            $quiz1Questions = [
+                [
+                    'question_text' => 'What is the discriminant (Δ) formula for the standard quadratic equation ax² + bx + c = 0?',
+                    'explanation' => 'The discriminant is given by Δ = b² - 4ac, which determines the nature of the roots.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'b² - 4ac', 'is_correct' => true],
+                        ['option_text' => 'b² + 4ac', 'is_correct' => false],
+                        ['option_text' => '-b ± √(b² - 4ac)', 'is_correct' => false],
+                        ['option_text' => '4ac - b²', 'is_correct' => false],
+                        ['option_text' => '2a / (-b)', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'What are the roots of the quadratic equation x² - 5x + 6 = 0?',
+                    'explanation' => 'Factoring (x - 2)(x - 3) = 0 yields x = 2 and x = 3.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'x = 2 and x = 3', 'is_correct' => true],
+                        ['option_text' => 'x = -2 and x = -3', 'is_correct' => false],
+                        ['option_text' => 'x = 1 and x = 6', 'is_correct' => false],
+                        ['option_text' => 'x = -1 and x = -6', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'If the discriminant Δ < 0, what is the nature of the roots?',
+                    'explanation' => 'A negative discriminant indicates that there are no real roots (two complex conjugate roots).',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'The equation has no real roots', 'is_correct' => true],
+                        ['option_text' => 'The equation has two equal real roots', 'is_correct' => false],
+                        ['option_text' => 'The equation has two distinct real roots', 'is_correct' => false],
+                        ['option_text' => 'One root is zero', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'What are the coordinates of the vertex for the parabola given by y = (x - 3)² + 4?',
+                    'explanation' => 'In vertex form y = a(x - h)² + k, the vertex is (h, k), which is (3, 4).',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => '(3, 4)', 'is_correct' => true],
+                        ['option_text' => '(-3, 4)', 'is_correct' => false],
+                        ['option_text' => '(3, -4)', 'is_correct' => false],
+                        ['option_text' => '(-3, -4)', 'is_correct' => false],
+                        ['option_text' => '(0, 13)', 'is_correct' => false],
+                    ],
+                ],
+            ];
+
+            $totalPts1 = 0;
+            foreach ($quiz1Questions as $qIdx => $qData) {
+                $q = QuizQuestion::firstOrCreate(
+                    [
+                        'quiz_id' => $quiz1->id,
+                        'question_text' => $qData['question_text'],
+                    ],
+                    [
+                        'explanation' => $qData['explanation'],
+                        'points' => $qData['points'],
+                        'sort_order' => $qIdx + 1,
+                    ]
+                );
+                $totalPts1 += $qData['points'];
+
+                foreach ($qData['options'] as $oIdx => $oData) {
+                    QuizQuestionOption::firstOrCreate(
+                        [
+                            'quiz_question_id' => $q->id,
+                            'option_text' => $oData['option_text'],
+                        ],
+                        [
+                            'is_correct' => $oData['is_correct'],
+                            'sort_order' => $oIdx + 1,
+                        ]
+                    );
+                }
+            }
+            $quiz1->updateQuietly(['total_points' => $totalPts1]);
+
+            // Quiz 2: Physics
+            $quiz2 = Quiz::firstOrCreate(
+                [
+                    'learning_class_id' => $class2->id,
+                    'title' => 'Newton\'s Laws of Motion Assessment',
+                ],
+                [
+                    'teacher_id' => $teacherLangdon->id,
+                    'description' => 'Conceptual and quantitative problems on classical mechanics and Newton\'s laws.',
+                    'instructions' => '<p>Read each scenario carefully. Select the best answer among the options provided.</p>',
+                    'time_limit_minutes' => 20,
+                    'max_attempts' => 1,
+                    'passing_percentage' => 50,
+                    'total_points' => 0,
+                    'show_correct_answers_after_submission' => true,
+                    'shuffle_questions' => false,
+                    'shuffle_options' => true,
+                    'availability_type' => 'immediate',
+                    'start_at' => now()->subDays(3),
+                    'end_at' => now()->addDays(7),
+                    'is_published' => true,
+                ]
+            );
+
+            $quiz2Questions = [
+                [
+                    'question_text' => 'What is the SI unit of force?',
+                    'explanation' => 'Force is measured in Newtons (N), where 1 N = 1 kg·m/s².',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'Newton (N)', 'is_correct' => true],
+                        ['option_text' => 'Joule (J)', 'is_correct' => false],
+                        ['option_text' => 'Pascal (Pa)', 'is_correct' => false],
+                        ['option_text' => 'Watt (W)', 'is_correct' => false],
+                        ['option_text' => 'Kilogram (kg)', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'Which law explains why passengers lean forward when a bus applies sudden brakes?',
+                    'explanation' => 'Newton\'s First Law of Motion (Law of Inertia) states objects in motion tend to stay in motion.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'Newton\'s First Law (Law of Inertia)', 'is_correct' => true],
+                        ['option_text' => 'Newton\'s Second Law (F = ma)', 'is_correct' => false],
+                        ['option_text' => 'Newton\'s Third Law (Action-Reaction)', 'is_correct' => false],
+                        ['option_text' => 'Law of Conservation of Energy', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'A 5 kg trolley accelerates at 4 m/s². What is the net horizontal force applied?',
+                    'explanation' => 'Using F = ma: F = 5 kg * 4 m/s² = 20 N.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => '20 N', 'is_correct' => true],
+                        ['option_text' => '1.25 N', 'is_correct' => false],
+                        ['option_text' => '9 N', 'is_correct' => false],
+                        ['option_text' => '0.8 N', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'When swimming, pushing water backward propels the swimmer forward. This illustrates:',
+                    'explanation' => 'Newton\'s Third Law states every action force has an equal and opposite reaction force.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'Newton\'s Third Law', 'is_correct' => true],
+                        ['option_text' => 'Newton\'s First Law', 'is_correct' => false],
+                        ['option_text' => 'Hooke\'s Law', 'is_correct' => false],
+                        ['option_text' => 'Bernoulli\'s Principle', 'is_correct' => false],
+                    ],
+                ],
+            ];
+
+            $totalPts2 = 0;
+            foreach ($quiz2Questions as $qIdx => $qData) {
+                $q = QuizQuestion::firstOrCreate(
+                    [
+                        'quiz_id' => $quiz2->id,
+                        'question_text' => $qData['question_text'],
+                    ],
+                    [
+                        'explanation' => $qData['explanation'],
+                        'points' => $qData['points'],
+                        'sort_order' => $qIdx + 1,
+                    ]
+                );
+                $totalPts2 += $qData['points'];
+
+                foreach ($qData['options'] as $oIdx => $oData) {
+                    QuizQuestionOption::firstOrCreate(
+                        [
+                            'quiz_question_id' => $q->id,
+                            'option_text' => $oData['option_text'],
+                        ],
+                        [
+                            'is_correct' => $oData['is_correct'],
+                            'sort_order' => $oIdx + 1,
+                        ]
+                    );
+                }
+            }
+            $quiz2->updateQuietly(['total_points' => $totalPts2]);
+
+            // Quiz 3: ICT & Database
+            $quiz3 = Quiz::firstOrCreate(
+                [
+                    'learning_class_id' => $class3->id,
+                    'title' => 'Relational Database Concepts & SQL Quiz',
+                ],
+                [
+                    'teacher_id' => $teacherTuring->id,
+                    'description' => 'Comprehensive check on relational schema design, keys, and SQL queries.',
+                    'instructions' => '<p>Answer all questions. Untimed quiz. Up to 3 attempts allowed.</p>',
+                    'time_limit_minutes' => null, // Untimed
+                    'max_attempts' => 3,
+                    'passing_percentage' => 70,
+                    'total_points' => 0,
+                    'show_correct_answers_after_submission' => true,
+                    'shuffle_questions' => true,
+                    'shuffle_options' => true,
+                    'availability_type' => 'immediate',
+                    'start_at' => now()->subDays(2),
+                    'end_at' => now()->addDays(14),
+                    'is_published' => true,
+                ]
+            );
+
+            $quiz3Questions = [
+                [
+                    'question_text' => 'Which SQL clause is used to filter rows returned by a SELECT query?',
+                    'explanation' => 'The WHERE clause specifies search conditions for rows returned by a query.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'WHERE', 'is_correct' => true],
+                        ['option_text' => 'ORDER BY', 'is_correct' => false],
+                        ['option_text' => 'GROUP BY', 'is_correct' => false],
+                        ['option_text' => 'HAVING', 'is_correct' => false],
+                        ['option_text' => 'LIMIT', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'What constraint uniquely identifies each record in a database table?',
+                    'explanation' => 'A PRIMARY KEY uniquely identifies each record and does not allow null values.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'PRIMARY KEY', 'is_correct' => true],
+                        ['option_text' => 'FOREIGN KEY', 'is_correct' => false],
+                        ['option_text' => 'CHECK CONSTRAINT', 'is_correct' => false],
+                        ['option_text' => 'DEFAULT CONSTRAINT', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'Which Normal Form requires eliminating transitive functional dependencies?',
+                    'explanation' => 'Third Normal Form (3NF) requires 2NF and no non-prime attribute to be transitively dependent on the primary key.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'Third Normal Form (3NF)', 'is_correct' => true],
+                        ['option_text' => 'First Normal Form (1NF)', 'is_correct' => false],
+                        ['option_text' => 'Second Normal Form (2NF)', 'is_correct' => false],
+                        ['option_text' => 'Boyce-Codd Normal Form (BCNF)', 'is_correct' => false],
+                    ],
+                ],
+                [
+                    'question_text' => 'Which SQL statement is used to insert new records into a table?',
+                    'explanation' => 'The INSERT INTO statement is used to insert new rows into a database table.',
+                    'points' => 1,
+                    'options' => [
+                        ['option_text' => 'INSERT INTO', 'is_correct' => true],
+                        ['option_text' => 'UPDATE', 'is_correct' => false],
+                        ['option_text' => 'ALTER TABLE', 'is_correct' => false],
+                        ['option_text' => 'ADD ROW', 'is_correct' => false],
+                    ],
+                ],
+            ];
+
+            $totalPts3 = 0;
+            foreach ($quiz3Questions as $qIdx => $qData) {
+                $q = QuizQuestion::firstOrCreate(
+                    [
+                        'quiz_id' => $quiz3->id,
+                        'question_text' => $qData['question_text'],
+                    ],
+                    [
+                        'explanation' => $qData['explanation'],
+                        'points' => $qData['points'],
+                        'sort_order' => $qIdx + 1,
+                    ]
+                );
+                $totalPts3 += $qData['points'];
+
+                foreach ($qData['options'] as $oIdx => $oData) {
+                    QuizQuestionOption::firstOrCreate(
+                        [
+                            'quiz_question_id' => $q->id,
+                            'option_text' => $oData['option_text'],
+                        ],
+                        [
+                            'is_correct' => $oData['is_correct'],
+                            'sort_order' => $oIdx + 1,
+                        ]
+                    );
+                }
+            }
+            $quiz3->updateQuietly(['total_points' => $totalPts3]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | 12. Student Quiz Attempts & Submissions
+            |--------------------------------------------------------------------------
+            */
+            $this->command->info('13. Creating Student Quiz Attempts...');
+
+            // Attempt 1: Liam (student1) - Completed Math Quiz (4/4, 100%, Passed)
+            $attempt1 = QuizAttempt::updateOrCreate(
+                [
+                    'quiz_id' => $quiz1->id,
+                    'student_id' => $student1->id,
+                    'attempt_number' => 1,
+                ],
+                [
+                    'started_at' => now()->subHours(3),
+                    'expires_at' => now()->subHours(3)->addMinutes(30),
+                    'completed_at' => now()->subHours(2)->subMinutes(40),
+                    'score' => 4.00,
+                    'percentage' => 100.00,
+                    'is_passed' => true,
+                    'status' => 'submitted',
+                ]
+            );
+
+            // Record all correct answers for attempt 1
+            $quiz1->load('questions.options');
+            foreach ($quiz1->questions as $q) {
+                $correctOpt = $q->options->firstWhere('is_correct', true);
+                QuizAttemptAnswer::updateOrCreate(
+                    [
+                        'quiz_attempt_id' => $attempt1->id,
+                        'quiz_question_id' => $q->id,
+                    ],
+                    [
+                        'quiz_question_option_id' => $correctOpt?->id,
+                        'is_correct' => true,
+                        'points_awarded' => $q->points,
+                    ]
+                );
+            }
+
+            // Attempt 2: Sophia (student2) - In Progress Math Quiz (Has 2 answers saved, timer still active)
+            $attempt2 = QuizAttempt::updateOrCreate(
+                [
+                    'quiz_id' => $quiz1->id,
+                    'student_id' => $student2->id,
+                    'attempt_number' => 1,
+                ],
+                [
+                    'started_at' => now()->subMinutes(10),
+                    'expires_at' => now()->addMinutes(20), // 20 mins remaining!
+                    'completed_at' => null,
+                    'score' => 0.00,
+                    'percentage' => 0.00,
+                    'is_passed' => false,
+                    'status' => 'in_progress',
+                ]
+            );
+
+            // Save first 2 answers for Sophia
+            $firstTwoQuestions = $quiz1->questions->take(2);
+            foreach ($firstTwoQuestions as $q) {
+                $correctOpt = $q->options->firstWhere('is_correct', true);
+                QuizAttemptAnswer::updateOrCreate(
+                    [
+                        'quiz_attempt_id' => $attempt2->id,
+                        'quiz_question_id' => $q->id,
+                    ],
+                    [
+                        'quiz_question_option_id' => $correctOpt?->id,
+                        'is_correct' => true,
+                        'points_awarded' => $q->points,
+                    ]
+                );
+            }
+
+            // Attempt 3: Noah (student3) - Completed ICT Quiz (3/4, 75%, Passed)
+            $attempt3 = QuizAttempt::updateOrCreate(
+                [
+                    'quiz_id' => $quiz3->id,
+                    'student_id' => $student3->id,
+                    'attempt_number' => 1,
+                ],
+                [
+                    'started_at' => now()->subDay(),
+                    'expires_at' => null, // untimed
+                    'completed_at' => now()->subDay()->addMinutes(25),
+                    'score' => 3.00,
+                    'percentage' => 75.00,
+                    'is_passed' => true,
+                    'status' => 'submitted',
+                ]
+            );
+
+            $quiz3->load('questions.options');
+            foreach ($quiz3->questions as $idx => $q) {
+                $opt = ($idx === 2)
+                    ? $q->options->firstWhere('is_correct', false) // 1 wrong answer
+                    : $q->options->firstWhere('is_correct', true);
+
+                $isCorrect = ($idx !== 2);
+                QuizAttemptAnswer::updateOrCreate(
+                    [
+                        'quiz_attempt_id' => $attempt3->id,
+                        'quiz_question_id' => $q->id,
+                    ],
+                    [
+                        'quiz_question_option_id' => $opt?->id,
+                        'is_correct' => $isCorrect,
+                        'points_awarded' => $isCorrect ? $q->points : 0,
+                    ]
+                );
+            }
+
+            // Attempt 4: Ethan (student5) - Completed Physics Quiz (2/4, 50%, Passed)
+            $attempt4 = QuizAttempt::updateOrCreate(
+                [
+                    'quiz_id' => $quiz2->id,
+                    'student_id' => $student5->id,
+                    'attempt_number' => 1,
+                ],
+                [
+                    'started_at' => now()->subDays(2),
+                    'expires_at' => now()->subDays(2)->addMinutes(20),
+                    'completed_at' => now()->subDays(2)->addMinutes(18),
+                    'score' => 2.00,
+                    'percentage' => 50.00,
+                    'is_passed' => true,
+                    'status' => 'submitted',
+                ]
+            );
+
+            $quiz2->load('questions.options');
+            foreach ($quiz2->questions as $idx => $q) {
+                $isCorrect = ($idx < 2);
+                $opt = $isCorrect
+                    ? $q->options->firstWhere('is_correct', true)
+                    : $q->options->firstWhere('is_correct', false);
+
+                QuizAttemptAnswer::updateOrCreate(
+                    [
+                        'quiz_attempt_id' => $attempt4->id,
+                        'quiz_question_id' => $q->id,
+                    ],
+                    [
+                        'quiz_question_option_id' => $opt?->id,
+                        'is_correct' => $isCorrect,
+                        'points_awarded' => $isCorrect ? $q->points : 0,
+                    ]
+                );
+            }
+
             $this->command->info('✓ Platform seeding completed successfully!');
         });
     }
 }
+

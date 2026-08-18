@@ -199,4 +199,12 @@ public function assignments(): HasMany
     );
 }
 
+public function quizzes(): HasMany
+{
+    return $this->hasMany(
+        Quiz::class,
+        'learning_class_id'
+    );
+}
+
 }

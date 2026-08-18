@@ -255,15 +255,17 @@ class Student extends Model
 
     public function enrollmentClasses(): HasMany
     {
-
         return $this->hasMany(
-
             StudentEnrollment::class
-
         );
-
     }
 
-
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(
+            QuizAttempt::class,
+            'student_id'
+        );
+    }
 
 }
