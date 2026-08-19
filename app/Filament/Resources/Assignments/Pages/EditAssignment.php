@@ -259,16 +259,16 @@ class EditAssignment extends EditRecord
             return number_format(
                 $bytes / 1048576,
                 2
-            ) . ' MB';
+            ).' MB';
         }
 
         if ($bytes >= 1024) {
             return number_format(
                 $bytes / 1024,
                 1
-            ) . ' KB';
+            ).' KB';
         }
 
-        return $bytes . ' bytes';
+        return $bytes.' bytes';
     }
 }

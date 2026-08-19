@@ -2,71 +2,38 @@
 
 namespace App\Filament\Resources\Schools\RelationManagers;
 
-
-use App\Models\Teacher;
-use App\Models\LearningClass;
-
-
 use App\Filament\Resources\Teachers\TeacherResource;
-
-
+use App\Models\LearningClass;
+use App\Models\Teacher;
 use Filament\Actions\Action;
-use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-
-
+use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
-
-
 use Filament\Tables;
 use Filament\Tables\Table;
 
-
-use Filament\Forms\Components\Select;
-
-
-
 class TeachersRelationManager extends RelationManager
 {
-
-
     protected static string $relationship = 'teachers';
 
-
-
     protected static ?string $title = 'Teachers';
-
-
-
-
-
 
     public function table(Table $table): Table
     {
 
-
         return $table
-
-
 
             ->recordTitleAttribute('user.name')
 
-
-
             ->columns([
-
-
 
                 Tables\Columns\ImageColumn::make('profile_photo')
 
                     ->label('Profile Photo')
 
                     ->circular(),
-
-
-
-
 
                 Tables\Columns\TextColumn::make('user.name')
 
@@ -76,44 +43,23 @@ class TeachersRelationManager extends RelationManager
 
                     ->sortable(),
 
-
-
-
-
                 Tables\Columns\TextColumn::make('user.email')
 
                     ->label('Email')
 
                     ->searchable(),
 
-
-
-
-
                 Tables\Columns\TextColumn::make('employee_no')
 
                     ->label('Employee No'),
-
-
-
-
 
                 Tables\Columns\TextColumn::make('phone')
 
                     ->label('Phone'),
 
-
-
             ])
 
-
-
-
-
-
             ->headerActions([
-
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -121,33 +67,25 @@ class TeachersRelationManager extends RelationManager
                 |--------------------------------------------------------------------------
                 */
 
-
                 Action::make('addTeacher')
 
                     ->label('Add Existing Teacher')
 
                     ->icon('heroicon-o-user-plus')
 
-
-
                     ->form([
-
-
 
                         Select::make('teacher_id')
 
                             ->label('Teacher')
 
-
-                            ->options(function(){
-
+                            ->options(function () {
 
                                 return Teacher::whereDoesntHave(
 
                                     'schools',
 
-                                    function($query){
-
+                                    function ($query) {
 
                                         $query->where(
 
@@ -157,26 +95,20 @@ class TeachersRelationManager extends RelationManager
 
                                         );
 
-
                                     }
 
                                 )
+                                    ->with('user')
+                                    ->get()
+                                    ->pluck(
 
-                                ->with('user')
+                                        'user.name',
 
-                                ->get()
+                                        'id'
 
-                                ->pluck(
-
-                                    'user.name',
-
-                                    'id'
-
-                                );
-
+                                    );
 
                             })
-
 
                             ->searchable()
 
@@ -184,33 +116,22 @@ class TeachersRelationManager extends RelationManager
 
                             ->live(),
 
-
-
-
-
                         Select::make('classes')
 
                             ->label('Teaching Classes')
 
-
                             ->multiple()
 
-
-                            ->options(function(){
-
-
+                            ->options(function () {
 
                                 $school =
                                     $this->getOwnerRecord();
-
-
 
                                 return LearningClass::whereHas(
 
                                     'grade',
 
-                                    function($query) use ($school){
-
+                                    function ($query) use ($school) {
 
                                         $query->where(
 
@@ -220,63 +141,38 @@ class TeachersRelationManager extends RelationManager
 
                                         );
 
-
                                     }
 
                                 )
+                                    ->with('grade')
+                                    ->get()
+                                    ->mapWithKeys(function ($class) {
 
-                                ->with('grade')
+                                        return [
 
-                                ->get()
+                                            $class->id => 'Grade '
+                                            .$class->grade->name
+                                            .' → '
+                                            .$class->name,
 
-                                ->mapWithKeys(function($class){
+                                        ];
 
-
-
-                                    return [
-
-
-                                        $class->id =>
-
-                                        'Grade '
-                                        .$class->grade->name
-                                        .' → '
-                                        .$class->name
-
-
-                                    ];
-
-
-                                });
-
-
+                                    });
 
                             })
 
-
                             ->searchable()
 
-                            ->visible(fn($get)=>
-
-                                filled($get('teacher_id'))
+                            ->visible(fn ($get) => filled($get('teacher_id'))
 
                             ),
 
-
-
                     ])
 
-
-
-
-                    ->action(function(array $data){
-
-
+                    ->action(function (array $data) {
 
                         $school =
                             $this->getOwnerRecord();
-
-
 
                         $school->teachers()->attach(
 
@@ -284,38 +180,23 @@ class TeachersRelationManager extends RelationManager
 
                         );
 
-
-
-
-                        if(!empty($data['classes'])) {
-
-
+                        if (! empty($data['classes'])) {
 
                             Teacher::find(
 
                                 $data['teacher_id']
 
                             )
+                                ->classes()
+                                ->syncWithoutDetaching(
 
-                            ->classes()
+                                    $data['classes']
 
-                            ->syncWithoutDetaching(
-
-                                $data['classes']
-
-                            );
-
+                                );
 
                         }
 
-
-
                     }),
-
-
-
-
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -323,24 +204,41 @@ class TeachersRelationManager extends RelationManager
                 |--------------------------------------------------------------------------
                 */
 
-
                 Action::make('createTeacher')
 
                     ->label('Create New Teacher')
 
                     ->icon('heroicon-o-plus')
 
-                    ->url(fn () =>
+                    ->url(fn () => TeacherResource::getUrl(
 
-                        TeacherResource::getUrl(
+                        'create',
 
-                            'create',
+                        [
+
+                            'school_id' => $this->getOwnerRecord()->id,
+
+                        ]
+
+                    )
+
+                    ),
+
+            ])
+
+            ->recordActions([
+
+                ViewAction::make()
+
+                    ->url(
+
+                        fn ($record) => TeacherResource::getUrl(
+
+                            'view',
 
                             [
 
-                                'school_id' =>
-
-                                    $this->getOwnerRecord()->id
+                                'record' => $record,
 
                             ]
 
@@ -348,61 +246,11 @@ class TeachersRelationManager extends RelationManager
 
                     ),
 
-
-
-            ])
-
-
-
-
-
-
-            ->recordActions([
-
-
-
-
-
-                ViewAction::make()
-
-                    ->url(
-
-                        fn ($record) =>
-
-                            TeacherResource::getUrl(
-
-                                'view',
-
-                                [
-
-                                    'record'=>$record
-
-                                ]
-
-                            )
-
-                    ),
-
-
-
-
-
                 EditAction::make(),
-
-
-
-
 
                 DeleteAction::make(),
 
-
-
-
             ]);
 
-
-
     }
-
-
 }

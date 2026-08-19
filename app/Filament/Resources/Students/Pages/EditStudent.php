@@ -2,46 +2,24 @@
 
 namespace App\Filament\Resources\Students\Pages;
 
-
 use App\Filament\Resources\Students\StudentResource;
-
-
-use App\Models\StudentEnrollment;
 use App\Models\Grade;
 use App\Models\LearningClass;
-
-
+use App\Models\StudentEnrollment;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-
-
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-
-
 class EditStudent extends EditRecord
 {
-
-
     protected static string $resource = StudentResource::class;
-
-
-
-
-
-
-
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
 
-
         $student = $this->record;
-
-
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -49,21 +27,11 @@ class EditStudent extends EditRecord
         |--------------------------------------------------------------------------
         */
 
-
         $data['name'] =
             $student->user?->name;
 
-
         $data['email'] =
             $student->user?->email;
-
-
-
-
-
-
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -71,24 +39,14 @@ class EditStudent extends EditRecord
         |--------------------------------------------------------------------------
         */
 
-
         $enrollments =
             $student
                 ->enrollments()
                 ->get();
 
-
-
-
-
-        if($enrollments->count())
-        {
-
+        if ($enrollments->count()) {
 
             $data['assign_school'] = true;
-
-
-
 
             $data['schools'] =
 
@@ -102,12 +60,6 @@ class EditStudent extends EditRecord
 
                     ->toArray();
 
-
-
-
-
-
-
             $data['grades'] =
 
                 $enrollments
@@ -119,12 +71,6 @@ class EditStudent extends EditRecord
                     ->values()
 
                     ->toArray();
-
-
-
-
-
-
 
             $data['classes'] =
 
@@ -140,71 +86,30 @@ class EditStudent extends EditRecord
 
                     ->toArray();
 
-
-
-
-
-
-
             $latest =
 
                 $enrollments->sortByDesc('id')->first();
-
-
-
-
 
             $data['academic_year'] =
 
                 $latest?->academic_year;
 
-
-
-
-
             $data['status'] =
 
                 $latest?->status;
 
-
         }
-
-
-
-
-
 
         return $data;
 
-
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
     protected function handleRecordUpdate(
-        \Illuminate\Database\Eloquent\Model $record,
+        Model $record,
         array $data
-    ): \Illuminate\Database\Eloquent\Model
-    {
-
+    ): Model {
 
         return DB::transaction(function () use ($record, $data) {
-
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -212,36 +117,19 @@ class EditStudent extends EditRecord
             |--------------------------------------------------------------------------
             */
 
-
             $record->user()->update([
 
+                'name' => $data['name'],
 
-                'name' =>
-                    $data['name'],
+                'email' => $data['email'],
 
-
-                'email' =>
-                    $data['email'],
-
-
-                'password' =>
-
-                    !empty($data['password'])
+                'password' => ! empty($data['password'])
 
                     ? Hash::make($data['password'])
 
                     : $record->user->password,
 
-
             ]);
-
-
-
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -249,53 +137,27 @@ class EditStudent extends EditRecord
             |--------------------------------------------------------------------------
             */
 
-
             $record->update([
 
-
-                'profile_photo' =>
-                    $data['profile_photo']
+                'profile_photo' => $data['profile_photo']
                     ??
                     $record->profile_photo,
 
+                'admission_no' => $data['admission_no'],
 
-                'admission_no' =>
-                    $data['admission_no'],
+                'date_of_birth' => $data['date_of_birth'] ?? null,
 
+                'gender' => $data['gender'] ?? null,
 
-                'date_of_birth' =>
-                    $data['date_of_birth'] ?? null,
+                'phone' => $data['phone'] ?? null,
 
+                'address' => $data['address'] ?? null,
 
-                'gender' =>
-                    $data['gender'] ?? null,
+                'parent_name' => $data['parent_name'] ?? null,
 
-
-                'phone' =>
-                    $data['phone'] ?? null,
-
-
-                'address' =>
-                    $data['address'] ?? null,
-
-
-                'parent_name' =>
-                    $data['parent_name'] ?? null,
-
-
-                'parent_phone' =>
-                    $data['parent_phone'] ?? null,
-
+                'parent_phone' => $data['parent_phone'] ?? null,
 
             ]);
-
-
-
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -303,24 +165,13 @@ class EditStudent extends EditRecord
             |--------------------------------------------------------------------------
             */
 
-
             $record
                 ->classes()
                 ->detach();
 
-
-
             $record
                 ->enrollments()
                 ->delete();
-
-
-
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -328,25 +179,15 @@ class EditStudent extends EditRecord
             |--------------------------------------------------------------------------
             */
 
-
-            if(
-                !empty($data['assign_school'])
+            if (
+                ! empty($data['assign_school'])
                 &&
-                !empty($data['schools'])
-            )
-            {
+                ! empty($data['schools'])
+            ) {
 
-
-
-
-                foreach(
-                    $data['schools']
-                    as $schoolId
-                )
-                {
-
-
-
+                foreach (
+                    $data['schools'] as $schoolId
+                ) {
 
                     $grades =
 
@@ -354,74 +195,39 @@ class EditStudent extends EditRecord
                             'id',
                             $data['grades'] ?? []
                         )
+                            ->where(
+                                'school_id',
+                                $schoolId
+                            )
+                            ->get();
 
-                        ->where(
-                            'school_id',
-                            $schoolId
-                        )
-
-                        ->get();
-
-
-
-
-
-
-
-                    foreach(
-                        $grades
-                        as $grade
-                    )
-                    {
-
-
-
+                    foreach (
+                        $grades as $grade
+                    ) {
 
                         $enrollment =
 
                             StudentEnrollment::create([
 
+                                'student_id' => $record->id,
 
-                                'student_id' =>
-                                    $record->id,
+                                'school_id' => $schoolId,
 
+                                'grade_id' => $grade->id,
 
-                                'school_id' =>
-                                    $schoolId,
-
-
-                                'grade_id' =>
-                                    $grade->id,
-
-
-                                'academic_year' =>
-                                    $data['academic_year']
+                                'academic_year' => $data['academic_year']
                                     ??
                                     date('Y'),
 
-
-                                'status' =>
-                                    $data['status']
+                                'status' => $data['status']
                                     ??
                                     'active',
 
-
                             ]);
 
-
-
-
-
-
-
-
-                        foreach(
-                            $data['classes'] ?? []
-                            as $classId
-                        )
-                        {
-
-
+                        foreach (
+                            $data['classes'] ?? [] as $classId
+                        ) {
 
                             $validClass =
 
@@ -429,23 +235,13 @@ class EditStudent extends EditRecord
                                     'id',
                                     $classId
                                 )
+                                    ->where(
+                                        'grade_id',
+                                        $grade->id
+                                    )
+                                    ->exists();
 
-                                ->where(
-                                    'grade_id',
-                                    $grade->id
-                                )
-
-                                ->exists();
-
-
-
-
-
-
-
-                            if($validClass)
-                            {
-
+                            if ($validClass) {
 
                                 $record
                                     ->classes()
@@ -455,73 +251,38 @@ class EditStudent extends EditRecord
 
                                         [
 
-                                            'student_enrollment_id' =>
-                                                $enrollment->id
+                                            'student_enrollment_id' => $enrollment->id,
 
                                         ]
 
                                     );
 
-
                             }
-
 
                         }
 
-
-
-
-
                     }
-
-
 
                 }
 
-
-
-
             }
-
-
-
-
-
 
             return $record;
 
-
         });
 
-
-
     }
-
-
-
-
-
-
-
-
 
     protected function getHeaderActions(): array
     {
 
         return [
 
-
             Actions\ViewAction::make(),
-
 
             Actions\DeleteAction::make(),
 
-
         ];
 
-
     }
-
-
-
 }

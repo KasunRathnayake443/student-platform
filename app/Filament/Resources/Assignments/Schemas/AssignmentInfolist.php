@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Assignments\Schemas;
 
-use Illuminate\Support\Facades\Storage;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class AssignmentInfolist
 {
@@ -41,7 +41,6 @@ class AssignmentInfolist
                     ->columns(2)
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Class & Teacher
@@ -63,7 +62,6 @@ class AssignmentInfolist
                     ->columns(2)
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Scoring
@@ -80,7 +78,6 @@ class AssignmentInfolist
                     ])
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Availability
@@ -93,12 +90,11 @@ class AssignmentInfolist
                         TextEntry::make('availability_type')
                             ->label('Availability')
                             ->formatStateUsing(
-                                fn ($state) =>
-                                    match ($state) {
-                                        'immediate' => 'Available Immediately',
-                                        'scheduled' => 'Scheduled',
-                                        default => ucfirst((string) $state),
-                                    }
+                                fn ($state) => match ($state) {
+                                    'immediate' => 'Available Immediately',
+                                    'scheduled' => 'Scheduled',
+                                    default => ucfirst((string) $state),
+                                }
                             ),
 
                         TextEntry::make('start_at')
@@ -115,7 +111,6 @@ class AssignmentInfolist
                     ->columns(3)
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Late Submissions
@@ -128,8 +123,7 @@ class AssignmentInfolist
                         TextEntry::make('allow_late_submissions')
                             ->label('Late Submissions')
                             ->formatStateUsing(
-                                fn ($state) =>
-                                    $state
+                                fn ($state) => $state
                                         ? 'Allowed'
                                         : 'Not Allowed'
                             ),
@@ -147,14 +141,13 @@ class AssignmentInfolist
                                 }
 
                                 return $record->late_submission_value
-                                    . ' '
-                                    . $record->late_submission_unit;
+                                    .' '
+                                    .$record->late_submission_unit;
                             }),
 
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -206,8 +199,7 @@ class AssignmentInfolist
 
                                 return collect($types)
                                     ->map(
-                                        fn ($type) =>
-                                            $labels[$type] ?? $type
+                                        fn ($type) => $labels[$type] ?? $type
                                     )
                                     ->implode(', ');
                             })
@@ -215,7 +207,6 @@ class AssignmentInfolist
 
                     ])
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -268,7 +259,7 @@ class AssignmentInfolist
                                                         $bytes / 1048576,
                                                         2
                                                     )
-                                                    . ' MB';
+                                                    .' MB';
 
                                             } elseif ($bytes >= 1024) {
 
@@ -277,12 +268,12 @@ class AssignmentInfolist
                                                         $bytes / 1024,
                                                         1
                                                     )
-                                                    . ' KB';
+                                                    .' KB';
 
                                             } else {
 
                                                 $size =
-                                                    $bytes . ' bytes';
+                                                    $bytes.' bytes';
                                             }
                                         }
 
@@ -304,10 +295,10 @@ class AssignmentInfolist
                                                         color:#111827;
                                                     ">
                                                         '
-                                                        . e(
+                                                        .e(
                                                             $attachment->original_name
                                                         )
-                                                        . '
+                                                        .'
                                                     </div>
 
                                                     <div style="
@@ -316,15 +307,15 @@ class AssignmentInfolist
                                                         margin-top:3px;
                                                     ">
                                                         '
-                                                        . e($size)
-                                                        . '
+                                                        .e($size)
+                                                        .'
                                                     </div>
                                                 </div>
 
                                                 <a
                                                     href="'
-                                                    . e($url)
-                                                    . '"
+                                                    .e($url)
+                                                    .'"
                                                     download
                                                     style="
                                                         display:inline-block;

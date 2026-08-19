@@ -15,13 +15,16 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Resources\Schools\RelationManagers;
 
 class SchoolResource extends Resource
 {
     protected static ?string $model = School::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Institution Management';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -43,15 +46,15 @@ class SchoolResource extends Resource
     public static function getRelations(): array
     {
         return [
-    
+
             RelationManagers\StudentsRelationManager::class,
-    
+
             RelationManagers\GradesRelationManager::class,
-    
+
             RelationManagers\SchoolAdminsRelationManager::class,
-    
+
             RelationManagers\TeachersRelationManager::class,
-    
+
         ];
     }
 

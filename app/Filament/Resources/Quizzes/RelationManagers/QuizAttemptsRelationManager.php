@@ -10,7 +10,6 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -50,7 +49,7 @@ class QuizAttemptsRelationManager extends RelationManager
 
                 TextColumn::make('score')
                     ->label('Score')
-                    ->formatStateUsing(fn ($state, QuizAttempt $record) => "{$state} / " . ($record->quiz->total_points ?? 0))
+                    ->formatStateUsing(fn ($state, QuizAttempt $record) => "{$state} / ".($record->quiz->total_points ?? 0))
                     ->sortable(),
 
                 TextColumn::make('percentage')

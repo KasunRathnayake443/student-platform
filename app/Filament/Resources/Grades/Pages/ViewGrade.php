@@ -11,14 +11,12 @@ class ViewGrade extends ViewRecord
 {
     protected static string $resource = GradeResource::class;
 
-
     protected function getHeaderActions(): array
     {
         return [
             Actions\EditAction::make(),
         ];
     }
-
 
     public function getRelationManagers(): array
     {

@@ -5,24 +5,19 @@ namespace App\Filament\Resources\LearningClasses\RelationManagers;
 use App\Filament\Resources\Lessons\LessonResource;
 use App\Models\Lesson;
 use App\Models\Teacher;
-
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-
 use Filament\Resources\RelationManagers\RelationManager;
-
 use Filament\Tables;
 use Filament\Tables\Table;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 
@@ -143,8 +138,7 @@ class LessonsRelationManager extends RelationManager
                                         function (Teacher $teacher) {
 
                                             return [
-                                                $teacher->id =>
-                                                    $teacher->user->name,
+                                                $teacher->id => $teacher->user->name,
                                             ];
                                         }
                                     );
@@ -280,29 +274,21 @@ class LessonsRelationManager extends RelationManager
 
                         $lesson = Lesson::create([
 
-                            'learning_class_id' =>
-                                $class->id,
+                            'learning_class_id' => $class->id,
 
-                            'teacher_id' =>
-                                $data['teacher_id'],
+                            'teacher_id' => $data['teacher_id'],
 
-                            'title' =>
-                                $data['title'],
+                            'title' => $data['title'],
 
-                            'description' =>
-                                $data['description'] ?? null,
+                            'description' => $data['description'] ?? null,
 
-                            'content' =>
-                                $data['content'] ?? null,
+                            'content' => $data['content'] ?? null,
 
-                            'video_url' =>
-                                $data['video_url'] ?? null,
+                            'video_url' => $data['video_url'] ?? null,
 
-                            'sort_order' =>
-                                $data['sort_order'] ?? 0,
+                            'sort_order' => $data['sort_order'] ?? 0,
 
-                            'is_published' =>
-                                $data['is_published'] ?? false,
+                            'is_published' => $data['is_published'] ?? false,
 
                         ]);
 
@@ -312,11 +298,10 @@ class LessonsRelationManager extends RelationManager
                         |--------------------------------------------------------------------------
                         */
 
-                        if (!empty($data['attachments'])) {
+                        if (! empty($data['attachments'])) {
 
                             foreach (
-                                $data['attachments']
-                                as $index => $file
+                                $data['attachments'] as $index => $file
                             ) {
 
                                 /*
@@ -342,22 +327,17 @@ class LessonsRelationManager extends RelationManager
 
                                 $lesson->attachments()->create([
 
-                                    'original_name' =>
-                                        basename($path),
+                                    'original_name' => basename($path),
 
-                                    'file_path' =>
-                                        $path,
+                                    'file_path' => $path,
 
-                                    'mime_type' =>
-                                        Storage::disk('public')
-                                            ->mimeType($path),
+                                    'mime_type' => Storage::disk('public')
+                                        ->mimeType($path),
 
-                                    'file_size' =>
-                                        Storage::disk('public')
-                                            ->size($path),
+                                    'file_size' => Storage::disk('public')
+                                        ->size($path),
 
-                                    'sort_order' =>
-                                        $index,
+                                    'sort_order' => $index,
 
                                 ]);
                             }
@@ -382,13 +362,12 @@ class LessonsRelationManager extends RelationManager
                 ViewAction::make()
 
                     ->url(
-                        fn (Lesson $record) =>
-                            LessonResource::getUrl(
-                                'view',
-                                [
-                                    'record' => $record,
-                                ]
-                            )
+                        fn (Lesson $record) => LessonResource::getUrl(
+                            'view',
+                            [
+                                'record' => $record,
+                            ]
+                        )
                     ),
 
                 /*
@@ -400,13 +379,12 @@ class LessonsRelationManager extends RelationManager
                 EditAction::make()
 
                     ->url(
-                        fn (Lesson $record) =>
-                            LessonResource::getUrl(
-                                'edit',
-                                [
-                                    'record' => $record,
-                                ]
-                            )
+                        fn (Lesson $record) => LessonResource::getUrl(
+                            'edit',
+                            [
+                                'record' => $record,
+                            ]
+                        )
                     ),
 
                 /*

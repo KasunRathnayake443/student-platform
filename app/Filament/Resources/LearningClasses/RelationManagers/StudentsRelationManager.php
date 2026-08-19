@@ -2,28 +2,21 @@
 
 namespace App\Filament\Resources\LearningClasses\RelationManagers;
 
+use App\Filament\Resources\Students\StudentResource;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
-
-use App\Filament\Resources\Students\StudentResource;
-
 use Filament\Actions\Action;
 use Filament\Actions\DetachAction;
-
 use Filament\Forms\Components\Select;
-
 use Filament\Resources\RelationManagers\RelationManager;
-
 use Filament\Tables;
 use Filament\Tables\Table;
-
 
 class StudentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'students';
 
     protected static ?string $title = 'Students';
-
 
     public function table(Table $table): Table
     {
@@ -43,7 +36,6 @@ class StudentsRelationManager extends RelationManager
 
                     ->circular(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Student Name
@@ -58,7 +50,6 @@ class StudentsRelationManager extends RelationManager
 
                     ->sortable(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Admission Number
@@ -68,7 +59,6 @@ class StudentsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('admission_no')
 
                     ->label('Admission No'),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -81,7 +71,6 @@ class StudentsRelationManager extends RelationManager
                 )
 
                     ->label('Grade'),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -97,7 +86,6 @@ class StudentsRelationManager extends RelationManager
 
             ])
 
-
             /*
             |--------------------------------------------------------------------------
             | Header Actions
@@ -105,7 +93,6 @@ class StudentsRelationManager extends RelationManager
             */
 
             ->headerActions([
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -130,16 +117,13 @@ class StudentsRelationManager extends RelationManager
                                 $class =
                                     $this->getOwnerRecord();
 
-
                                 $gradeId =
                                     $class->grade_id;
-
 
                                 $schoolId =
                                     $class
                                         ->grade
                                         ->school_id;
-
 
                                 return StudentEnrollment::query()
 
@@ -168,7 +152,7 @@ class StudentsRelationManager extends RelationManager
                                     )
 
                                     ->with([
-                                        'student.user'
+                                        'student.user',
                                     ])
 
                                     ->get()
@@ -178,14 +162,12 @@ class StudentsRelationManager extends RelationManager
 
                                             return [
 
-                                                $enrollment->id =>
+                                                $enrollment->id => $enrollment
+                                                    ->student
+                                                    ->user
+                                                    ->name
 
-                                                    $enrollment
-                                                        ->student
-                                                        ->user
-                                                        ->name
-
-                                                    . ' - ' .
+                                                    .' - '.
 
                                                     $enrollment
                                                         ->student
@@ -209,12 +191,10 @@ class StudentsRelationManager extends RelationManager
                         $class =
                             $this->getOwnerRecord();
 
-
                         $enrollment =
                             StudentEnrollment::findOrFail(
                                 $data['student_enrollment_id']
                             );
-
 
                         $class
 
@@ -224,8 +204,7 @@ class StudentsRelationManager extends RelationManager
 
                                 $enrollment->student_id => [
 
-                                    'student_enrollment_id' =>
-                                        $enrollment->id,
+                                    'student_enrollment_id' => $enrollment->id,
 
                                 ],
 
@@ -233,9 +212,7 @@ class StudentsRelationManager extends RelationManager
 
                     }),
 
-
             ])
-
 
             /*
             |--------------------------------------------------------------------------
@@ -244,7 +221,6 @@ class StudentsRelationManager extends RelationManager
             */
 
             ->recordActions([
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -268,7 +244,6 @@ class StudentsRelationManager extends RelationManager
                         );
 
                     }),
-
 
                 /*
                 |--------------------------------------------------------------------------

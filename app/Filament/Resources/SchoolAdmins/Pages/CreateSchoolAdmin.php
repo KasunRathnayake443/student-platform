@@ -2,90 +2,54 @@
 
 namespace App\Filament\Resources\SchoolAdmins\Pages;
 
-
 use App\Filament\Resources\SchoolAdmins\SchoolAdminResource;
-
-use App\Models\User;
 use App\Models\SchoolAdmin;
-
-
+use App\Models\User;
 use Filament\Resources\Pages\CreateRecord;
-
-
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-
-
 class CreateSchoolAdmin extends CreateRecord
 {
-
-
     protected static string $resource =
         SchoolAdminResource::class;
-
-
-
 
     protected function handleRecordCreation(array $data): SchoolAdmin
     {
 
-
         return DB::transaction(function () use ($data) {
-
-
 
             $user = User::create([
 
+                'name' => $data['name'],
 
-                'name' =>
-                    $data['name'],
+                'email' => $data['email'],
 
+                'password' => Hash::make(
+                    $data['password']
+                ),
 
-                'email' =>
-                    $data['email'],
-
-
-                'password' =>
-                    Hash::make(
-                        $data['password']
-                    ),
-
-
-                'must_change_password' =>
-                    true,
-
+                'must_change_password' => true,
 
             ]);
-
-
-
 
             $user->assignRole(
                 'school_admin'
             );
 
-
-
-
             $schoolAdmin = SchoolAdmin::create([
 
-                'user_id'=>$user->id,
-            
-                'profile_photo'=>$data['profile_photo'] ?? null,
-            
-                'phone'=>$data['phone'] ?? null,
-            
-                'address'=>$data['address'] ?? null,
-            
+                'user_id' => $user->id,
+
+                'profile_photo' => $data['profile_photo'] ?? null,
+
+                'phone' => $data['phone'] ?? null,
+
+                'address' => $data['address'] ?? null,
+
             ]);
 
-
-
-
-
-            if (!empty($data['schools'])) {
-
+            if (! empty($data['schools'])) {
 
                 $user
                     ->schools()
@@ -93,20 +57,11 @@ class CreateSchoolAdmin extends CreateRecord
                         $data['schools']
                     );
 
-
             }
-
-
-
-
 
             return $schoolAdmin;
 
-
         });
 
-
     }
-
-
 }

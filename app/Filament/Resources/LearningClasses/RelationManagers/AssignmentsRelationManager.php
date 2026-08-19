@@ -5,28 +5,22 @@ namespace App\Filament\Resources\LearningClasses\RelationManagers;
 use App\Filament\Resources\Assignments\AssignmentResource;
 use App\Models\Assignment;
 use App\Models\Teacher;
-
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-
 use Filament\Resources\RelationManagers\RelationManager;
-
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
-
 use Filament\Tables;
 use Filament\Tables\Table;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,7 +29,6 @@ class AssignmentsRelationManager extends RelationManager
     protected static string $relationship = 'assignments';
 
     protected static ?string $title = 'Assignments';
-
 
     public function table(Table $table): Table
     {
@@ -56,7 +49,6 @@ class AssignmentsRelationManager extends RelationManager
                     ->withCount('attachments')
                     ->withCount('submissions');
             })
-
 
             /*
             |--------------------------------------------------------------------------
@@ -114,7 +106,6 @@ class AssignmentsRelationManager extends RelationManager
 
             ])
 
-
             /*
             |--------------------------------------------------------------------------
             | Sorting
@@ -125,7 +116,6 @@ class AssignmentsRelationManager extends RelationManager
                 'created_at',
                 'desc'
             )
-
 
             /*
             |--------------------------------------------------------------------------
@@ -171,7 +161,6 @@ class AssignmentsRelationManager extends RelationManager
                             ->columns(2)
                             ->columnSpanFull(),
 
-
                         /*
                         |--------------------------------------------------------------------------
                         | Teacher
@@ -199,12 +188,11 @@ class AssignmentsRelationManager extends RelationManager
                                                 ) {
 
                                                     return [
-                                                        $teacher->id =>
-                                                            $teacher
-                                                                ->user
-                                                                ->name
-                                                            . ' - '
-                                                            . $teacher
+                                                        $teacher->id => $teacher
+                                                            ->user
+                                                            ->name
+                                                            .' - '
+                                                            .$teacher
                                                                 ->employee_no,
                                                     ];
                                                 }
@@ -231,7 +219,6 @@ class AssignmentsRelationManager extends RelationManager
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -262,18 +249,16 @@ class AssignmentsRelationManager extends RelationManager
                                     ->required(
                                         fn (
                                             Get $get
-                                        ): bool =>
-                                            ! $get(
-                                                'available_immediately'
-                                            )
+                                        ): bool => ! $get(
+                                            'available_immediately'
+                                        )
                                     )
                                     ->hidden(
                                         fn (
                                             Get $get
-                                        ): bool =>
-                                            $get(
-                                                'available_immediately'
-                                            )
+                                        ): bool => $get(
+                                            'available_immediately'
+                                        )
                                     ),
 
                                 DateTimePicker::make(
@@ -290,7 +275,6 @@ class AssignmentsRelationManager extends RelationManager
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -325,24 +309,21 @@ class AssignmentsRelationManager extends RelationManager
                                     ->required(
                                         fn (
                                             Get $get
-                                        ): bool =>
-                                            (bool) $get(
-                                                'allow_late_submission'
-                                            )
+                                        ): bool => (bool) $get(
+                                            'allow_late_submission'
+                                        )
                                     )
                                     ->visible(
                                         fn (
                                             Get $get
-                                        ): bool =>
-                                            (bool) $get(
-                                                'allow_late_submission'
-                                            )
+                                        ): bool => (bool) $get(
+                                            'allow_late_submission'
+                                        )
                                     ),
 
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -364,44 +345,31 @@ class AssignmentsRelationManager extends RelationManager
                                     ->multiple()
                                     ->options([
 
-                                        'text' =>
-                                            'Text Answer',
+                                        'text' => 'Text Answer',
 
-                                        'pdf' =>
-                                            'PDF',
+                                        'pdf' => 'PDF',
 
-                                        'doc' =>
-                                            'Word (.doc)',
+                                        'doc' => 'Word (.doc)',
 
-                                        'docx' =>
-                                            'Word (.docx)',
+                                        'docx' => 'Word (.docx)',
 
-                                        'ppt' =>
-                                            'PowerPoint (.ppt)',
+                                        'ppt' => 'PowerPoint (.ppt)',
 
-                                        'pptx' =>
-                                            'PowerPoint (.pptx)',
+                                        'pptx' => 'PowerPoint (.pptx)',
 
-                                        'xls' =>
-                                            'Excel (.xls)',
+                                        'xls' => 'Excel (.xls)',
 
-                                        'xlsx' =>
-                                            'Excel (.xlsx)',
+                                        'xlsx' => 'Excel (.xlsx)',
 
-                                        'image' =>
-                                            'Images',
+                                        'image' => 'Images',
 
-                                        'video' =>
-                                            'Video',
+                                        'video' => 'Video',
 
-                                        'audio' =>
-                                            'Audio / MP3',
+                                        'audio' => 'Audio / MP3',
 
-                                        'zip' =>
-                                            'ZIP Archive',
+                                        'zip' => 'ZIP Archive',
 
-                                        'txt' =>
-                                            'Text File',
+                                        'txt' => 'Text File',
 
                                     ])
                                     ->searchable()
@@ -411,7 +379,6 @@ class AssignmentsRelationManager extends RelationManager
 
                             ])
                             ->columnSpanFull(),
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -482,7 +449,6 @@ class AssignmentsRelationManager extends RelationManager
                             ])
                             ->columnSpanFull(),
 
-
                         /*
                         |--------------------------------------------------------------------------
                         | Publication
@@ -518,7 +484,6 @@ class AssignmentsRelationManager extends RelationManager
                         $class =
                             $this->getOwnerRecord();
 
-
                         /*
                         |--------------------------------------------------------------------------
                         | Create Assignment
@@ -528,67 +493,53 @@ class AssignmentsRelationManager extends RelationManager
                         $assignment =
                             Assignment::create([
 
-                                'learning_class_id' =>
-                                    $class->id,
+                                'learning_class_id' => $class->id,
 
-                                'teacher_id' =>
-                                    $data['teacher_id'],
+                                'teacher_id' => $data['teacher_id'],
 
-                                'title' =>
-                                    $data['title'],
+                                'title' => $data['title'],
 
-                                'description' =>
-                                    $data[
+                                'description' => $data[
                                         'description'
                                     ] ?? null,
 
-                                'instructions' =>
-                                    $data[
+                                'instructions' => $data[
                                         'instructions'
                                     ] ?? null,
 
-                                'max_score' =>
-                                    $data[
+                                'max_score' => $data[
                                         'max_score'
                                     ] ?? 100,
 
-                                'available_immediately' =>
-                                    $data[
+                                'available_immediately' => $data[
                                         'available_immediately'
                                     ] ?? true,
 
-                                'start_at' =>
-                                    $data[
+                                'start_at' => $data[
                                         'start_at'
                                     ] ?? null,
 
-                                'end_at' =>
-                                    $data[
+                                'end_at' => $data[
                                         'end_at'
                                     ] ?? null,
 
-                                'allow_late_submission' =>
-                                    $data[
+                                'allow_late_submission' => $data[
                                         'allow_late_submission'
                                     ] ?? false,
 
-                                'late_submission_minutes' =>
-                                    $data[
+                                'late_submission_minutes' => $data[
                                         'late_submission_minutes'
                                     ] ?? null,
 
-                                'allowed_submission_types' =>
-                                    $data[
+                                'allowed_submission_types' => $data[
                                         'allowed_submission_types'
                                     ] ?? [],
 
-                                'is_published' =>
-                                    $data[
+                                'is_published' => $data[
                                         'is_published'
                                     ] ?? false,
 
                             ]);
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -603,8 +554,7 @@ class AssignmentsRelationManager extends RelationManager
                         ) {
 
                             foreach (
-                                $data['attachments']
-                                as $index => $file
+                                $data['attachments'] as $index => $file
                             ) {
 
                                 $path =
@@ -614,7 +564,6 @@ class AssignmentsRelationManager extends RelationManager
                                             'assignments',
                                             'public'
                                         );
-
 
                                 if (
                                     ! Storage::disk(
@@ -626,35 +575,29 @@ class AssignmentsRelationManager extends RelationManager
                                     continue;
                                 }
 
-
                                 $assignment
                                     ->attachments()
                                     ->create([
 
-                                        'original_name' =>
-                                            basename(
-                                                $path
-                                            ),
+                                        'original_name' => basename(
+                                            $path
+                                        ),
 
-                                        'file_path' =>
-                                            $path,
+                                        'file_path' => $path,
 
-                                        'mime_type' =>
-                                            Storage::disk(
-                                                'public'
-                                            )->mimeType(
-                                                $path
-                                            ),
+                                        'mime_type' => Storage::disk(
+                                            'public'
+                                        )->mimeType(
+                                            $path
+                                        ),
 
-                                        'file_size' =>
-                                            Storage::disk(
-                                                'public'
-                                            )->size(
-                                                $path
-                                            ),
+                                        'file_size' => Storage::disk(
+                                            'public'
+                                        )->size(
+                                            $path
+                                        ),
 
-                                        'sort_order' =>
-                                            $index,
+                                        'sort_order' => $index,
 
                                     ]);
                             }
@@ -662,7 +605,6 @@ class AssignmentsRelationManager extends RelationManager
                     }),
 
             ])
-
 
             /*
             |--------------------------------------------------------------------------
@@ -676,28 +618,24 @@ class AssignmentsRelationManager extends RelationManager
                     ->url(
                         fn (
                             Assignment $record
-                        ) =>
-                            AssignmentResource::getUrl(
-                                'view',
-                                [
-                                    'record' =>
-                                        $record,
-                                ]
-                            )
+                        ) => AssignmentResource::getUrl(
+                            'view',
+                            [
+                                'record' => $record,
+                            ]
+                        )
                     ),
 
                 EditAction::make()
                     ->url(
                         fn (
                             Assignment $record
-                        ) =>
-                            AssignmentResource::getUrl(
-                                'edit',
-                                [
-                                    'record' =>
-                                        $record,
-                                ]
-                            )
+                        ) => AssignmentResource::getUrl(
+                            'edit',
+                            [
+                                'record' => $record,
+                            ]
+                        )
                     ),
 
                 DeleteAction::make(),

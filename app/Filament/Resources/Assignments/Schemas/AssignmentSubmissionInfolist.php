@@ -38,7 +38,6 @@ class AssignmentSubmissionInfolist
                     ->columns(2)
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Submission
@@ -70,14 +69,12 @@ class AssignmentSubmissionInfolist
                             ->label('Submission Timing')
                             ->badge()
                             ->formatStateUsing(
-                                fn ($state) =>
-                                    $state
+                                fn ($state) => $state
                                         ? 'Late Submission'
                                         : 'Submitted On Time'
                             )
                             ->color(
-                                fn ($state) =>
-                                    $state
+                                fn ($state) => $state
                                         ? 'danger'
                                         : 'success'
                             ),
@@ -91,7 +88,6 @@ class AssignmentSubmissionInfolist
                     ])
                     ->columns(3)
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -136,18 +132,18 @@ class AssignmentSubmissionInfolist
                                                         $bytes / 1048576,
                                                         2
                                                     )
-                                                    . ' MB';
+                                                    .' MB';
                                             } elseif ($bytes >= 1024) {
                                                 $size =
                                                     number_format(
                                                         $bytes / 1024,
                                                         1
                                                     )
-                                                    . ' KB';
+                                                    .' KB';
                                             } else {
                                                 $size =
                                                     $bytes
-                                                    . ' bytes';
+                                                    .' bytes';
                                             }
                                         }
 
@@ -174,10 +170,10 @@ class AssignmentSubmissionInfolist
                                                         color:#111827;
                                                     ">
                                                         '
-                                                        . e(
+                                                        .e(
                                                             $attachment->original_name
                                                         )
-                                                        . '
+                                                        .'
                                                     </div>
 
                                                     <div style="
@@ -186,15 +182,15 @@ class AssignmentSubmissionInfolist
                                                         margin-top:3px;
                                                     ">
                                                         '
-                                                        . e($size)
-                                                        . '
+                                                        .e($size)
+                                                        .'
                                                     </div>
                                                 </div>
 
                                                 <a
                                                     href="'
-                                                    . e($url)
-                                                    . '"
+                                                    .e($url)
+                                                    .'"
                                                     download
                                                     style="
                                                         display:inline-block;
@@ -221,7 +217,6 @@ class AssignmentSubmissionInfolist
                     ])
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Result
@@ -240,8 +235,8 @@ class AssignmentSubmissionInfolist
                                 }
 
                                 return $record->score
-                                    . ' / '
-                                    . $record->assignment->max_score;
+                                    .' / '
+                                    .$record->assignment->max_score;
                             }),
 
                         TextEntry::make('percentage')
@@ -254,7 +249,7 @@ class AssignmentSubmissionInfolist
                                     return 'Not graded';
                                 }
 
-                                return $percentage . '%';
+                                return $percentage.'%';
                             }),
 
                         TextEntry::make('grader.user.name')

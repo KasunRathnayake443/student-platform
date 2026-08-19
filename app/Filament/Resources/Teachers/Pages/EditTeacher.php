@@ -2,37 +2,20 @@
 
 namespace App\Filament\Resources\Teachers\Pages;
 
-
 use App\Filament\Resources\Teachers\TeacherResource;
-
-
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-
-
 use Illuminate\Support\Facades\Hash;
-
-
 
 class EditTeacher extends EditRecord
 {
-
-
     protected static string $resource =
         TeacherResource::class;
-
-
-
-
-
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
 
-
         $user = $this->record->user;
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -40,34 +23,21 @@ class EditTeacher extends EditRecord
         |--------------------------------------------------------------------------
         */
 
-
         if ($user) {
-
 
             $data['name'] =
                 $user->name;
 
-
-
             $data['email'] =
                 $user->email;
 
-
         }
-
-
-
-
-
-
-
 
         /*
         |--------------------------------------------------------------------------
         | School Assignment
         |--------------------------------------------------------------------------
         */
-
 
         $data['schools'] =
 
@@ -76,21 +46,11 @@ class EditTeacher extends EditRecord
                 ->pluck('schools.id')
                 ->toArray();
 
-
-
-
-
-
-
-
-
-
         /*
         |--------------------------------------------------------------------------
         | Class Assignment
         |--------------------------------------------------------------------------
         */
-
 
         $data['classes'] =
 
@@ -99,35 +59,15 @@ class EditTeacher extends EditRecord
                 ->pluck('learning_classes.id')
                 ->toArray();
 
-
-
-
-
         return $data;
 
-
     }
-
-
-
-
-
-
-
-
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
 
-
         $user =
             $this->record->user;
-
-
-
-
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -135,54 +75,29 @@ class EditTeacher extends EditRecord
         |--------------------------------------------------------------------------
         */
 
-
         if ($user) {
-
 
             $user->update([
 
+                'name' => $data['name'],
 
-                'name' =>
-                    $data['name'],
-
-
-
-                'email' =>
-                    $data['email'],
-
+                'email' => $data['email'],
 
             ]);
 
-
-
-
-            if (!empty($data['password'])) {
-
+            if (! empty($data['password'])) {
 
                 $user->update([
 
-
-                    'password' =>
-                        Hash::make(
-                            $data['password']
-                        ),
-
+                    'password' => Hash::make(
+                        $data['password']
+                    ),
 
                 ]);
 
-
             }
 
-
         }
-
-
-
-
-
-
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -190,29 +105,15 @@ class EditTeacher extends EditRecord
         |--------------------------------------------------------------------------
         */
 
-
         $teacherData = [
 
+            'employee_no' => $data['employee_no'] ?? null,
 
-            'employee_no' =>
-                $data['employee_no'] ?? null,
+            'phone' => $data['phone'] ?? null,
 
-
-
-            'phone' =>
-                $data['phone'] ?? null,
-
-
-
-            'address' =>
-                $data['address'] ?? null,
-
+            'address' => $data['address'] ?? null,
 
         ];
-
-
-
-
 
         // Only update photo if a new photo is uploaded
 
@@ -222,36 +123,20 @@ class EditTeacher extends EditRecord
             $data['profile_photo']
         ) {
 
-
             $teacherData['profile_photo'] =
                 $data['profile_photo'];
 
-
         }
-
-
-
-
-
 
         $this->record->update(
             $teacherData
         );
-
-
-
-
-
-
-
-
 
         /*
         |--------------------------------------------------------------------------
         | Sync Schools
         |--------------------------------------------------------------------------
         */
-
 
         $this->record
 
@@ -263,20 +148,11 @@ class EditTeacher extends EditRecord
 
             );
 
-
-
-
-
-
-
-
-
         /*
         |--------------------------------------------------------------------------
         | Sync Classes
         |--------------------------------------------------------------------------
         */
-
 
         $this->record
 
@@ -288,54 +164,26 @@ class EditTeacher extends EditRecord
 
             );
 
-
-
-
-
-
-
-
-
         unset($data['name']);
 
         unset($data['email']);
 
         unset($data['password']);
 
-
-
-
         return $data;
 
-
     }
-
-
-
-
-
-
-
-
 
     protected function getHeaderActions(): array
     {
 
-
         return [
-
 
             Actions\ViewAction::make(),
 
-
             Actions\DeleteAction::make(),
-
 
         ];
 
-
     }
-
-
-
 }

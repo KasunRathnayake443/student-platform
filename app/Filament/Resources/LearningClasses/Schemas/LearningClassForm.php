@@ -2,28 +2,20 @@
 
 namespace App\Filament\Resources\LearningClasses\Schemas;
 
-
 use App\Models\Grade;
-
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-
 use Filament\Schemas\Schema;
-
-
 
 class LearningClassForm
 {
-
     public static function configure(Schema $schema): Schema
     {
 
         return $schema
 
             ->components([
-
-
 
                 TextInput::make('name')
 
@@ -33,29 +25,23 @@ class LearningClassForm
 
                     ->maxLength(255),
 
-
-
-
-
                 Select::make('grade_id')
 
                     ->label('Grade')
 
-                    ->options(function(){
+                    ->options(function () {
 
                         return Grade::with('school')
 
                             ->get()
 
-                            ->mapWithKeys(function($grade){
+                            ->mapWithKeys(function ($grade) {
 
                                 return [
 
-                                    $grade->id =>
-
-                                    $grade->school->name
+                                    $grade->id => $grade->school->name
                                     .' → Grade '
-                                    .$grade->name
+                                    .$grade->name,
 
                                 ];
 
@@ -69,30 +55,21 @@ class LearningClassForm
 
                     ->required(),
 
-
-
-
-
-
                 Select::make('medium')
 
                     ->label('Medium')
 
                     ->options([
 
-                        'Sinhala'=>'Sinhala',
+                        'Sinhala' => 'Sinhala',
 
-                        'English'=>'English',
+                        'English' => 'English',
 
-                        'Tamil'=>'Tamil',
+                        'Tamil' => 'Tamil',
 
                     ])
 
                     ->required(),
-
-
-
-
 
                 Toggle::make('is_active')
 
@@ -100,9 +77,7 @@ class LearningClassForm
 
                     ->default(true),
 
-
             ]);
 
     }
-
 }

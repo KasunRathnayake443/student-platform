@@ -2,44 +2,26 @@
 
 namespace App\Filament\Resources\SchoolAdmins\Pages;
 
-
 use App\Filament\Resources\SchoolAdmins\SchoolAdminResource;
-
-
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-
-
 use Illuminate\Support\Facades\Hash;
-
-
 
 class EditSchoolAdmin extends EditRecord
 {
-
-
     protected static string $resource =
         SchoolAdminResource::class;
-
-
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
 
-
         $user = $this->record->user;
-
-
 
         $data['name'] =
             $user->name;
 
-
-
         $data['email'] =
             $user->email;
-
-
 
         $data['schools'] =
             $user
@@ -54,61 +36,40 @@ class EditSchoolAdmin extends EditRecord
 
     }
 
-
-
-
     protected function mutateFormDataBeforeSave(array $data): array
     {
 
-
         $user = $this->record->user;
-
-
 
         $user->update([
 
+            'name' => $data['name'],
 
-            'name'=>$data['name'],
-
-
-            'email'=>$data['email'],
-
+            'email' => $data['email'],
 
         ]);
 
-
-
-
-        if(!empty($data['password'])){
-
+        if (! empty($data['password'])) {
 
             $user->update([
 
-
-                'password'=>
-                    Hash::make(
-                        $data['password']
-                    ),
-
+                'password' => Hash::make(
+                    $data['password']
+                ),
 
             ]);
 
         }
 
-
-
         $this->record->update([
 
-            'profile_photo'=>$data['profile_photo'] ?? null,
-        
-            'phone'=>$data['phone'] ?? null,
-        
-            'address'=>$data['address'] ?? null,
-        
+            'profile_photo' => $data['profile_photo'] ?? null,
+
+            'phone' => $data['phone'] ?? null,
+
+            'address' => $data['address'] ?? null,
+
         ]);
-
-
-
 
         $user
             ->schools()
@@ -116,41 +77,26 @@ class EditSchoolAdmin extends EditRecord
                 $data['schools'] ?? []
             );
 
-
-
-
         unset($data['name']);
 
         unset($data['email']);
 
         unset($data['password']);
 
-
-
         return $data;
 
-
     }
-
-
-
-
 
     protected function getHeaderActions(): array
     {
 
         return [
 
-
             Actions\ViewAction::make(),
 
-
             Actions\DeleteAction::make(),
-
 
         ];
 
     }
-
-
 }

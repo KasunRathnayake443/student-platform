@@ -7,18 +7,17 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
 use Filament\Tables;
 use Filament\Tables\Table;
 
 class LearningClassesRelationManager extends RelationManager
 {
     protected static string $relationship = 'learningClasses';
-
 
     public function form(Schema $schema): Schema
     {
@@ -30,7 +29,6 @@ class LearningClassesRelationManager extends RelationManager
                     ->required()
                     ->maxLength(255),
 
-
                 Select::make('medium')
                     ->label('Medium')
                     ->options([
@@ -40,14 +38,12 @@ class LearningClassesRelationManager extends RelationManager
                     ])
                     ->required(),
 
-
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true),
 
             ]);
     }
-
 
     public function table(Table $table): Table
     {
@@ -76,10 +72,9 @@ class LearningClassesRelationManager extends RelationManager
             ->recordActions([
 
                 ViewAction::make()
-                    ->url(fn ($record) =>
-                        LearningClassResource::getUrl('view', [
-                            'record' => $record,
-                        ])
+                    ->url(fn ($record) => LearningClassResource::getUrl('view', [
+                        'record' => $record,
+                    ])
                     ),
 
                 EditAction::make(),

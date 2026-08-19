@@ -2,27 +2,20 @@
 
 namespace App\Filament\Resources\LearningClasses\RelationManagers;
 
-use App\Models\Teacher;
-
 use App\Filament\Resources\Teachers\TeacherResource;
-
+use App\Models\Teacher;
 use Filament\Actions\Action;
 use Filament\Actions\DetachAction;
-
 use Filament\Forms\Components\Select;
-
 use Filament\Resources\RelationManagers\RelationManager;
-
 use Filament\Tables;
 use Filament\Tables\Table;
-
 
 class TeachersRelationManager extends RelationManager
 {
     protected static string $relationship = 'teachers';
 
     protected static ?string $title = 'Teachers';
-
 
     public function table(Table $table): Table
     {
@@ -103,13 +96,11 @@ class TeachersRelationManager extends RelationManager
 
                                             return [
 
-                                                $teacher->id =>
+                                                $teacher->id => $teacher
+                                                    ->user
+                                                    ->name
 
-                                                    $teacher
-                                                        ->user
-                                                        ->name
-
-                                                    . ' - ' .
+                                                    .' - '.
 
                                                     $teacher
                                                         ->employee_no,
@@ -140,7 +131,6 @@ class TeachersRelationManager extends RelationManager
 
                     }),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Create New Teacher
@@ -159,12 +149,10 @@ class TeachersRelationManager extends RelationManager
                             'create',
                             [
 
-                                'school_id' =>
-
-                                    $this
-                                        ->getOwnerRecord()
-                                        ->grade
-                                        ->school_id,
+                                'school_id' => $this
+                                    ->getOwnerRecord()
+                                    ->grade
+                                    ->school_id,
 
                             ]
                         );
@@ -172,7 +160,6 @@ class TeachersRelationManager extends RelationManager
                     }),
 
             ])
-
 
             ->recordActions([
 
@@ -198,7 +185,6 @@ class TeachersRelationManager extends RelationManager
                         );
 
                     }),
-
 
                 /*
                 |--------------------------------------------------------------------------

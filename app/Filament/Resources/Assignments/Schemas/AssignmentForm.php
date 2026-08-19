@@ -59,7 +59,6 @@ class AssignmentForm
                     ->columns(2)
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Class & Teacher
@@ -91,10 +90,9 @@ class AssignmentForm
                                     ->get()
                                     ->mapWithKeys(
                                         fn (Teacher $teacher) => [
-                                            $teacher->id =>
-                                                $teacher->user->name
-                                                . ' - '
-                                                . $teacher->employee_no,
+                                            $teacher->id => $teacher->user->name
+                                                .' - '
+                                                .$teacher->employee_no,
                                         ]
                                     )
                             )
@@ -108,7 +106,6 @@ class AssignmentForm
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -130,7 +127,6 @@ class AssignmentForm
 
                     ])
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -191,12 +187,10 @@ class AssignmentForm
                             ->seconds(false)
                             ->native(false)
                             ->required(
-                                fn (Get $get): bool =>
-                                    ! (bool) $get('available_immediately')
+                                fn (Get $get): bool => ! (bool) $get('available_immediately')
                             )
                             ->hidden(
-                                fn (Get $get): bool =>
-                                    (bool) $get('available_immediately')
+                                fn (Get $get): bool => (bool) $get('available_immediately')
                             ),
 
                         DateTimePicker::make('end_at')
@@ -219,7 +213,6 @@ class AssignmentForm
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -263,16 +256,14 @@ class AssignmentForm
                             ->integer()
                             ->minValue(1)
                             ->required(
-                                fn (Get $get): bool =>
-                                    (bool) $get(
-                                        'allow_late_submissions'
-                                    )
+                                fn (Get $get): bool => (bool) $get(
+                                    'allow_late_submissions'
+                                )
                             )
                             ->visible(
-                                fn (Get $get): bool =>
-                                    (bool) $get(
-                                        'allow_late_submissions'
-                                    )
+                                fn (Get $get): bool => (bool) $get(
+                                    'allow_late_submissions'
+                                )
                             ),
 
                         Select::make('late_submission_unit')
@@ -284,22 +275,19 @@ class AssignmentForm
                             ])
                             ->default('minutes')
                             ->required(
-                                fn (Get $get): bool =>
-                                    (bool) $get(
-                                        'allow_late_submissions'
-                                    )
+                                fn (Get $get): bool => (bool) $get(
+                                    'allow_late_submissions'
+                                )
                             )
                             ->visible(
-                                fn (Get $get): bool =>
-                                    (bool) $get(
-                                        'allow_late_submissions'
-                                    )
+                                fn (Get $get): bool => (bool) $get(
+                                    'allow_late_submissions'
+                                )
                             ),
 
                     ])
                     ->columns(3)
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------
@@ -356,7 +344,6 @@ class AssignmentForm
                     ])
                     ->columnSpanFull(),
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | Existing Attachments
@@ -402,15 +389,13 @@ class AssignmentForm
                             ->reorderable(false)
                             ->deletable(true)
                             ->itemLabel(
-                                fn (array $state): string =>
-                                    $state['original_name']
+                                fn (array $state): string => $state['original_name']
                                     ?? 'Attachment'
                             )
                             ->columnSpanFull(),
 
                     ])
                     ->columnSpanFull(),
-
 
                 /*
                 |--------------------------------------------------------------------------

@@ -2,45 +2,25 @@
 
 namespace App\Filament\Resources\Students\Pages;
 
-
 use App\Filament\Resources\Students\StudentResource;
-
-
-use App\Models\User;
-use App\Models\Student;
-use App\Models\StudentEnrollment;
 use App\Models\Grade;
 use App\Models\LearningClass;
-
-
+use App\Models\Student;
+use App\Models\StudentEnrollment;
+use App\Models\User;
 use Filament\Resources\Pages\CreateRecord;
-
-
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
-
+use Spatie\Permission\Models\Role;
 
 class CreateStudent extends CreateRecord
 {
-
-
     protected static string $resource = StudentResource::class;
-
-
-
-
-
-
-
 
     protected function handleRecordCreation(array $data): Student
     {
 
-
         return DB::transaction(function () use ($data) {
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -48,57 +28,30 @@ class CreateStudent extends CreateRecord
             |--------------------------------------------------------------------------
             */
 
-
             $user = User::create([
 
+                'name' => $data['name'],
 
-                'name' =>
-                    $data['name'],
+                'email' => $data['email'],
 
+                'password' => Hash::make(
+                    $data['password']
+                ),
 
-                'email' =>
-                    $data['email'],
-
-
-                'password' =>
-                    Hash::make(
-                        $data['password']
-                    ),
-
-
-                'must_change_password' =>
-                    true,
-
+                'must_change_password' => true,
 
             ]);
 
-
-
-
-
-
-
-
-            if(
-                \Spatie\Permission\Models\Role::where(
+            if (
+                Role::where(
                     'name',
                     'student'
                 )->exists()
-            ){
-
+            ) {
 
                 $user->assignRole('student');
 
-
             }
-
-
-
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -106,55 +59,27 @@ class CreateStudent extends CreateRecord
             |--------------------------------------------------------------------------
             */
 
-
             $student = Student::create([
 
+                'user_id' => $user->id,
 
-                'user_id' =>
-                    $user->id,
+                'profile_photo' => $data['profile_photo'] ?? null,
 
+                'admission_no' => $data['admission_no'],
 
-                'profile_photo' =>
-                    $data['profile_photo'] ?? null,
+                'date_of_birth' => $data['date_of_birth'] ?? null,
 
+                'gender' => $data['gender'] ?? null,
 
-                'admission_no' =>
-                    $data['admission_no'],
+                'phone' => $data['phone'] ?? null,
 
+                'address' => $data['address'] ?? null,
 
-                'date_of_birth' =>
-                    $data['date_of_birth'] ?? null,
+                'parent_name' => $data['parent_name'] ?? null,
 
-
-                'gender' =>
-                    $data['gender'] ?? null,
-
-
-                'phone' =>
-                    $data['phone'] ?? null,
-
-
-                'address' =>
-                    $data['address'] ?? null,
-
-
-                'parent_name' =>
-                    $data['parent_name'] ?? null,
-
-
-                'parent_phone' =>
-                    $data['parent_phone'] ?? null,
-
+                'parent_phone' => $data['parent_phone'] ?? null,
 
             ]);
-
-
-
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -162,84 +87,49 @@ class CreateStudent extends CreateRecord
             |--------------------------------------------------------------------------
             */
 
-
-            if(
-                !empty($data['assign_school'])
+            if (
+                ! empty($data['assign_school'])
                 &&
-                !empty($data['schools'])
-            ){
+                ! empty($data['schools'])
+            ) {
 
-
-
-                foreach(
-                    $data['schools']
-                    as $schoolId
-                ){
-
-
+                foreach (
+                    $data['schools'] as $schoolId
+                ) {
 
                     $grades =
                         Grade::whereIn(
                             'id',
                             $data['grades'] ?? []
                         )
-                        ->where(
-                            'school_id',
-                            $schoolId
-                        )
-                        ->get();
+                            ->where(
+                                'school_id',
+                                $schoolId
+                            )
+                            ->get();
 
-
-
-
-
-
-
-                    foreach(
-                        $grades
-                        as $grade
-                    ){
-
-
+                    foreach (
+                        $grades as $grade
+                    ) {
 
                         $enrollment =
                             StudentEnrollment::create([
 
+                                'student_id' => $student->id,
 
-                                'student_id' =>
-                                    $student->id,
+                                'school_id' => $schoolId,
 
+                                'grade_id' => $grade->id,
 
-                                'school_id' =>
-                                    $schoolId,
-
-
-                                'grade_id' =>
-                                    $grade->id,
-
-
-                                'academic_year' =>
-                                    $data['academic_year']
+                                'academic_year' => $data['academic_year']
                                     ??
                                     date('Y'),
 
-
-                                'status' =>
-                                    $data['status']
+                                'status' => $data['status']
                                     ??
                                     'active',
 
-
                             ]);
-
-
-
-
-
-
-
-
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -247,32 +137,22 @@ class CreateStudent extends CreateRecord
                         |--------------------------------------------------------------------------
                         */
 
-
-                        foreach(
-                            $data['classes'] ?? []
-                            as $classId
-                        ){
-
-
+                        foreach (
+                            $data['classes'] ?? [] as $classId
+                        ) {
 
                             $classExists =
                                 LearningClass::where(
                                     'id',
                                     $classId
                                 )
-                                ->where(
-                                    'grade_id',
-                                    $grade->id
-                                )
-                                ->exists();
+                                    ->where(
+                                        'grade_id',
+                                        $grade->id
+                                    )
+                                    ->exists();
 
-
-
-
-
-                            if($classExists){
-
-
+                            if ($classExists) {
 
                                 $student
                                     ->classes()
@@ -282,87 +162,46 @@ class CreateStudent extends CreateRecord
 
                                         [
 
-                                            'student_enrollment_id' =>
-                                                $enrollment->id
+                                            'student_enrollment_id' => $enrollment->id,
 
                                         ]
 
                                     );
 
-
                             }
-
 
                         }
 
-
-
-
-
                     }
-
-
-
 
                 }
 
-
-
-
             }
-
-
-
-
-
 
             return $student;
 
-
-
         });
 
-
-
     }
-
-
-
-
-
-
-
-
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
 
-
-        if(
+        if (
             request()->has('school_id')
-        ){
-
+        ) {
 
             $data['assign_school'] = true;
 
-
             $data['schools'] = [
 
-                request()->get('school_id')
+                request()->get('school_id'),
 
             ];
 
-
         }
-
-
-
 
         return $data;
 
-
     }
-
-
-
 }

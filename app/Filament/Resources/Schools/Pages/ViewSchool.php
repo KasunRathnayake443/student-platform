@@ -11,16 +11,13 @@ class ViewSchool extends ViewRecord
 {
     protected static string $resource = SchoolResource::class;
 
-
     protected function getHeaderActions(): array
     {
         return [
             Actions\EditAction::make(),
         ];
-        
-    }
-    
 
+    }
 
     protected function getHeaderWidgets(): array
     {
@@ -28,7 +25,6 @@ class ViewSchool extends ViewRecord
             SchoolStats::class,
         ];
     }
-
 
     public function getHeaderWidgetsData(): array
     {

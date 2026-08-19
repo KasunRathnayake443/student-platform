@@ -2,53 +2,34 @@
 
 namespace App\Filament\Resources\Schools\RelationManagers;
 
-
+use App\Filament\Resources\SchoolAdmins\SchoolAdminResource;
 use App\Models\User;
-
 use Filament\Actions\Action;
 use Filament\Actions\DetachAction;
-
-use Filament\Resources\RelationManagers\RelationManager;
-
-use Filament\Forms\Components\TextInput;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
-
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Eloquent\Builder;
-
-
-use App\Filament\Resources\SchoolAdmins\SchoolAdminResource;
-use Filament\Actions\ViewAction;
-
 
 class SchoolAdminsRelationManager extends RelationManager
 {
-
-
     protected static string $relationship = 'schoolAdmins';
 
-
-
     protected static ?string $title = 'School Admins';
-
-
-
 
     public function table(Table $table): Table
     {
 
-
         return $table
-
 
             ->columns([
 
                 Tables\Columns\ImageColumn::make('schoolAdmin.profile_photo')
-                ->label('Admin Photo')
-                ->circular(),
+                    ->label('Admin Photo')
+                    ->circular(),
 
                 Tables\Columns\TextColumn::make('name')
 
@@ -58,17 +39,11 @@ class SchoolAdminsRelationManager extends RelationManager
 
                     ->sortable(),
 
-
-
-
                 Tables\Columns\TextColumn::make('email')
 
                     ->label('Email')
 
                     ->searchable(),
-
-
-
 
                 Tables\Columns\TextColumn::make('created_at')
 
@@ -76,15 +51,9 @@ class SchoolAdminsRelationManager extends RelationManager
 
                     ->date(),
 
-
             ])
 
-
-
-
             ->headerActions([
-
-
 
                 Action::make('addExistingAdmin')
 
@@ -92,18 +61,13 @@ class SchoolAdminsRelationManager extends RelationManager
 
                     ->icon('heroicon-o-user-plus')
 
-
                     ->form([
-
-
 
                         Select::make('user_id')
 
                             ->label('School Admin')
 
-
-                            ->options(function(){
-
+                            ->options(function () {
 
                                 return User::role('school_admin')
 
@@ -128,22 +92,15 @@ class SchoolAdminsRelationManager extends RelationManager
                                         'id'
                                     );
 
-
                             })
-
 
                             ->searchable()
 
                             ->required(),
 
-
                     ])
 
-
-
-                    ->action(function(array $data){
-
-
+                    ->action(function (array $data) {
 
                         $this->getOwnerRecord()
 
@@ -151,18 +108,11 @@ class SchoolAdminsRelationManager extends RelationManager
 
                             ->syncWithoutDetaching([
 
-                                $data['user_id']
+                                $data['user_id'],
 
                             ]);
 
-
                     }),
-
-
-
-
-
-
 
                 Action::make('createAdmin')
 
@@ -170,17 +120,11 @@ class SchoolAdminsRelationManager extends RelationManager
 
                     ->icon('heroicon-o-plus')
 
-
                     ->form([
-
-
 
                         TextInput::make('name')
 
                             ->required(),
-
-
-
 
                         TextInput::make('email')
 
@@ -193,89 +137,45 @@ class SchoolAdminsRelationManager extends RelationManager
                                 'email'
                             ),
 
-
-
-
                         TextInput::make('password')
 
                             ->password()
 
                             ->required(),
 
-
-
-
                         TextInput::make('phone'),
-
-
-
 
                         TextInput::make('address'),
 
-
-
                     ])
 
-
-
-
-                    ->action(function(array $data){
-
-
+                    ->action(function (array $data) {
 
                         $user = User::create([
 
+                            'name' => $data['name'],
 
+                            'email' => $data['email'],
 
-                            'name'=>
-                                $data['name'],
+                            'password' => Hash::make(
+                                $data['password']
+                            ),
 
-
-
-                            'email'=>
-                                $data['email'],
-
-
-
-                            'password'=>
-                                Hash::make(
-                                    $data['password']
-                                ),
-
-
-
-                            'must_change_password'=>true,
-
+                            'must_change_password' => true,
 
                         ]);
-
-
-
 
                         $user->assignRole(
                             'school_admin'
                         );
 
-
-
-
                         $user->schoolAdmin()->create([
 
+                            'phone' => $data['phone'] ?? null,
 
-
-                            'phone'=>
-                                $data['phone'] ?? null,
-
-
-
-                            'address'=>
-                                $data['address'] ?? null,
-
+                            'address' => $data['address'] ?? null,
 
                         ]);
-
-
-
 
                         $this->getOwnerRecord()
 
@@ -285,45 +185,30 @@ class SchoolAdminsRelationManager extends RelationManager
                                 $user->id
                             );
 
-
                     }),
-
-
 
             ])
 
-
-
-
-
             ->recordActions([
 
-
                 ViewAction::make()
-            
+
                     ->url(
-                        fn ($record) =>
-                            SchoolAdminResource::getUrl(
-                                'view',
-                                [
-                                    'record' => $record->schoolAdmin->id
-                                ]
-                            )
+                        fn ($record) => SchoolAdminResource::getUrl(
+                            'view',
+                            [
+                                'record' => $record->schoolAdmin->id,
+                            ]
+                        )
                     ),
-            
-            
-            
+
                 DetachAction::make()
-            
+
                     ->label(
                         'Remove From School'
                     ),
-            
-            
-                ]);
 
+            ]);
 
     }
-
-
 }

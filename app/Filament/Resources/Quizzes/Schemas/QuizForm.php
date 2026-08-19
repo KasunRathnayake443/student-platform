@@ -92,7 +92,7 @@ class QuizForm
 
                                 return $query->get()->mapWithKeys(function (Teacher $teacher) {
                                     return [
-                                        $teacher->id => $teacher->user->name . ' - ' . $teacher->employee_no,
+                                        $teacher->id => $teacher->user->name.' - '.$teacher->employee_no,
                                     ];
                                 });
                             })

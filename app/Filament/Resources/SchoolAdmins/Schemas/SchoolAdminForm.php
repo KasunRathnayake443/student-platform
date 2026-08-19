@@ -2,24 +2,17 @@
 
 namespace App\Filament\Resources\SchoolAdmins\Schemas;
 
-
-use Filament\Schemas\Schema;
-
-
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Select;
+use App\Models\School;
 use Filament\Forms\Components\FileUpload;
-
-
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
 
 class SchoolAdminForm
 {
-
-
     public static function configure(Schema $schema): Schema
     {
-
 
         return $schema
 
@@ -43,37 +36,21 @@ class SchoolAdminForm
 
                     ->required(),
 
-
-
-
                 TextInput::make('email')
 
                     ->email()
 
                     ->required(),
 
-
-
-
                 TextInput::make('password')
 
                     ->password()
 
-                    ->required(fn ($record)=>!$record),
-
-
-
+                    ->required(fn ($record) => ! $record),
 
                 TextInput::make('phone'),
 
-
-
-
                 Textarea::make('address'),
-
-
-
-
 
                 Select::make('schools')
 
@@ -82,7 +59,7 @@ class SchoolAdminForm
                     ->multiple()
 
                     ->options(
-                        \App\Models\School::pluck(
+                        School::pluck(
                             'name',
                             'id'
                         )
@@ -92,12 +69,7 @@ class SchoolAdminForm
 
                     ->preload(),
 
-
-
             ]);
 
-
     }
-
-
 }

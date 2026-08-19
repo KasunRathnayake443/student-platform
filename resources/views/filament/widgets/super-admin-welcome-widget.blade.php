@@ -66,6 +66,16 @@
 
                     <x-filament::button
                         tag="a"
+                        :href="url('/admin/super-admins/create')"
+                        color="danger"
+                        size="xs"
+                        icon="heroicon-m-shield-check"
+                    >
+                        New Super Admin
+                    </x-filament::button>
+
+                    <x-filament::button
+                        tag="a"
                         :href="url('/admin/school-admins/create')"
                         color="gray"
                         size="xs"
@@ -79,7 +89,7 @@
                         :href="url('/admin/teachers/create')"
                         color="gray"
                         size="xs"
-                        icon="heroicon-m-user-group"
+                        icon="heroicon-m-briefcase"
                     >
                         Add Teacher
                     </x-filament::button>
@@ -94,7 +104,25 @@
                         Add Student
                     </x-filament::button>
 
-                 
+                    <x-filament::button
+                        tag="a"
+                        :href="url('/admin/learning-classes/create')"
+                        color="gray"
+                        size="xs"
+                        icon="heroicon-m-book-open"
+                    >
+                        New Class
+                    </x-filament::button>
+
+                    <x-filament::button
+                        tag="a"
+                        :href="url('/admin/profile')"
+                        color="gray"
+                        size="xs"
+                        icon="heroicon-m-user-circle"
+                    >
+                        My Profile
+                    </x-filament::button>
                 </div>
             </div>
 

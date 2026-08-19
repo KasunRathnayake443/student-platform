@@ -6,6 +6,7 @@ use App\Filament\Resources\Assignments\Pages\CreateAssignment;
 use App\Filament\Resources\Assignments\Pages\EditAssignment;
 use App\Filament\Resources\Assignments\Pages\ListAssignments;
 use App\Filament\Resources\Assignments\Pages\ViewAssignment;
+use App\Filament\Resources\Assignments\RelationManagers\SubmissionsRelationManager;
 use App\Filament\Resources\Assignments\Schemas\AssignmentForm;
 use App\Filament\Resources\Assignments\Schemas\AssignmentInfolist;
 use App\Filament\Resources\Assignments\Tables\AssignmentsTable;
@@ -18,7 +19,6 @@ class AssignmentResource extends Resource
 {
     protected static ?string $model = Assignment::class;
 
-
     /*
     |--------------------------------------------------------------------------
     | Record Title
@@ -26,7 +26,6 @@ class AssignmentResource extends Resource
     */
 
     protected static ?string $recordTitleAttribute = 'title';
-
 
     /*
     |--------------------------------------------------------------------------
@@ -40,7 +39,6 @@ class AssignmentResource extends Resource
 
     protected static bool $shouldRegisterNavigation = false;
 
-
     /*
     |--------------------------------------------------------------------------
     | Labels
@@ -50,7 +48,6 @@ class AssignmentResource extends Resource
     protected static ?string $modelLabel = 'Assignment';
 
     protected static ?string $pluralModelLabel = 'Assignments';
-
 
     /*
     |--------------------------------------------------------------------------
@@ -63,7 +60,6 @@ class AssignmentResource extends Resource
         return AssignmentForm::configure($schema);
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Infolist
@@ -74,7 +70,6 @@ class AssignmentResource extends Resource
     {
         return AssignmentInfolist::configure($schema);
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -87,7 +82,6 @@ class AssignmentResource extends Resource
         return AssignmentsTable::configure($table);
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Relations
@@ -97,10 +91,9 @@ class AssignmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            \App\Filament\Resources\Assignments\RelationManagers\SubmissionsRelationManager::class,
+            SubmissionsRelationManager::class,
         ];
     }
-
 
     /*
     |--------------------------------------------------------------------------

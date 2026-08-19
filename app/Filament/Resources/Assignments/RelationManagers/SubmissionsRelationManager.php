@@ -36,13 +36,12 @@ class SubmissionsRelationManager extends RelationManager
             ->recordTitleAttribute('id')
 
             ->modifyQueryUsing(
-                fn (Builder $query) =>
-                    $query->with([
-                        'student.user',
-                        'attachments',
-                        'grader.user',
-                        'assignment',
-                    ])
+                fn (Builder $query) => $query->with([
+                    'student.user',
+                    'attachments',
+                    'grader.user',
+                    'assignment',
+                ])
             )
 
             ->columns([
@@ -56,16 +55,15 @@ class SubmissionsRelationManager extends RelationManager
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(
-                        fn ($state) =>
-                            match ($state) {
-                                'draft' => 'Draft',
-                                'submitted' => 'Submitted',
-                                'graded' => 'Graded',
-                                'returned' => 'Returned',
-                                default => ucfirst(
-                                    (string) $state
-                                ),
-                            }
+                        fn ($state) => match ($state) {
+                            'draft' => 'Draft',
+                            'submitted' => 'Submitted',
+                            'graded' => 'Graded',
+                            'returned' => 'Returned',
+                            default => ucfirst(
+                                (string) $state
+                            ),
+                        }
                     ),
 
                 TextColumn::make('submitted_at')
@@ -80,14 +78,12 @@ class SubmissionsRelationManager extends RelationManager
                     ->label('Late')
                     ->badge()
                     ->formatStateUsing(
-                        fn ($state) =>
-                            $state
+                        fn ($state) => $state
                                 ? 'Late'
                                 : 'On Time'
                     )
                     ->color(
-                        fn ($state) =>
-                            $state
+                        fn ($state) => $state
                                 ? 'danger'
                                 : 'success'
                     ),
@@ -104,8 +100,8 @@ class SubmissionsRelationManager extends RelationManager
                             }
 
                             return $state
-                                . ' / '
-                                . $record->assignment->max_score;
+                                .' / '
+                                .$record->assignment->max_score;
                         }
                     )
                     ->sortable(),
@@ -140,9 +136,8 @@ class SubmissionsRelationManager extends RelationManager
                     ->modalHeading(
                         fn (
                             AssignmentSubmission $record
-                        ) =>
-                            'Submission - '
-                            . $record->student->user->name
+                        ) => 'Submission - '
+                            .$record->student->user->name
                     )
                     ->modalWidth('5xl')
 
@@ -222,22 +217,17 @@ class SubmissionsRelationManager extends RelationManager
                                                     match (
                                                         $record->status
                                                     ) {
-                                                        'draft' =>
-                                                            'Draft',
+                                                        'draft' => 'Draft',
 
-                                                        'submitted' =>
-                                                            'Submitted',
+                                                        'submitted' => 'Submitted',
 
-                                                        'graded' =>
-                                                            'Graded',
+                                                        'graded' => 'Graded',
 
-                                                        'returned' =>
-                                                            'Returned',
+                                                        'returned' => 'Returned',
 
-                                                        default =>
-                                                            ucfirst(
-                                                                (string) $record->status
-                                                            ),
+                                                        default => ucfirst(
+                                                            (string) $record->status
+                                                        ),
                                                     }
                                                 ),
 
@@ -371,7 +361,7 @@ class SubmissionsRelationManager extends RelationManager
                                                                                     1048576,
                                                                                 2
                                                                             )
-                                                                            . ' MB';
+                                                                            .' MB';
                                                                     } elseif (
                                                                         $bytes >=
                                                                         1024
@@ -382,11 +372,11 @@ class SubmissionsRelationManager extends RelationManager
                                                                                     1024,
                                                                                 1
                                                                             )
-                                                                            . ' KB';
+                                                                            .' KB';
                                                                     } else {
                                                                         $size =
                                                                             $bytes
-                                                                            . ' bytes';
+                                                                            .' bytes';
                                                                     }
 
                                                                     return
@@ -407,10 +397,10 @@ class SubmissionsRelationManager extends RelationManager
                                                                                     color:#111827;
                                                                                 ">
                                                                                     '
-                                                                                . e(
+                                                                                .e(
                                                                                     $attachment->original_name
                                                                                 )
-                                                                                . '
+                                                                                .'
                                                                                 </div>
 
                                                                                 <div style="
@@ -419,19 +409,19 @@ class SubmissionsRelationManager extends RelationManager
                                                                                     margin-top:3px;
                                                                                 ">
                                                                                     '
-                                                                                . e(
+                                                                                .e(
                                                                                     $size
                                                                                 )
-                                                                                . '
+                                                                                .'
                                                                                 </div>
                                                                             </div>
 
                                                                             <a
                                                                                 href="'
-                                                                                . e(
+                                                                                .e(
                                                                                     $url
                                                                                 )
-                                                                                . '"
+                                                                                .'"
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
                                                                                 style="
@@ -479,8 +469,8 @@ class SubmissionsRelationManager extends RelationManager
                                                 ->state(
                                                     $record->score !== null
                                                         ? $record->score
-                                                            . ' / '
-                                                            . $record
+                                                            .' / '
+                                                            .$record
                                                                 ->assignment
                                                                 ->max_score
                                                         : 'Not graded'
@@ -501,7 +491,7 @@ class SubmissionsRelationManager extends RelationManager
                                                             $record->percentage();
 
                                                         return $percentage !== null
-                                                            ? $percentage . '%'
+                                                            ? $percentage.'%'
                                                             : 'Not graded';
                                                     }
                                                 ),
@@ -573,8 +563,7 @@ class SubmissionsRelationManager extends RelationManager
                     ->visible(
                         fn (
                             AssignmentSubmission $record
-                        ): bool =>
-                            $this->canGrade($record)
+                        ): bool => $this->canGrade($record)
                     )
 
                     ->fillForm(
@@ -611,7 +600,7 @@ class SubmissionsRelationManager extends RelationManager
                                         )
                                         ->suffix(
                                             ' / '
-                                            . $record
+                                            .$record
                                                 ->assignment
                                                 ->max_score
                                         )
@@ -639,22 +628,17 @@ class SubmissionsRelationManager extends RelationManager
 
                             $record->update([
 
-                                'score' =>
-                                    $data['score'],
+                                'score' => $data['score'],
 
-                                'feedback' =>
-                                    $data['feedback']
+                                'feedback' => $data['feedback']
                                     ?? null,
 
-                                'graded_by' =>
-                                    $this
-                                        ->getCurrentTeacherId(),
+                                'graded_by' => $this
+                                    ->getCurrentTeacherId(),
 
-                                'graded_at' =>
-                                    now(),
+                                'graded_at' => now(),
 
-                                'status' =>
-                                    'graded',
+                                'status' => 'graded',
                             ]);
                         }
                     )
@@ -662,9 +646,8 @@ class SubmissionsRelationManager extends RelationManager
                     ->modalHeading(
                         fn (
                             AssignmentSubmission $record
-                        ) =>
-                            'Grade Submission - '
-                            . $record->student->user->name
+                        ) => 'Grade Submission - '
+                            .$record->student->user->name
                     )
 
                     ->modalSubmitActionLabel(

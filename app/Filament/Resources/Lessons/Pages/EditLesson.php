@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Lessons\Pages;
 
 use App\Filament\Resources\Lessons\LessonResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
 
@@ -27,17 +28,13 @@ class EditLesson extends EditRecord
                 return [
                     'id' => $attachment->id,
 
-                    'original_name' =>
-                        $attachment->original_name,
+                    'original_name' => $attachment->original_name,
 
-                    'file_path' =>
-                        $attachment->file_path,
+                    'file_path' => $attachment->file_path,
 
-                    'attachment_size' =>
-                        $attachment->file_size,
+                    'attachment_size' => $attachment->file_size,
 
-                    'mime_type' =>
-                        $attachment->mime_type,
+                    'mime_type' => $attachment->mime_type,
                 ];
             })
             ->values()
@@ -54,11 +51,10 @@ class EditLesson extends EditRecord
         return $data;
     }
 
-
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->label('Delete Lesson')
                 ->icon('heroicon-o-trash')
                 ->requiresConfirmation()
@@ -70,7 +66,6 @@ class EditLesson extends EditRecord
         ];
     }
 
-    
     /*
     |--------------------------------------------------------------------------
     | Don't Save Attachment Fields Into Lessons Table
@@ -241,8 +236,7 @@ class EditLesson extends EditRecord
         */
 
         foreach (
-            $newAttachments
-            as $index => $path
+            $newAttachments as $index => $path
         ) {
 
             /*
@@ -322,20 +316,15 @@ class EditLesson extends EditRecord
                 ->attachments()
                 ->create([
 
-                    'original_name' =>
-                        basename($path),
+                    'original_name' => basename($path),
 
-                    'file_path' =>
-                        $path,
+                    'file_path' => $path,
 
-                    'mime_type' =>
-                        $mimeType,
+                    'mime_type' => $mimeType,
 
-                    'file_size' =>
-                        $fileSize,
+                    'file_size' => $fileSize,
 
-                    'sort_order' =>
-                        $index,
+                    'sort_order' => $index,
 
                 ]);
 

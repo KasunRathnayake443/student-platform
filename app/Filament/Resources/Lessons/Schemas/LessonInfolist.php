@@ -7,7 +7,6 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class LessonInfolist
 {
@@ -42,8 +41,7 @@ class LessonInfolist
                             ->label('Status')
                             ->badge()
                             ->formatStateUsing(
-                                fn ($state) =>
-                                    $state
+                                fn ($state) => $state
                                         ? 'Published'
                                         : 'Draft'
                             ),
@@ -101,8 +99,7 @@ class LessonInfolist
                         TextEntry::make('video_url')
                             ->label('Video URL')
                             ->url(
-                                fn ($state) =>
-                                    filled($state)
+                                fn ($state) => filled($state)
                                         ? $state
                                         : null
                             )
@@ -112,8 +109,7 @@ class LessonInfolist
 
                     ])
                     ->visible(
-                        fn (Lesson $record) =>
-                            filled($record->video_url)
+                        fn (Lesson $record) => filled($record->video_url)
                     ),
 
                 /*
@@ -157,7 +153,7 @@ class LessonInfolist
                                                 return number_format(
                                                     $bytes / 1048576,
                                                     2
-                                                ) . ' MB';
+                                                ).' MB';
                                             }
 
                                             if (
@@ -166,10 +162,10 @@ class LessonInfolist
                                                 return number_format(
                                                     $bytes / 1024,
                                                     1
-                                                ) . ' KB';
+                                                ).' KB';
                                             }
 
-                                            return $bytes . ' bytes';
+                                            return $bytes.' bytes';
                                         }
                                     ),
 
@@ -188,7 +184,7 @@ class LessonInfolist
                                             }
 
                                             return asset(
-                                                'storage/' . ltrim(
+                                                'storage/'.ltrim(
                                                     $state,
                                                     '/'
                                                 )

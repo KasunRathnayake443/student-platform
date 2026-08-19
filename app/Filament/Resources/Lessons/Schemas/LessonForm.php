@@ -9,11 +9,12 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class LessonForm
 {
@@ -55,10 +56,9 @@ class LessonForm
                                 function (Teacher $teacher) {
 
                                     return [
-                                        $teacher->id =>
-                                            $teacher->user->name
-                                            . ' - '
-                                            . $teacher->employee_no,
+                                        $teacher->id => $teacher->user->name
+                                            .' - '
+                                            .$teacher->employee_no,
                                     ];
                                 }
                             );
@@ -135,7 +135,7 @@ class LessonForm
                                     return number_format(
                                         $bytes / 1073741824,
                                         2
-                                    ) . ' GB';
+                                    ).' GB';
                                 }
 
                                 if ($bytes >= 1048576) {
@@ -143,7 +143,7 @@ class LessonForm
                                     return number_format(
                                         $bytes / 1048576,
                                         2
-                                    ) . ' MB';
+                                    ).' MB';
                                 }
 
                                 if ($bytes >= 1024) {
@@ -151,10 +151,10 @@ class LessonForm
                                     return number_format(
                                         $bytes / 1024,
                                         1
-                                    ) . ' KB';
+                                    ).' KB';
                                 }
 
-                                return $bytes . ' bytes';
+                                return $bytes.' bytes';
                             }),
 
                         Placeholder::make('download')
@@ -180,13 +180,13 @@ class LessonForm
                                 $name = $get('original_name')
                                     ?: basename($path);
 
-                                return new \Illuminate\Support\HtmlString(
-                                    '<a href="' . e($url) . '" '
-                                    . 'download="' . e($name) . '" '
-                                    . 'target="_blank" '
-                                    . 'class="inline-flex items-center gap-1 text-primary-600 hover:underline">'
-                                    . 'Download'
-                                    . '</a>'
+                                return new HtmlString(
+                                    '<a href="'.e($url).'" '
+                                    .'download="'.e($name).'" '
+                                    .'target="_blank" '
+                                    .'class="inline-flex items-center gap-1 text-primary-600 hover:underline">'
+                                    .'Download'
+                                    .'</a>'
                                 );
                             }),
 
@@ -210,12 +210,12 @@ class LessonForm
                                 $url = Storage::disk('public')
                                     ->url($path);
 
-                                return new \Illuminate\Support\HtmlString(
-                                    '<a href="' . e($url) . '" '
-                                    . 'target="_blank" '
-                                    . 'class="inline-flex items-center gap-1 text-primary-600 hover:underline">'
-                                    . 'Open'
-                                    . '</a>'
+                                return new HtmlString(
+                                    '<a href="'.e($url).'" '
+                                    .'target="_blank" '
+                                    .'class="inline-flex items-center gap-1 text-primary-600 hover:underline">'
+                                    .'Open'
+                                    .'</a>'
                                 );
                             }),
 
