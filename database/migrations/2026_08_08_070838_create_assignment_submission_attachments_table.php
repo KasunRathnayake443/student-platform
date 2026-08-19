@@ -18,8 +18,11 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignId('assignment_submission_id')
-                ->constrained('assignment_submissions')
+            $table->unsignedBigInteger('assignment_submission_id');
+
+            $table->foreign('assignment_submission_id', 'sub_attach_sub_id_foreign')
+                ->references('id')
+                ->on('assignment_submissions')
                 ->cascadeOnDelete();
 
 
@@ -59,10 +62,11 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
+            // Explicitly provide a short index name here
             $table->index([
                 'assignment_submission_id',
                 'sort_order',
-            ]);
+            ], 'sub_attach_sub_id_sort_idx');
         });
     }
 
