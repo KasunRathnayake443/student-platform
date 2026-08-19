@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -12,9 +14,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable, HasRoles, TwoFactorAuthenticatable, PasskeyAuthenticatable;
+
+    /**
+     * Determine which Filament panels this user can access.
+     * - admin panel: super_admin, school_admin roles
+     * - student panel: student role (has a linked Student record)
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return match ($panel->getId()) {
+            'admin'   => $this->hasAnyRole(['super_admin', 'school_admin']),
+            'student' => $this->hasRole('student') || $this->student()->exists(),
+            default   => false,
+        };
+    }
 
 
     protected $fillable = [

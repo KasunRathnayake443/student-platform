@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -266,6 +267,25 @@ class Student extends Model
             QuizAttempt::class,
             'student_id'
         );
+    }
+
+    /**
+     * Determine dashboard tier based on date_of_birth.
+     * Returns: 'kids' | 'junior' | 'senior'
+     */
+    public function getAgeTier(): string
+    {
+        if (! $this->date_of_birth) {
+            return 'junior'; // safe fallback
+        }
+
+        $age = Carbon::parse($this->date_of_birth)->age;
+
+        return match (true) {
+            $age <= 10  => 'kids',
+            $age <= 14  => 'junior',
+            default     => 'senior',
+        };
     }
 
 }
