@@ -7,31 +7,43 @@ use Filament\Pages\Dashboard as BaseDashboard;
 class TeacherDashboard extends BaseDashboard
 {
     protected string $view = 'filament.teacher.pages.dashboard';
-    
-    protected static ?string $title = 'Teacher Dashboard';
+
+    protected static ?string $title = 'Overview';
 
     public function getViewData(): array
     {
         $teacher = auth()->user()->teacher;
-        
-        $schools = [];
+
+        $schools = collect();
+
         if ($teacher) {
-            // Load schools with grades and classes that belong to this teacher
-            $schools = $teacher->schools()->with(['grades' => function ($query) use ($teacher) {
-                $query->whereHas('learningClasses', function ($q) use ($teacher) {
-                    $q->whereHas('teachers', function ($t) use ($teacher) {
-                        $t->where('teachers.id', $teacher->id);
-                    });
-                })->with(['learningClasses' => function ($query) use ($teacher) {
-                    $query->whereHas('teachers', function ($t) use ($teacher) {
-                        $t->where('teachers.id', $teacher->id);
-                    });
-                }]);
-            }])->get();
+            $schools = $teacher->schools()->with([
+                'grades' => function ($query) use ($teacher) {
+                    $query
+                        ->whereHas('learningClasses', function ($q) use ($teacher) {
+                            $q->whereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->id));
+                        })
+                        ->orderBy('name')
+                        ->with([
+                            'learningClasses' => function ($q) use ($teacher) {
+                                $q->whereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->id))
+                                    ->orderBy('name')
+                                    ->withCount('students');
+                            },
+                        ]);
+                },
+            ])
+            ->orderBy('name')
+            ->get();
         }
 
+        $totalClasses  = $schools->flatMap(fn ($s) => $s->grades->flatMap(fn ($g) => $g->learningClasses))->count();
+        $totalStudents = $schools->flatMap(fn ($s) => $s->grades->flatMap(fn ($g) => $g->learningClasses))->sum('students_count');
+
         return [
-            'schools' => $schools,
+            'schools'       => $schools,
+            'totalClasses'  => $totalClasses,
+            'totalStudents' => $totalStudents,
         ];
     }
 }
