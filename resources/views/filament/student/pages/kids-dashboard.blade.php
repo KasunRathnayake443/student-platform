@@ -326,8 +326,13 @@
                 <h1>Hi {{ $firstName }}! 🌟</h1>
                 <p>Ready for today's adventures?</p>
             </div>
-            <div class="kids-date-badge">
-                📅 {{ now()->format('D, M j') }}
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <div class="kids-date-badge">
+                    📅 {{ now()->format('D, M j') }}
+                </div>
+                <button wire:click="logout" type="button" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.5); border-radius: 999px; padding: 0.4rem 1rem; color: #fff; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">
+                    🚪 Sign Out
+                </button>
             </div>
         </div>
     </div>
@@ -392,7 +397,7 @@
                             <div class="kids-mission-info">
                                 <div class="kids-mission-class">{{ $assignment->learningClass->name ?? 'Class' }}</div>
                                 <div class="kids-mission-name">{{ $assignment->title }}</div>
-                                <button class="kids-start-btn">START! 🚀</button>
+                                <button wire:click="launchAssignment({{ $assignment->id }})" type="button" class="kids-start-btn">START! 🚀</button>
                             </div>
                         </div>
                     @endforeach

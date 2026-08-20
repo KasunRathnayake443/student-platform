@@ -423,6 +423,21 @@ class PlatformSeeder extends Seeder
                     'grade_id' => $grade9_S2->id,
                     'classes' => [$class7->id, $class8->id],
                 ],
+                // Grade 4 - School 1 (Age ~9 - Kids Tier)
+                [
+                    'name' => 'Leo Mason',
+                    'email' => 'student9@example.com',
+                    'gender' => 'male',
+                    'dob' => '2017-05-12',
+                    'admission_no' => 'ADM-2026-009',
+                    'phone' => '+94 77 345 6009',
+                    'address' => '14 Sunset Avenue, Colombo 04',
+                    'parent_name' => 'Arthur Mason',
+                    'parent_phone' => '+94 77 456 7009',
+                    'school_id' => $school1->id,
+                    'grade_id' => $grade10_S1->id,
+                    'classes' => [$class1->id],
+                ],
             ];
 
             $createdStudents = [];

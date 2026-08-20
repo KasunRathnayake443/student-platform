@@ -276,15 +276,15 @@ class Student extends Model
     public function getAgeTier(): string
     {
         if (! $this->date_of_birth) {
-            return 'junior'; // safe fallback
+            return 'senior';
         }
 
-        $age = Carbon::parse($this->date_of_birth)->age;
+        $age = \Illuminate\Support\Carbon::parse($this->date_of_birth)->age;
 
         return match (true) {
-            $age <= 10  => 'kids',
-            $age <= 14  => 'junior',
-            default     => 'senior',
+            $age <= 10  => 'kids',    // Age 5 to 10 -> Kids Dashboard
+            $age <= 15  => 'junior',  // Age 11 to 15 -> Teens Dashboard
+            default     => 'senior',  // Age 16+ -> Seniors Dashboard
         };
     }
 

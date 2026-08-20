@@ -395,6 +395,9 @@
             <div class="jd-context-badge">
                 {{ $activeSchoolName }} › {{ $activeGradeName }} ▾
             </div>
+            <button wire:click="logout" type="button" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                🚪 Sign Out
+            </button>
         </div>
     </div>
 
