@@ -1,10 +1,8 @@
 @php
     $livewire ??= null;
     $title = $livewire ? $livewire->getTitle() : 'Teacher Portal';
-@endphp
 
-@php
-    $teacher = auth()->user()->teacher;
+    $teacher = auth()->user()?->teacher;
     $schools = collect();
     $totalClasses = 0;
     $totalStudents = 0;
@@ -34,17 +32,7 @@
     }
 @endphp
 
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ strip_tags((string) $title) }} | Teacher Portal</title>
-    @filamentStyles
-    @livewireStyles
-</head>
-<body class="antialiased h-full">
-
+<x-filament-panels::layout.base :livewire="$livewire">
 <div id="teacher-app" style="position:fixed;inset:0;display:flex;background:#f1f5f9;overflow:hidden;font-family:'Inter',sans-serif;z-index:40;">
 
 <style>
@@ -202,10 +190,6 @@
     #t-content .fi-page {
         padding: 24px !important;
     }
-    #t-content .fi-sidebar,
-    #t-content .fi-topbar {
-        display: none !important;
-    }
 
     /* sidebar bottom */
     .t-sidebar-footer {
@@ -276,7 +260,7 @@
                                 </button>
                                 <div class="grade-children open" id="grade-{{ $si }}-{{ $gi }}">
                                     @foreach($grade->learningClasses as $class)
-                                        <a href="{{ \App\Filament\Teacher\Resources\LearningClasses\LearningClassResource::getUrl('view', ['record' => $class->id]) }}"
+                                        <a href="{{ \App\Filament\Teacher\Resources\LearningClasses\LearningClassResource::getUrl('view', ['record' => $class]) }}"
                                            class="class-link {{ request()->routeIs('filament.teacher.resources.learning-classes.view') && request()->route('record') == $class->id ? 'active' : '' }}">
                                             <span class="class-dot"></span>
                                             {{ $class->name }}
@@ -337,9 +321,4 @@
         btn.classList.toggle('open', open);
     }
 </script>
-
-@livewireScripts
-@filamentScripts
-
-</body>
-</html>
+</x-filament-panels::layout.base>

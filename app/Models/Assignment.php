@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Assignment extends Model
 {
@@ -39,13 +41,15 @@ class Assignment extends Model
         'late_submission_value' => 'integer',
     ];
 
-
     /*
     |--------------------------------------------------------------------------
     | Learning Class
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<LearningClass, $this>
+     */
     public function learningClass(): BelongsTo
     {
         return $this->belongsTo(
@@ -54,13 +58,15 @@ class Assignment extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Responsible Teacher
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<Teacher, $this>
+     */
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(
@@ -69,6 +75,44 @@ class Assignment extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Assigned Teachers
+    |--------------------------------------------------------------------------
+    |
+    | All teachers assigned to this assignment (the creator included).
+    | Only these teachers may view submissions and grade them.
+    |
+    */
+
+    /**
+     * @return BelongsToMany<Teacher, $this>
+     */
+    public function teachers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Teacher::class,
+            'assignment_teacher'
+        )->withTimestamps();
+    }
+
+    /**
+     * Whether the given teacher is assigned to this assignment
+     * (either as the responsible teacher or via the pivot table).
+     */
+    public function isAssignedTo(Teacher $teacher): bool
+    {
+        if (
+            (int) $this->teacher_id ===
+            (int) $teacher->getKey()
+        ) {
+            return true;
+        }
+
+        return $this->teachers()
+            ->whereKey($teacher->getKey())
+            ->exists();
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -76,6 +120,9 @@ class Assignment extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return HasMany<AssignmentAttachment, $this>
+     */
     public function attachments(): HasMany
     {
         return $this->hasMany(
@@ -83,20 +130,21 @@ class Assignment extends Model
         )->orderBy('sort_order');
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Student Submissions
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return HasMany<AssignmentSubmission, $this>
+     */
     public function submissions(): HasMany
     {
         return $this->hasMany(
             AssignmentSubmission::class
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -121,14 +169,12 @@ class Assignment extends Model
         return true;
     }
 
-
     public function isExpired(): bool
     {
         return $this->end_at
             ? now()->gt($this->end_at)
             : false;
     }
-
 
     public function acceptsLateSubmissions(): bool
     {
@@ -149,8 +195,7 @@ class Assignment extends Model
         );
     }
 
-
-    public function lateSubmissionDeadline()
+    public function lateSubmissionDeadline(): ?Carbon
     {
         if (
             ! $this->end_at ||
@@ -160,6 +205,10 @@ class Assignment extends Model
             return $this->end_at;
         }
 
+        /*
+         * The unit column is a database enum of exactly these values,
+         * so the match below is exhaustive.
+         */
         return match ($this->late_submission_unit) {
             'minutes' => $this->end_at->copy()->addMinutes(
                 $this->late_submission_value
@@ -172,8 +221,6 @@ class Assignment extends Model
             'days' => $this->end_at->copy()->addDays(
                 $this->late_submission_value
             ),
-
-            default => $this->end_at,
         };
     }
 }

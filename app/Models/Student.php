@@ -2,22 +2,15 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
-
 
 class Student extends Model
 {
-
-
     protected $fillable = [
-
 
         'user_id',
 
@@ -37,13 +30,7 @@ class Student extends Model
 
         'parent_phone',
 
-
     ];
-
-
-
-
-
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +38,9 @@ class Student extends Model
     |--------------------------------------------------------------------------
     */
 
-
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
 
@@ -59,19 +48,11 @@ class Student extends Model
 
     }
 
-
-
-
-
-
-
-
     /*
     |--------------------------------------------------------------------------
     | School / Grade Enrollments
     |--------------------------------------------------------------------------
     */
-
 
     public function enrollments(): HasMany
     {
@@ -79,13 +60,6 @@ class Student extends Model
         return $this->hasMany(StudentEnrollment::class);
 
     }
-
-
-
-
-
-
-
 
     /*
     |--------------------------------------------------------------------------
@@ -96,7 +70,6 @@ class Student extends Model
     |
     */
 
-
     public function currentEnrollment(): HasOne
     {
 
@@ -106,13 +79,6 @@ class Student extends Model
 
     }
 
-
-
-
-
-
-
-
     /*
     |--------------------------------------------------------------------------
     | All Schools
@@ -121,7 +87,6 @@ class Student extends Model
     | A student can belong to multiple schools.
     |
     */
-
 
     public function schools(): BelongsToMany
     {
@@ -137,27 +102,18 @@ class Student extends Model
             'school_id'
 
         )
+            ->withPivot([
 
-        ->withPivot([
+                'grade_id',
 
-            'grade_id',
+                'academic_year',
 
-            'academic_year',
+                'status',
 
-            'status'
-
-        ])
-
-        ->withTimestamps();
+            ])
+            ->withTimestamps();
 
     }
-
-
-
-
-
-
-
 
     /*
     |--------------------------------------------------------------------------
@@ -167,7 +123,6 @@ class Student extends Model
     | A student can belong to multiple grades.
     |
     */
-
 
     public function grades(): BelongsToMany
     {
@@ -183,27 +138,18 @@ class Student extends Model
             'grade_id'
 
         )
+            ->withPivot([
 
-        ->withPivot([
+                'school_id',
 
-            'school_id',
+                'academic_year',
 
-            'academic_year',
+                'status',
 
-            'status'
-
-        ])
-
-        ->withTimestamps();
+            ])
+            ->withTimestamps();
 
     }
-
-
-
-
-
-
-
 
     /*
     |--------------------------------------------------------------------------
@@ -213,7 +159,6 @@ class Student extends Model
     | A student can belong to multiple learning classes.
     |
     */
-
 
     public function classes(): BelongsToMany
     {
@@ -229,30 +174,20 @@ class Student extends Model
             'learning_class_id'
 
         )
+            ->withPivot(
 
-        ->withPivot(
+                'student_enrollment_id'
 
-            'student_enrollment_id'
-
-        )
-
-        ->withTimestamps();
+            )
+            ->withTimestamps();
 
     }
-
-
-
-
-
-
-
 
     /*
     |--------------------------------------------------------------------------
     | Enrollment Records With Classes
     |--------------------------------------------------------------------------
     */
-
 
     public function enrollmentClasses(): HasMany
     {
@@ -290,10 +225,9 @@ class Student extends Model
         $age = \Illuminate\Support\Carbon::parse($this->date_of_birth)->age;
 
         return match (true) {
-            $age <= 10  => 'kids',    // Age 5 to 10 -> Kids Dashboard
-            $age <= 15  => 'junior',  // Age 11 to 15 -> Teens Dashboard
-            default     => 'senior',  // Age 16+ -> Seniors Dashboard
+            $age <= 10 => 'kids',    // Age 5 to 10 -> Kids Dashboard
+            $age <= 15 => 'junior',  // Age 11 to 15 -> Teens Dashboard
+            default => 'senior',  // Age 16+ -> Seniors Dashboard
         };
     }
-
 }

@@ -2,7 +2,9 @@
 
 namespace App\Filament\Teacher\Resources\LearningClasses;
 
+use App\Filament\Resources\LearningClasses\RelationManagers\QuizzesRelationManager;
 use App\Filament\Resources\LearningClasses\Schemas\LearningClassInfolist;
+use App\Filament\Teacher\Pages\TeacherDashboard;
 use App\Filament\Teacher\Resources\LearningClasses\Pages\ViewLearningClass;
 use App\Models\LearningClass;
 use BackedEnum;
@@ -10,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class LearningClassResource extends Resource
 {
@@ -34,10 +37,10 @@ class LearningClassResource extends Resource
     {
         return [
             RelationManagers\StudentsRelationManager::class,
-            \App\Filament\Resources\LearningClasses\RelationManagers\TeachersRelationManager::class,
-            \App\Filament\Resources\LearningClasses\RelationManagers\LessonsRelationManager::class,
-            \App\Filament\Resources\LearningClasses\RelationManagers\AssignmentsRelationManager::class,
-            \App\Filament\Resources\LearningClasses\RelationManagers\QuizzesRelationManager::class,
+            RelationManagers\TeachersRelationManager::class,
+            RelationManagers\LessonsRelationManager::class,
+            RelationManagers\AssignmentsRelationManager::class,
+            QuizzesRelationManager::class,
         ];
     }
 
@@ -48,9 +51,9 @@ class LearningClassResource extends Resource
         ];
     }
 
-    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {
-        return \App\Filament\Teacher\Pages\TeacherDashboard::getUrl();
+        return TeacherDashboard::getUrl();
     }
 
     public static function getEloquentQuery(): Builder

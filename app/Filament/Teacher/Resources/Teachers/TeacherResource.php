@@ -1,31 +1,27 @@
 <?php
 
-namespace App\Filament\Teacher\Resources\Students;
+namespace App\Filament\Teacher\Resources\Teachers;
 
+use App\Filament\Resources\Teachers\Schemas\TeacherInfolist;
 use App\Filament\Teacher\Pages\TeacherDashboard;
-use App\Filament\Teacher\Resources\Students\Pages\ViewStudent;
-use App\Filament\Teacher\Resources\Students\Schemas\StudentForm;
-use App\Filament\Teacher\Resources\Students\Schemas\StudentInfolist;
-use App\Filament\Teacher\Resources\Students\Tables\StudentsTable;
-use App\Models\Student;
+use App\Filament\Teacher\Resources\Teachers\Pages\ViewTeacher;
+use App\Models\Teacher;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class StudentResource extends Resource
+class TeacherResource extends Resource
 {
-    protected static ?string $model = Student::class;
+    protected static ?string $model = Teacher::class;
 
-    protected static string|BackedEnum|null $navigationIcon =
-        Heroicon::OutlinedAcademicCap;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
     protected static string|\UnitEnum|null $navigationGroup = 'School Users';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -46,38 +42,15 @@ class StudentResource extends Resource
         return false;
     }
 
-    public static function form(Schema $schema): Schema
-    {
-        return StudentForm::configure($schema);
-    }
-
     public static function infolist(Schema $schema): Schema
     {
-        return StudentInfolist::configure($schema);
-    }
-
-    public static function table(Table $table): Table
-    {
-        return StudentsTable::configure($table);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-
-            RelationManagers\StudentAssignmentsRelationManager::class,
-
-            RelationManagers\StudentQuizzesRelationManager::class,
-
-        ];
+        return TeacherInfolist::configure($schema);
     }
 
     public static function getPages(): array
     {
         return [
-
-            'view' => ViewStudent::route('/{record}'),
-
+            'view' => ViewTeacher::route('/{record}'),
         ];
     }
 
@@ -86,6 +59,9 @@ class StudentResource extends Resource
         return TeacherDashboard::getUrl();
     }
 
+    /**
+     * Teachers are only visible to colleagues they share at least one class with.
+     */
     public static function getEloquentQuery(): Builder
     {
         $teacher = auth()->user()->teacher;
@@ -95,6 +71,7 @@ class StudentResource extends Resource
                 $query->whereHas('teachers', function ($t) use ($teacher) {
                     $t->where('teachers.id', $teacher?->id);
                 });
-            });
+            })
+            ->with(['user', 'schools']);
     }
 }

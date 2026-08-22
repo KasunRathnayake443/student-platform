@@ -38,11 +38,17 @@ class QuizAttempt extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<Quiz, $this>
+     */
     public function quiz(): BelongsTo
     {
         return $this->belongsTo(Quiz::class);
     }
 
+    /**
+     * @return BelongsTo<Student, $this>
+     */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
@@ -92,6 +98,7 @@ class QuizAttempt extends Model
     {
         if ($this->status === 'in_progress' && $this->isTimeExpired()) {
             $this->submit('time_expired');
+
             return true;
         }
 
@@ -109,6 +116,7 @@ class QuizAttempt extends Model
         // If already completed or expired, auto-submit and deny further changes
         if ($this->isFinished() || $this->isTimeExpired()) {
             $this->autoSubmitIfExpired();
+
             return null;
         }
 

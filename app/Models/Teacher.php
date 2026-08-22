@@ -19,13 +19,17 @@ class Teacher extends Model
 
     ];
 
-
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-
+    /**
+     * @return BelongsToMany<School, $this>
+     */
     public function schools(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -34,7 +38,9 @@ class Teacher extends Model
         )->withTimestamps();
     }
 
-
+    /**
+     * @return BelongsToMany<LearningClass, $this>
+     */
     public function classes(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -43,9 +49,12 @@ class Teacher extends Model
             'teacher_id',
             'learning_class_id'
         )
-        ->withTimestamps();
+            ->withTimestamps();
     }
 
+    /**
+     * @return HasMany<Lesson, $this>
+     */
     public function lessons(): HasMany
     {
         return $this->hasMany(
@@ -54,6 +63,9 @@ class Teacher extends Model
         );
     }
 
+    /**
+     * @return HasMany<Quiz, $this>
+     */
     public function quizzes(): HasMany
     {
         return $this->hasMany(

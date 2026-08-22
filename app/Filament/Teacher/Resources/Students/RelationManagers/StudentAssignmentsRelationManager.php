@@ -2,7 +2,13 @@
 
 namespace App\Filament\Teacher\Resources\Students\RelationManagers;
 
+use App\Filament\Resources\Assignments\Schemas\AssignmentSubmissionInfolist;
+use App\Models\AssignmentSubmission;
+use App\Models\Student;
+use App\Services\ClassContextService;
+use Filament\Actions\ViewAction;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,24 +19,59 @@ class StudentAssignmentsRelationManager extends RelationManager
 
     protected static ?string $title = 'Assignments';
 
+    public ?int $classId = null;
+
+    /**
+     * The class context: either set explicitly (tests/embedding) or taken
+     * from the profile page URL (?class=). Validated against the
+     * authenticated teacher and the student.
+     */
+    protected function scopedClassId(): ?int
+    {
+        $student = $this->getOwnerRecord();
+
+        if (! $student instanceof Student) {
+            return null;
+        }
+
+        return app(ClassContextService::class)
+            ->resolveForStudent(
+                $this->classId ?? ((int) request()->query('class')),
+                $student
+            );
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $teacher = auth()->user()->teacher;
-                return $query->whereHas('assignment.learningClass.teachers', function ($q) use ($teacher) {
-                    $q->where('teachers.id', $teacher?->id);
-                });
+                return $query
+                    ->with(['assignment.learningClass', 'student.user', 'grader.user', 'attachments'])
+                    ->when(
+                        $this->scopedClassId(),
+                        fn (Builder $q, int $classId) => $q->whereHas(
+                            'assignment',
+                            fn (Builder $a) => $a->where('learning_class_id', $classId)
+                        ),
+                        // Fallback: any assignment in a class taught by this teacher
+                        fn (Builder $q) => $q->whereHas('assignment.learningClass.teachers', function ($t) {
+                            $t->where('teachers.id', auth()->user()->teacher?->id);
+                        })
+                    );
             })
             ->columns([
                 Tables\Columns\TextColumn::make('assignment.title')
                     ->label('Assignment'),
-                
-                Tables\Columns\TextColumn::make('assignment.learningClass.name')
-                    ->label('Class'),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'draft' => 'Draft',
+                        'submitted' => 'Submitted',
+                        'graded' => 'Graded',
+                        'returned' => 'Returned',
+                        default => ucfirst((string) $state),
+                    })
                     ->colors([
                         'warning' => 'submitted',
                         'success' => 'graded',
@@ -39,23 +80,42 @@ class StudentAssignmentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('score')
                     ->label('Score')
-                    ->formatStateUsing(fn ($record) => $record->score ? "{$record->score} / {$record->assignment->max_score}" : '-'),
-                
+                    ->formatStateUsing(
+                        fn ($state, AssignmentSubmission $record) => $state !== null
+                            ? "{$state} / {$record->assignment->max_score}"
+                            : 'Not graded'
+                    ),
+
+                Tables\Columns\TextColumn::make('is_late')
+                    ->label('Timing')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state ? 'Late' : 'On Time')
+                    ->color(fn ($state) => $state ? 'danger' : 'success'),
+
                 Tables\Columns\TextColumn::make('submitted_at')
-                    ->dateTime(),
+                    ->label('Submitted')
+                    ->dateTime('d M Y, h:i A')
+                    ->placeholder('Not submitted')
+                    ->sortable(),
             ])
-            ->filters([
-                //
-            ])
-            ->headerActions([
-                //
-            ])
-            ->actions([
-                // Teacher can perhaps View it, but view page might not exist in Teacher panel yet.
-                // We'll leave it as view-only in the table.
-            ])
-            ->bulkActions([
-                //
+            ->defaultSort('submitted_at', 'desc')
+            ->recordActions([
+                ViewAction::make()
+                    ->label('View Result')
+                    ->modalHeading(
+                        fn (AssignmentSubmission $record) => 'Assignment Result - '.$record->student->user->name
+                    )
+                    ->modalWidth('5xl')
+                    ->infolist(function (Schema $schema, AssignmentSubmission $record): Schema {
+                        $record->load([
+                            'student.user',
+                            'attachments',
+                            'grader.user',
+                            'assignment',
+                        ]);
+
+                        return AssignmentSubmissionInfolist::configure($schema, $record);
+                    }),
             ]);
     }
 }

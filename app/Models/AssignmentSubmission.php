@@ -21,7 +21,6 @@ class AssignmentSubmission extends Model
         'status',
     ];
 
-
     protected $casts = [
         'submitted_at' => 'datetime',
 
@@ -32,13 +31,15 @@ class AssignmentSubmission extends Model
         'score' => 'decimal:2',
     ];
 
-
     /*
     |--------------------------------------------------------------------------
     | Assignment
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<Assignment, $this>
+     */
     public function assignment(): BelongsTo
     {
         return $this->belongsTo(
@@ -46,20 +47,21 @@ class AssignmentSubmission extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Student
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<Student, $this>
+     */
     public function student(): BelongsTo
     {
         return $this->belongsTo(
             Student::class
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -75,7 +77,6 @@ class AssignmentSubmission extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Submission Attachments
@@ -89,7 +90,6 @@ class AssignmentSubmission extends Model
         )->orderBy('sort_order');
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Grading Helpers
@@ -100,7 +100,6 @@ class AssignmentSubmission extends Model
     {
         return $this->status === 'graded';
     }
-
 
     public function percentage(): ?float
     {

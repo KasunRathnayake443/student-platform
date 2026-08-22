@@ -25,6 +25,9 @@ class Lesson extends Model
         'sort_order' => 'integer',
     ];
 
+    /**
+     * @return BelongsTo<LearningClass, $this>
+     */
     public function learningClass(): BelongsTo
     {
         return $this->belongsTo(
@@ -33,11 +36,17 @@ class Lesson extends Model
         );
     }
 
+    /**
+     * @return BelongsTo<Teacher, $this>
+     */
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Teacher::class);
     }
 
+    /**
+     * @return HasMany<LessonAttachment, $this>
+     */
     public function attachments(): HasMany
     {
         return $this->hasMany(
