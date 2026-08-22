@@ -1,12 +1,38 @@
-@props([
-    'title'         => 'Dashboard',
-    'schools'       => collect(),
-    'totalClasses'  => 0,
-    'totalStudents' => 0,
-])
+@php
+    $title = $title ?? 'Teacher Portal';
+    
+    $teacher = auth()->user()->teacher;
+    $schools = collect();
+    $totalClasses = 0;
+    $totalStudents = 0;
+
+    if ($teacher) {
+        $schools = $teacher->schools()->with([
+            'grades' => function ($query) use ($teacher) {
+                $query
+                    ->whereHas('learningClasses', function ($q) use ($teacher) {
+                        $q->whereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->id));
+                    })
+                    ->orderBy('name')
+                    ->with([
+                        'learningClasses' => function ($q) use ($teacher) {
+                            $q->whereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->id))
+                                ->orderBy('name')
+                                ->withCount('students');
+                        },
+                    ]);
+            },
+        ])
+        ->orderBy('name')
+        ->get();
+
+        $totalClasses  = $schools->flatMap(fn ($s) => $s->grades->flatMap(fn ($g) => $g->learningClasses))->count();
+        $totalStudents = $schools->flatMap(fn ($s) => $s->grades->flatMap(fn ($g) => $g->learningClasses))->sum('students_count');
+    }
+@endphp
 
 {{-- Single root div required by Livewire --}}
-<div id="teacher-app" style="position:fixed;inset:0;display:flex;background:#f1f5f9;z-index:100;overflow:hidden;font-family:'Inter',sans-serif;">
+<div id="teacher-app" style="position:fixed;inset:0;display:flex;background:#f1f5f9;overflow:hidden;font-family:'Inter',sans-serif;z-index:40;">
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -225,14 +251,6 @@
                 Dashboard
             </a>
 
-            <!-- Students -->
-            <a href="{{ route('filament.teacher.resources.students.index') }}"
-               class="t-link {{ request()->routeIs('filament.teacher.resources.students.*') ? 'active' : '' }}">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                All Students
-            </a>
 
             <!-- ── My Schools tree ────────────────── -->
             @if($schools->isNotEmpty())

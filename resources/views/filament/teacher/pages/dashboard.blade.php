@@ -1,9 +1,3 @@
-<x-teacher-layout
-    title="Overview"
-    :schools="$schools"
-    :total-classes="$totalClasses"
-    :total-students="$totalStudents"
->
 <style>
     .stat-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:20px 22px; }
     .stat-label { font-size:11px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; }
@@ -75,8 +69,11 @@
     .empty-text  { font-size:13px; color:#94a3b8; max-width:320px; margin:0 auto; line-height:1.6; }
 </style>
 
+<div style="padding:24px;max-width:1400px;margin:0 auto;">
+
 {{-- ── Stats row ──────────────────────────────────────────── --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;">
+
 
     <div class="stat-card">
         <div class="stat-label">Schools</div>
@@ -161,7 +158,7 @@
                         <div class="grade-label">Grade {{ $grade->name }}</div>
                         <div class="classes-grid">
                             @foreach($grade->learningClasses as $class)
-                                <a href="#" class="class-card">
+                                <a href="{{ \App\Filament\Teacher\Resources\LearningClasses\LearningClassResource::getUrl('view', ['record' => $class]) }}" class="class-card">
                                     <div class="class-top">
                                         <span class="class-grade-badge">Grade {{ $grade->name }}</span>
                                         @if($class->is_active)
@@ -190,4 +187,4 @@
     @endforeach
 @endif
 
-</x-teacher-layout>
+</div>{{-- end padding wrapper --}}

@@ -8,6 +8,11 @@ class TeacherDashboard extends BaseDashboard
 {
     protected string $view = 'filament.teacher.pages.dashboard';
 
+    public function getLayout(): string
+    {
+        return 'filament.teacher.layouts.app';
+    }
+
     protected static ?string $title = 'Overview';
 
     public function getViewData(): array

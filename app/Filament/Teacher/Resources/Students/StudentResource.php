@@ -2,9 +2,6 @@
 
 namespace App\Filament\Teacher\Resources\Students;
 
-use App\Filament\Teacher\Resources\Students\Pages\CreateStudent;
-use App\Filament\Teacher\Resources\Students\Pages\EditStudent;
-use App\Filament\Teacher\Resources\Students\Pages\ListStudents;
 use App\Filament\Teacher\Resources\Students\Pages\ViewStudent;
 use App\Filament\Teacher\Resources\Students\Schemas\StudentForm;
 use App\Filament\Teacher\Resources\Students\Schemas\StudentInfolist;
@@ -27,6 +24,8 @@ class StudentResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'School Users';
 
     protected static ?int $navigationSort = 3;
+
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $recordTitleAttribute = 'user.name';
 
@@ -53,6 +52,10 @@ class StudentResource extends Resource
 
             RelationManagers\StudentClassesRelationManager::class,
 
+            RelationManagers\StudentAssignmentsRelationManager::class,
+
+            RelationManagers\StudentQuizzesRelationManager::class,
+
         ];
     }
 
@@ -60,15 +63,14 @@ class StudentResource extends Resource
     {
         return [
 
-            'index' => ListStudents::route('/'),
-
-            'create' => CreateStudent::route('/create'),
-
             'view' => ViewStudent::route('/{record}'),
 
-            'edit' => EditStudent::route('/{record}/edit'),
-
         ];
+    }
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return \App\Filament\Teacher\Pages\TeacherDashboard::getUrl();
     }
 
     public static function getEloquentQuery(): Builder

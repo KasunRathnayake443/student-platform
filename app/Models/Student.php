@@ -269,6 +269,14 @@ class Student extends Model
         );
     }
 
+    public function assignmentSubmissions(): HasMany
+    {
+        return $this->hasMany(
+            AssignmentSubmission::class,
+            'student_id'
+        );
+    }
+
     /**
      * Determine dashboard tier based on date_of_birth.
      * Returns: 'kids' | 'junior' | 'senior'
