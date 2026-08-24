@@ -2,6 +2,8 @@
 
 namespace App\Filament\Teacher\Pages;
 
+use App\Models\Grade;
+use App\Models\School;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class TeacherDashboard extends BaseDashboard
@@ -38,17 +40,19 @@ class TeacherDashboard extends BaseDashboard
                         ]);
                 },
             ])
-            ->orderBy('name')
-            ->get();
+                ->orderBy('name')
+                ->get();
         }
 
-        $totalClasses  = $schools->flatMap(fn ($s) => $s->grades->flatMap(fn ($g) => $g->learningClasses))->count();
-        $totalStudents = $schools->flatMap(fn ($s) => $s->grades->flatMap(fn ($g) => $g->learningClasses))->sum('students_count');
+        $totalClasses = $schools->sum(
+            fn (School $school): int => $school->grades->sum(
+                fn (Grade $grade): int => $grade->learningClasses->count()
+            )
+        );
 
         return [
-            'schools'       => $schools,
-            'totalClasses'  => $totalClasses,
-            'totalStudents' => $totalStudents,
+            'schools' => $schools,
+            'totalClasses' => $totalClasses,
         ];
     }
 }

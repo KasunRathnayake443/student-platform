@@ -25,6 +25,7 @@ class StudentPanelProvider extends PanelProvider
         return $panel
             ->id('student')
             ->path('student')
+            ->brandName('Student Platform')
             ->login(StudentLogin::class)
             ->profile(isSimple: false)
             ->colors([

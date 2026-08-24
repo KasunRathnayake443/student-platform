@@ -33,7 +33,7 @@
 @endphp
 
 <x-filament-panels::layout.base :livewire="$livewire">
-<div id="teacher-app" style="position:fixed;inset:0;display:flex;background:#f1f5f9;overflow:hidden;font-family:'Inter',sans-serif;z-index:40;">
+<div id="teacher-app" style="position:fixed;inset:0;display:flex;background:#f4f6fa;overflow:hidden;font-family:'Inter',sans-serif;z-index:40;">
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -41,9 +41,9 @@
 
     /* ── Sidebar ────────────────────────────── */
     #t-sidebar {
-        width: 265px; min-width: 265px;
-        background: #ffffff;
-        border-right: 1px solid #e2e8f0;
+        width: 272px; min-width: 272px;
+        background: linear-gradient(180deg, #ffffff 0%, #fafbfe 100%);
+        border-right: 1px solid #e8ecf3;
         display: flex; flex-direction: column;
         height: 100%; overflow: hidden;
         transition: transform .25s ease;
@@ -51,131 +51,182 @@
 
     /* Brand */
     .t-brand {
-        padding: 20px 18px 16px;
-        border-bottom: 1px solid #e2e8f0;
+        padding: 18px 16px 15px;
+        border-bottom: 1px solid #eef1f7;
         display: flex; align-items: center; gap: 11px;
     }
     .t-brand-icon {
-        width: 38px; height: 38px; flex-shrink: 0;
+        width: 40px; height: 40px; flex-shrink: 0;
         background: linear-gradient(135deg,#6366f1,#10b981);
-        border-radius: 10px; display: flex; align-items: center;
+        border-radius: 12px; display: flex; align-items: center;
         justify-content: center; color:#fff; font-weight:700; font-size:13px;
+        box-shadow: 0 6px 14px rgba(99,102,241,.28);
     }
-    .t-brand-name  { font-size:14px; font-weight:700; color:#1e293b; line-height:1.2; }
-    .t-brand-label { font-size:11px; color:#94a3b8; margin-top:2px; }
+    .t-brand-name  { font-size:14px; font-weight:700; color:#0f172a; line-height:1.25; letter-spacing:-.01em; }
+    .t-brand-label { font-size:11px; color:#8b95a9; margin-top:2px; font-weight:500; }
 
     /* Nav scroll area */
-    #t-nav { flex:1; overflow-y:auto; padding:12px 10px; }
+    #t-nav { flex:1; overflow-y:auto; padding:10px 12px 14px; }
     #t-nav::-webkit-scrollbar { width:4px; }
     #t-nav::-webkit-scrollbar-track { background: transparent; }
-    #t-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius:4px; }
+    #t-nav::-webkit-scrollbar-thumb { background: #d5dbe7; border-radius:4px; }
 
     /* Section labels */
     .t-section {
-        font-size:10px; font-weight:600; color:#94a3b8;
-        text-transform:uppercase; letter-spacing:.08em;
-        padding: 12px 10px 5px;
+        display:flex; align-items:center; gap:8px;
+        font-size:10px; font-weight:700; color:#9aa4b8;
+        text-transform:uppercase; letter-spacing:.1em;
+        padding: 14px 10px 7px;
     }
+    .t-section::after { content:''; flex:1; height:1px; background:#eef1f7; }
 
     /* Nav links */
     .t-link {
-        display:flex; align-items:center; gap:9px;
-        padding:8px 11px; border-radius:8px;
-        font-size:13.5px; font-weight:500; color:#475569;
-        text-decoration:none; transition:all .13s ease; margin-bottom:1px;
+        position:relative;
+        display:flex; align-items:center; gap:10px;
+        padding:9px 12px; border-radius:10px;
+        font-size:13.5px; font-weight:500; color:#55607a;
+        text-decoration:none; transition:all .14s ease; margin-bottom:2px;
+        border:1px solid transparent;
     }
-    .t-link:hover  { background:#f1f5f9; color:#1e293b; }
-    .t-link.active { background:#eef2ff; color:#4f46e5; }
-    .t-link svg { width:16px; height:16px; flex-shrink:0; color:#94a3b8; }
+    .t-link:hover  { background:#f4f6fb; color:#0f172a; border-color:#eef1f7; }
+    .t-link.active { background:#eef2ff; color:#4f46e5; font-weight:600; border-color:#e0e7ff; }
+    .t-link.active::before {
+        content:''; position:absolute; left:-12px; top:20%;
+        height:60%; width:3px; border-radius:0 3px 3px 0; background:#6366f1;
+    }
+    .t-link svg { width:17px; height:17px; flex-shrink:0; color:#98a2b8; transition:color .14s ease; }
     .t-link:hover svg { color:#475569; }
     .t-link.active svg { color:#4f46e5; }
 
     /* ── School tree ─────────────────────────── */
-    .school-block { margin-bottom:4px; }
+    .school-block { margin-bottom:6px; }
     .school-toggle {
-        display:flex; align-items:center; gap:8px;
-        padding:8px 10px; border-radius:8px;
+        display:flex; align-items:center; gap:10px;
+        padding:9px 10px; border-radius:11px;
         font-size:13px; font-weight:600; color:#1e293b;
-        cursor:pointer; transition:all .13s;
+        cursor:pointer; transition:all .14s ease;
         user-select:none; width:100%;
         background:none; border:none; text-align:left;
     }
-    .school-toggle:hover { background:#f1f5f9; color:#0f172a; }
-    .school-icon {
-        width:26px; height:26px; border-radius:7px; flex-shrink:0;
-        background:linear-gradient(135deg,#6366f1,#10b981);
+    .school-toggle:hover { background:#f4f6fb; }
+    .school-toggle.open { background:#fff; box-shadow:0 1px 3px rgba(15,23,42,.06); border:1px solid #eef1f7; }
+    .school-logo {
+        width:30px; height:30px; border-radius:9px; flex-shrink:0;
         display:flex; align-items:center; justify-content:center;
-        font-size:11px; font-weight:700; color:#fff;
+        font-size:12px; font-weight:700; color:#fff;
+        background:linear-gradient(135deg,#6366f1,#10b981);
+        overflow:hidden;
     }
+    .school-logo img { width:100%; height:100%; object-fit:cover; display:block; }
     .school-name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .school-chevron { width:14px; height:14px; color:#94a3b8; transition:transform .2s; flex-shrink:0; }
+    .school-chevron { width:14px; height:14px; color:#a5aec2; transition:transform .22s ease; flex-shrink:0; }
     .school-toggle.open .school-chevron { transform:rotate(90deg); }
-    .school-children { display:none; padding-left:10px; }
+    .school-children { display:none; padding-left:14px; margin-top:2px; }
     .school-children.open { display:block; }
 
     /* Grade toggle */
     .grade-toggle {
-        display:flex; align-items:center; gap:7px;
-        padding:6px 10px; border-radius:7px;
-        font-size:12.5px; font-weight:500; color:#64748b;
-        cursor:pointer; transition:all .12s;
+        display:flex; align-items:center; gap:8px;
+        padding:7px 10px; border-radius:8px;
+        font-size:12.5px; font-weight:600; color:#69748c;
+        cursor:pointer; transition:all .13s ease;
         user-select:none; width:100%;
         background:none; border:none; text-align:left;
+        position:relative;
     }
-    .grade-toggle:hover { background:#f8fafc; color:#1e293b; }
-    .grade-icon {
-        width:20px; height:20px; border-radius:5px; flex-shrink:0;
-        background:#f1f5f9; display:flex; align-items:center;
-        justify-content:center;
-    }
-    .grade-icon svg { width:11px; height:11px; color:#94a3b8; }
-    .grade-name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .grade-chevron { width:12px; height:12px; color:#94a3b8; transition:transform .2s; flex-shrink:0; }
+    .grade-toggle:hover { background:#f4f6fb; color:#1e293b; }
+    .grade-toggle.open { color:#334155; }
+    .grade-chevron { width:12px; height:12px; color:#a5aec2; transition:transform .2s ease; flex-shrink:0; }
     .grade-toggle.open .grade-chevron { transform:rotate(90deg); }
-    .grade-children { display:none; padding-left:8px; }
+    .grade-name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .grade-count {
+        font-size:10.5px; font-weight:600; color:#8b95a9;
+        background:#eef1f7; border-radius:999px; padding:1px 7px;
+    }
+    .grade-children { display:none; padding-left:10px; }
     .grade-children.open { display:block; }
 
     /* Class links */
     .class-link {
-        display:flex; align-items:center; gap:7px;
-        padding:5px 10px; border-radius:6px;
-        font-size:12px; font-weight:400; color:#64748b;
-        text-decoration:none; transition:all .12s; margin-bottom:1px;
+        display:flex; align-items:center; gap:8px;
+        padding:6px 10px; border-radius:8px;
+        font-size:12.5px; font-weight:400; color:#6b7690;
+        text-decoration:none; transition:all .13s ease; margin-bottom:1px;
     }
-    .class-link:hover { background:#f1f5f9; color:#1e293b; }
-    .class-link.active { background:#eef2ff; color:#4f46e5; font-weight:500; }
+    .class-link:hover { background:#f4f6fb; color:#1e293b; }
+    .class-link.active { background:#eef2ff; color:#4f46e5; font-weight:600; }
     .class-dot {
         width:5px; height:5px; border-radius:50%; background:#cbd5e1; flex-shrink:0;
+        transition:background .13s ease;
     }
-    .class-link.active .class-dot { background:#6366f1; }
+    .class-link.active .class-dot { background:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
 
     /* ── Main area ───────────────────────────── */
     #t-main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
 
     /* Top bar */
     #t-topbar {
-        height:56px; flex-shrink:0;
+        height:62px; flex-shrink:0;
         display:flex; align-items:center; justify-content:space-between;
-        padding:0 22px;
-        border-bottom:1px solid #e2e8f0;
-        background:#fff;
+        padding:0 24px;
+        border-bottom:1px solid #e8ecf3;
+        background:rgba(255,255,255,.72);
+        backdrop-filter:blur(10px);
     }
-    .t-topbar-left { display:flex; align-items:center; gap:10px; }
-    .t-topbar-title { font-size:14px; font-weight:600; color:#1e293b; }
-    .t-topbar-right { display:flex; align-items:center; gap:8px; }
+    .t-topbar-left { display:flex; align-items:center; gap:12px; min-width:0; }
+    .t-topbar-accent {
+        width:4px; height:20px; border-radius:999px; flex-shrink:0;
+        background:linear-gradient(180deg,#6366f1,#10b981);
+    }
+    .t-topbar-title {
+        font-size:15.5px; font-weight:700; color:#0f172a;
+        letter-spacing:-.01em;
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .t-topbar-right { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+    .t-date-pill {
+        display:flex; align-items:center; gap:7px;
+        font-size:12px; font-weight:600; color:#69748c;
+        background:#fff; border:1px solid #eef1f7;
+        padding:6px 13px; border-radius:999px;
+        box-shadow:0 1px 3px rgba(15,23,42,.04);
+    }
+    .t-date-pill svg { width:14px; height:14px; color:#98a2b8; }
+    .t-topbar-divider { width:1px; height:26px; background:#e8ecf3; }
     .t-tb-btn {
-        width:34px; height:34px; border-radius:8px;
+        width:34px; height:34px; border-radius:9px;
         display:flex; align-items:center; justify-content:center;
-        color:#64748b; border:1px solid #e2e8f0;
-        background:#fff; cursor:pointer; transition:all .12s; text-decoration:none;
+        color:#64748b; border:1px solid #e8ecf3;
+        background:#fff; cursor:pointer; transition:all .13s ease; text-decoration:none;
     }
-    .t-tb-btn:hover { background:#f1f5f9; color:#1e293b; }
+    .t-tb-btn:hover { background:#f4f6fb; color:#1e293b; }
+    .t-tb-user {
+        display:flex; align-items:center; gap:10px;
+        padding:5px 12px 5px 5px;
+        background:#fff; border:1px solid #eef1f7;
+        border-radius:999px;
+        box-shadow:0 1px 3px rgba(15,23,42,.04);
+        transition:box-shadow .15s ease, border-color .15s ease;
+        text-decoration:none;
+    }
+    .t-tb-user:hover { box-shadow:0 4px 14px rgba(99,102,241,.16); border-color:#e0e7ff; }
     .t-avatar {
-        width:34px; height:34px; border-radius:50%;
+        width:32px; height:32px; border-radius:50%;
         background:linear-gradient(135deg,#6366f1,#10b981);
         display:flex; align-items:center; justify-content:center;
-        font-size:13px; font-weight:700; color:#fff;
+        font-size:12.5px; font-weight:700; color:#fff;
+        transition:transform .15s ease;
     }
+    .t-tb-user:hover .t-avatar { transform:scale(1.05); }
+    .t-avatar-img {
+        object-fit:cover;
+        border:2px solid #e2e8f0;
+        background:#fff;
+    }
+    .t-tb-user-info   { line-height:1.25; }
+    .t-tb-user-name   { font-size:12.5px; font-weight:600; color:#0f172a; white-space:nowrap; }
+    .t-tb-user-role   { font-size:10.5px; color:#8b95a9; font-weight:500; }
 
     /* Content area */
     #t-content {
@@ -184,7 +235,7 @@
     }
     #t-content::-webkit-scrollbar { width:6px; }
     #t-content::-webkit-scrollbar-track { background: transparent; }
-    #t-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius:4px; }
+    #t-content::-webkit-scrollbar-thumb { background: #d5dbe7; border-radius:4px; }
 
     /* Filament component resets inside teacher layout */
     #t-content .fi-page {
@@ -193,18 +244,38 @@
 
     /* sidebar bottom */
     .t-sidebar-footer {
-        padding:14px 14px;
-        border-top:1px solid #e2e8f0;
+        padding:12px 14px 14px;
+        border-top:1px solid #eef1f7;
+        background:#fafbfe;
     }
+    .t-user-chip {
+        display:flex; align-items:center; gap:10px;
+        padding:9px 10px; border-radius:11px;
+        margin-bottom:6px;
+        background:#fff;
+        border:1px solid #eef1f7;
+        box-shadow:0 1px 3px rgba(15,23,42,.05);
+    }
+    .t-user-chip-photo {
+        width:32px; height:32px; border-radius:50%; flex-shrink:0;
+        background:linear-gradient(135deg,#6366f1,#10b981);
+        display:flex; align-items:center; justify-content:center;
+        font-size:12px; font-weight:700; color:#fff;
+        overflow:hidden;
+    }
+    .t-user-chip-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .t-user-chip-info { min-width:0; }
+    .t-user-chip-name { font-size:12.5px; font-weight:600; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .t-user-chip-role { font-size:10.5px; color:#8b95a9; font-weight:500; }
     .t-logout-btn {
         display:flex; align-items:center; gap:9px;
-        padding:8px 11px; border-radius:8px;
-        font-size:13px; font-weight:500; color:#64748b;
-        text-decoration:none; transition:all .13s;
+        padding:8px 11px; border-radius:9px;
+        font-size:13px; font-weight:500; color:#69748c;
+        text-decoration:none; transition:all .13s ease;
         width:100%; border:none; background:none; cursor:pointer;
     }
-    .t-logout-btn:hover { background:#fee2e2; color:#dc2626; }
-    .t-logout-btn svg { width:16px; height:16px; color:#94a3b8; }
+    .t-logout-btn:hover { background:#fef2f2; color:#dc2626; }
+    .t-logout-btn svg { width:16px; height:16px; color:#98a2b8; transition:color .13s ease; }
     .t-logout-btn:hover svg { color:#dc2626; }
 </style>
 
@@ -232,13 +303,28 @@
             Dashboard
         </a>
 
+        <!-- My Profile -->
+        <a href="{{ \App\Filament\Teacher\Pages\MyProfile::getUrl(panel: 'teacher') }}"
+           class="t-link {{ request()->routeIs('filament.teacher.pages.my-profile') ? 'active' : '' }}">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            My Profile
+        </a>
+
         @if($schools->isNotEmpty())
             <div class="t-section">My Classes</div>
 
             @foreach($schools as $si => $school)
                 <div class="school-block">
                     <button class="school-toggle open" onclick="tToggle(this, 'school-{{ $si }}')">
-                        <span class="school-icon">{{ strtoupper(substr($school->name, 0, 1)) }}</span>
+                        <span class="school-logo">
+                            @if($school->logo_url)
+                                <img src="{{ $school->logo_url }}" alt="{{ $school->name }}">
+                            @else
+                                {{ strtoupper(substr($school->name, 0, 1)) }}
+                            @endif
+                        </span>
                         <span class="school-name">{{ $school->name }}</span>
                         <svg class="school-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -248,15 +334,11 @@
                         @foreach($school->grades as $gi => $grade)
                             <div>
                                 <button class="grade-toggle open" onclick="tToggle(this, 'grade-{{ $si }}-{{ $gi }}')">
-                                    <span class="grade-icon">
-                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                        </svg>
-                                    </span>
-                                    <span class="grade-name">{{ $grade->name }}</span>
                                     <svg class="grade-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                                     </svg>
+                                    <span class="grade-name">{{ $grade->name }}</span>
+                                    <span class="grade-count">{{ $grade->learningClasses->count() }}</span>
                                 </button>
                                 <div class="grade-children open" id="grade-{{ $si }}-{{ $gi }}">
                                     @foreach($grade->learningClasses as $class)
@@ -277,6 +359,26 @@
 
     <!-- Footer -->
     <div class="t-sidebar-footer">
+        @if(auth()->user())
+            <a href="{{ \App\Filament\Teacher\Pages\MyProfile::getUrl(panel: 'teacher') }}"
+               class="t-user-chip"
+               title="Manage profile"
+               style="text-decoration:none;"
+            >
+                <span class="t-user-chip-photo">
+                    @if(auth()->user()->teacher?->profile_photo_url)
+                        <img src="{{ auth()->user()->teacher->profile_photo_url }}" alt="">
+                    @else
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    @endif
+                </span>
+                <span class="t-user-chip-info">
+                    <span class="t-user-chip-name" style="display:block;">{{ auth()->user()->name }}</span>
+                    <span class="t-user-chip-role" style="display:block;">Teacher</span>
+                </span>
+            </a>
+        @endif
+
         <form method="POST" action="{{ route('filament.teacher.auth.logout') }}">
             @csrf
             <button type="submit" class="t-logout-btn">
@@ -294,13 +396,36 @@
     <!-- Top bar -->
     <header id="t-topbar">
         <div class="t-topbar-left">
+            <span class="t-topbar-accent"></span>
             <span class="t-topbar-title">{{ strip_tags((string) $title) }}</span>
         </div>
         <div class="t-topbar-right">
+            <span class="t-date-pill">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                {{ now()->format('D, M j') }}
+            </span>
+
             @if(auth()->user())
-                <div class="t-avatar" title="{{ auth()->user()->name }}">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                </div>
+                <span class="t-topbar-divider"></span>
+
+                <a href="{{ \App\Filament\Teacher\Pages\MyProfile::getUrl(panel: 'teacher') }}"
+                   title="Manage profile"
+                   class="t-tb-user"
+                >
+                    @if($photoUrl = auth()->user()->teacher?->profile_photo_url)
+                        <img src="{{ $photoUrl }}" alt="{{ auth()->user()->name }}" class="t-avatar t-avatar-img">
+                    @else
+                        <div class="t-avatar">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                    @endif
+                    <span class="t-tb-user-info">
+                        <span class="t-tb-user-name" style="display:block;">{{ auth()->user()->name }}</span>
+                        <span class="t-tb-user-role" style="display:block;">Teacher</span>
+                    </span>
+                </a>
             @endif
         </div>
     </header>

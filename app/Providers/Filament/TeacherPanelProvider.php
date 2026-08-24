@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Teacher\Pages\Auth\Login;
+use App\Filament\Teacher\Pages\TeacherDashboard;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -23,17 +25,18 @@ class TeacherPanelProvider extends PanelProvider
         return $panel
             ->id('teacher')
             ->path('teacher')
-            ->login(\App\Filament\Teacher\Pages\Auth\Login::class)
+            ->brandName('Student Platform')
+            ->login(Login::class)
             ->colors([
                 'primary' => Color::Indigo,
-                'gray'    => Color::Slate,
+                'gray' => Color::Slate,
             ])
             ->font('Inter')
             ->darkMode(false)
             ->discoverResources(in: app_path('Filament/Teacher/Resources'), for: 'App\Filament\Teacher\Resources')
             ->discoverPages(in: app_path('Filament/Teacher/Pages'), for: 'App\Filament\Teacher\Pages')
             ->pages([
-                \App\Filament\Teacher\Pages\TeacherDashboard::class,
+                TeacherDashboard::class,
             ])
             ->widgets([])
             ->middleware([
