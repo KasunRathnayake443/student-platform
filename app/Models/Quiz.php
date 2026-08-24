@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Quiz extends Model
@@ -46,21 +47,71 @@ class Quiz extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<LearningClass, $this>
+     */
     public function learningClass(): BelongsTo
     {
         return $this->belongsTo(LearningClass::class, 'learning_class_id');
     }
 
+    /**
+     * @return BelongsTo<Teacher, $this>
+     */
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Teacher::class, 'teacher_id');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Assigned Teachers
+    |--------------------------------------------------------------------------
+    |
+    | All teachers assigned to this quiz (the creator included).
+    |
+    */
+
+    /**
+     * @return BelongsToMany<Teacher, $this>
+     */
+    public function teachers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Teacher::class,
+            'quiz_teacher'
+        )->withTimestamps();
+    }
+
+    /**
+     * Whether the given teacher is assigned to this quiz
+     * (either as the responsible teacher or via the pivot table).
+     */
+    public function isAssignedTo(Teacher $teacher): bool
+    {
+        if (
+            (int) $this->teacher_id ===
+            (int) $teacher->getKey()
+        ) {
+            return true;
+        }
+
+        return $this->teachers()
+            ->whereKey($teacher->getKey())
+            ->exists();
+    }
+
+    /**
+     * @return HasMany<QuizQuestion, $this>
+     */
     public function questions(): HasMany
     {
         return $this->hasMany(QuizQuestion::class)->orderBy('sort_order');
     }
 
+    /**
+     * @return HasMany<QuizAttempt, $this>
+     */
     public function attempts(): HasMany
     {
         return $this->hasMany(QuizAttempt::class);

@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 
 class Assignment extends Model
 {
@@ -195,7 +195,7 @@ class Assignment extends Model
         );
     }
 
-    public function lateSubmissionDeadline(): ?Carbon
+    public function lateSubmissionDeadline(): ?CarbonImmutable
     {
         if (
             ! $this->end_at ||

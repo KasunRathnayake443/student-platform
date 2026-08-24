@@ -99,7 +99,8 @@ class AssignmentForm
                                                 .' - '
                                                 .$teacher->employee_no,
                                         ]
-                                    );
+                                    )
+                                    ->toArray();
                             })
                             ->searchable()
                             ->preload()

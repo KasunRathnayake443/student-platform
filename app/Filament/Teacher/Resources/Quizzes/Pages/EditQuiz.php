@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Teacher\Resources\Assignments\Pages;
+namespace App\Filament\Teacher\Resources\Quizzes\Pages;
 
-use App\Filament\Resources\Assignments\Pages\EditAssignment as BaseEditAssignment;
-use App\Filament\Teacher\Resources\Assignments\AssignmentResource;
-use App\Models\Assignment;
+use App\Filament\Resources\Quizzes\Pages\EditQuiz as BaseEditQuiz;
+use App\Filament\Teacher\Resources\Quizzes\QuizResource;
+use App\Models\Quiz;
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 
-class EditAssignment extends BaseEditAssignment
+class EditQuiz extends BaseEditQuiz
 {
-    protected static string $resource = AssignmentResource::class;
+    protected static string $resource = QuizResource::class;
 
     public function getLayout(): string
     {
@@ -21,7 +21,7 @@ class EditAssignment extends BaseEditAssignment
     {
         return [
             Action::make('view')
-                ->label('View Assignment')
+                ->label('View Quiz')
                 ->icon(Heroicon::OutlinedEye)
                 ->url(fn () => static::getResource()::getUrl('view', ['record' => $this->getRecord()], panel: 'teacher')),
         ];
@@ -29,7 +29,7 @@ class EditAssignment extends BaseEditAssignment
 
     /*
     |--------------------------------------------------------------------------
-    | Prefill assigned teachers alongside the attachment data
+    | Prefill assigned teachers alongside the question data
     |--------------------------------------------------------------------------
     */
 
@@ -39,7 +39,7 @@ class EditAssignment extends BaseEditAssignment
 
         $record = $this->getRecord();
 
-        if (! $record instanceof Assignment) {
+        if (! $record instanceof Quiz) {
             return $data;
         }
 
@@ -69,7 +69,7 @@ class EditAssignment extends BaseEditAssignment
 
     /*
     |--------------------------------------------------------------------------
-    | Keep the assignment_teacher pivot in sync after saving
+    | Keep the quiz_teacher pivot in sync after saving
     |--------------------------------------------------------------------------
     */
 
@@ -79,7 +79,7 @@ class EditAssignment extends BaseEditAssignment
 
         $record = $this->getRecord();
 
-        if (! $record instanceof Assignment) {
+        if (! $record instanceof Quiz) {
             return;
         }
 

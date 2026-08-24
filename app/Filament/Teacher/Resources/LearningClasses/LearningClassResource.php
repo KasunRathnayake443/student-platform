@@ -2,7 +2,6 @@
 
 namespace App\Filament\Teacher\Resources\LearningClasses;
 
-use App\Filament\Resources\LearningClasses\RelationManagers\QuizzesRelationManager;
 use App\Filament\Resources\LearningClasses\Schemas\LearningClassInfolist;
 use App\Filament\Teacher\Pages\TeacherDashboard;
 use App\Filament\Teacher\Resources\LearningClasses\Pages\ViewLearningClass;
@@ -40,7 +39,7 @@ class LearningClassResource extends Resource
             RelationManagers\TeachersRelationManager::class,
             RelationManagers\LessonsRelationManager::class,
             RelationManagers\AssignmentsRelationManager::class,
-            QuizzesRelationManager::class,
+            RelationManagers\QuizzesRelationManager::class,
         ];
     }
 

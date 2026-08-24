@@ -179,7 +179,6 @@ class SubmissionsRelationManager extends RelationManager
                                                     'submitted' => 'Submitted',
                                                     'graded' => 'Graded',
                                                     'returned' => 'Returned',
-                                                    default => ucfirst((string) $record->status),
                                                 }
                                             ),
 

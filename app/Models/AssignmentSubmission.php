@@ -69,6 +69,9 @@ class AssignmentSubmission extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<Teacher, $this>
+     */
     public function grader(): BelongsTo
     {
         return $this->belongsTo(
@@ -83,6 +86,9 @@ class AssignmentSubmission extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @return HasMany<AssignmentSubmissionAttachment, $this>
+     */
     public function attachments(): HasMany
     {
         return $this->hasMany(
