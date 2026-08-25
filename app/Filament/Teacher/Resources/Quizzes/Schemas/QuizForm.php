@@ -6,6 +6,7 @@ use App\Models\LearningClass;
 use App\Models\Quiz;
 use App\Models\Teacher;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -238,6 +239,25 @@ class QuizForm
                                     ->label('Explanation / Feedback Notes')
                                     ->rows(2)
                                     ->helperText('Optional explanation displayed when reviewing the quiz.')
+                                    ->columnSpanFull(),
+
+                                FileUpload::make('question_image')
+                                    ->label('Question Image')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                                    ->imageEditor()
+                                    ->disk((string) config('filament.default_filesystem_disk', 'local'))
+                                    ->directory('quiz_questions/images')
+                                    ->maxSize(5120)
+                                    ->helperText('Accepted: JPEG, PNG, GIF, WebP (max 5 MB).')
+                                    ->columnSpanFull(),
+
+                                FileUpload::make('question_video')
+                                    ->label('Question Video')
+                                    ->acceptedFileTypes(['video/*'])
+                                    ->disk((string) config('filament.default_filesystem_disk', 'local'))
+                                    ->directory('quiz_questions/videos')
+                                    ->maxSize(20480)
+                                    ->helperText('Optional video for this question (max 20 MB).')
                                     ->columnSpanFull(),
 
                                 Repeater::make('options')

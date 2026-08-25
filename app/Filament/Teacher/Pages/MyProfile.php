@@ -32,7 +32,7 @@ class MyProfile extends Page
 
     public function getLayout(): string
     {
-        return 'test-default-layout';
+        return 'filament.teacher.layouts.app';
     }
 
     public function mount(): void

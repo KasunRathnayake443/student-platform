@@ -38,7 +38,7 @@ test('dashboard uses the full available width', function () {
 
     $html = $this->get('/teacher')->assertOk()->getContent();
 
-    expect($html)->toContain('<div style="padding:24px;">')
+    expect($html)->toContain('grid-template-columns:repeat(3,1fr)')
         ->and($html)->not->toContain('max-width:1400px');
 });
 

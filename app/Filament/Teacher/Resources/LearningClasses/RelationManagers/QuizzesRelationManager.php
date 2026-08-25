@@ -10,6 +10,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -241,6 +242,25 @@ class QuizzesRelationManager extends RelationManager
                                             ->rows(2)
                                             ->columnSpanFull(),
 
+                                        FileUpload::make('question_image')
+                                            ->label('Question Image')
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                                            ->imageEditor()
+                                            ->disk((string) config('filament.default_filesystem_disk', 'local'))
+                                            ->directory('quiz_questions/images')
+                                            ->maxSize(5120)
+                                            ->helperText('Accepted: JPEG, PNG, GIF, WebP (max 5 MB).')
+                                            ->columnSpanFull(),
+
+                                        FileUpload::make('question_video')
+                                            ->label('Question Video')
+                                            ->acceptedFileTypes(['video/*'])
+                                            ->disk((string) config('filament.default_filesystem_disk', 'local'))
+                                            ->directory('quiz_questions/videos')
+                                            ->maxSize(20480)
+                                            ->helperText('Optional video for this question (max 20 MB).')
+                                            ->columnSpanFull(),
+
                                         Repeater::make('options')
                                             ->label('Multiple Choice Options (Check the correct answer)')
                                             ->schema([
@@ -322,6 +342,8 @@ class QuizzesRelationManager extends RelationManager
                                 'points' => $points,
                                 'explanation' => $qData['explanation'] ?? null,
                                 'sort_order' => $index + 1,
+                                'question_image' => $qData['question_image'] ?? null,
+                                'question_video' => $qData['question_video'] ?? null,
                             ]);
 
                             $optionsData = $qData['options'] ?? [];

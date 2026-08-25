@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quizzes\Pages;
 
 use App\Filament\Resources\Quizzes\QuizResource;
+use App\Models\Quiz;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
@@ -21,14 +22,19 @@ class EditQuiz extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $this->record->load('questions.options');
+        /** @var Quiz $record */
+        $record = $this->record;
 
-        $data['questions'] = $this->record->questions->map(function ($q) {
+        $record->load('questions.options');
+
+        $data['questions'] = $record->questions->map(function ($q) {
             return [
                 'id' => $q->id,
                 'question_text' => $q->question_text,
                 'points' => $q->points,
                 'explanation' => $q->explanation,
+                'question_image' => $q->question_image,
+                'question_video' => $q->question_video,
                 'options' => $q->options->map(function ($opt) {
                     return [
                         'id' => $opt->id,
@@ -51,22 +57,27 @@ class EditQuiz extends EditRecord
 
     protected function afterSave(): void
     {
+        /** @var Quiz $record */
+        $record = $this->record;
+
         $state = $this->form->getState();
         $questionsData = $state['questions'] ?? [];
 
         // Delete existing questions and options, recreate with updated state
-        $this->record->questions()->delete();
+        $record->questions()->delete();
 
         $totalPoints = 0;
         foreach ($questionsData as $index => $qData) {
             $points = (int) ($qData['points'] ?? 1);
             $totalPoints += $points;
 
-            $question = $this->record->questions()->create([
+            $question = $record->questions()->create([
                 'question_text' => $qData['question_text'],
                 'points' => $points,
                 'explanation' => $qData['explanation'] ?? null,
                 'sort_order' => $index + 1,
+                'question_image' => $qData['question_image'] ?? null,
+                'question_video' => $qData['question_video'] ?? null,
             ]);
 
             $optionsData = $qData['options'] ?? [];
@@ -79,6 +90,6 @@ class EditQuiz extends EditRecord
             }
         }
 
-        $this->record->updateQuietly(['total_points' => $totalPoints]);
+        $record->updateQuietly(['total_points' => $totalPoints]);
     }
 }

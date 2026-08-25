@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quizzes\Schemas;
 
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -157,6 +158,22 @@ class QuizInfolist
                                 TextEntry::make('question_text')
                                     ->label('Question')
                                     ->weight('bold'),
+
+                                ImageEntry::make('question_image_url')
+                                    ->label('Question Image')
+                                    ->hidden(fn ($state): bool => blank($state))
+                                    ->imageHeight(200)
+                                    ->checkFileExistence(false)
+                                    ->columnSpanFull(),
+
+                                TextEntry::make('question_video_url')
+                                    ->label('Question Video')
+                                    ->url(fn ($state): ?string => $state)
+                                    ->openUrlInNewTab()
+                                    ->placeholder('No video')
+                                    ->icon('heroicon-o-play-circle')
+                                    ->hidden(fn ($state): bool => blank($state))
+                                    ->columnSpanFull(),
 
                                 TextEntry::make('points')
                                     ->label('Points')

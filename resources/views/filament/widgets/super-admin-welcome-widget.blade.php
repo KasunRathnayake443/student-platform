@@ -104,15 +104,6 @@
                         Add Student
                     </x-filament::button>
 
-                    <x-filament::button
-                        tag="a"
-                        :href="url('/admin/learning-classes/create')"
-                        color="gray"
-                        size="xs"
-                        icon="heroicon-m-book-open"
-                    >
-                        New Class
-                    </x-filament::button>
 
                     <x-filament::button
                         tag="a"

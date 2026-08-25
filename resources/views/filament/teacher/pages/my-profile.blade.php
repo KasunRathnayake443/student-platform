@@ -1,5 +1,5 @@
-<style>
-    .profile-wrap { max-width: 1000px; margin: 0 auto; }
+<div class="profile-wrap">
+    <style>
     .profile-grid {
         display: grid;
         grid-template-columns: 280px minmax(0, 1fr);
@@ -82,7 +82,6 @@
     .profile-form-body [data-field-wrapper] { margin-bottom: 4px; }
 </style>
 
-<div class="profile-wrap">
     <div class="profile-grid">
 
         {{-- ── Identity summary ─────────────────────── --}}

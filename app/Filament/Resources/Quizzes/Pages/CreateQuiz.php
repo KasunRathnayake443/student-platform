@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quizzes\Pages;
 
 use App\Filament\Resources\Quizzes\QuizResource;
+use App\Models\Quiz;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateQuiz extends CreateRecord
@@ -18,6 +19,9 @@ class CreateQuiz extends CreateRecord
 
     protected function afterCreate(): void
     {
+        /** @var Quiz $record */
+        $record = $this->record;
+
         $state = $this->form->getState();
         $questionsData = $state['questions'] ?? [];
 
@@ -26,11 +30,13 @@ class CreateQuiz extends CreateRecord
             $points = (int) ($qData['points'] ?? 1);
             $totalPoints += $points;
 
-            $question = $this->record->questions()->create([
+            $question = $record->questions()->create([
                 'question_text' => $qData['question_text'],
                 'points' => $points,
                 'explanation' => $qData['explanation'] ?? null,
                 'sort_order' => $index + 1,
+                'question_image' => $qData['question_image'] ?? null,
+                'question_video' => $qData['question_video'] ?? null,
             ]);
 
             $optionsData = $qData['options'] ?? [];
@@ -43,6 +49,6 @@ class CreateQuiz extends CreateRecord
             }
         }
 
-        $this->record->updateQuietly(['total_points' => $totalPoints]);
+        $record->updateQuietly(['total_points' => $totalPoints]);
     }
 }

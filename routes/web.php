@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\QuizQuestionMediaController;
 use App\Http\Controllers\SchoolLogoController;
 use App\Http\Controllers\TeacherProfilePhotoController;
 use Illuminate\Support\Facades\Route;
@@ -12,24 +13,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/schools/{school}/logo', SchoolLogoController::class)
         ->name('schools.logo');
+
+    Route::get('/quiz-questions/{quizQuestion}/{type}', QuizQuestionMediaController::class)
+        ->name('quiz-questions.media')
+        ->whereIn('type', ['image', 'video']);
 });
-
-// TEMPORARY dev-only auto-login for headless diagnostics (remove after use)
-if (config('app.debug')) {
-    Route::get('/dev-login-teacher1', function () {
-        $user = App\Models\User::where('email', 'teacher1@example.com')->firstOrFail();
-        auth()->login($user);
-
-        return redirect('/teacher/my-profile');
-    });
-
-    Route::get('/dev-login-admin1', function () {
-        $user = App\Models\User::where('email', 'admin1@example.com')->firstOrFail();
-        auth()->login($user);
-
-        return redirect('/admin/teachers/1/edit');
-    });
-}
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');

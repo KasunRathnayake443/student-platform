@@ -1,3 +1,4 @@
+<div style="padding:24px;">
 <style>
     /* ── Stat cards ───────────────────────────── */
     .stat-card {
@@ -127,7 +128,6 @@
     .empty-text  { font-size:13px; color:#94a3b8; max-width:320px; margin:0 auto; line-height:1.65; }
 </style>
 
-<div style="padding:24px;">
 
 {{-- ── Stats row ──────────────────────────────────────────── --}}
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
