@@ -28,30 +28,39 @@
 @endphp
 
 <style>
-/* ───── Kids Dashboard Styles ───── */
+/* ───── Kids Dashboard Styles (Age 5-10: Big, Bold, Playful) ───── */
 .kids-dashboard {
     font-family: 'Nunito', 'Fredoka One', system-ui, sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, #ede9fe 0%, #f3e8ff 50%, #fce7f3 100%);
+    background: linear-gradient(135deg, #ede9fe 0%, #f3e8ff 30%, #fce7f3 60%, #fff7ed 100%);
     padding: 0;
-    margin: -1.5rem;
+    margin: -2rem -2.5rem;
+    overflow: hidden;
 }
 
 /* Header */
 .kids-header {
-    background: linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #f97316 100%);
-    padding: 1.5rem 2rem 2rem;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 25%, #db2777 55%, #f97316 100%);
+    padding: 2rem 2.5rem 2.5rem;
     position: relative;
     overflow: hidden;
-    border-radius: 0 0 2rem 2rem;
-    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.35);
+    border-radius: 0 0 2.5rem 2.5rem;
+    box-shadow: 0 12px 40px rgba(124, 58, 237, 0.4);
 }
 .kids-header::before {
     content: '';
     position: absolute;
-    top: -50%; right: -10%;
-    width: 300px; height: 300px;
+    top: -60%; right: -8%;
+    width: 350px; height: 350px;
     background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+}
+.kids-header::after {
+    content: '';
+    position: absolute;
+    bottom: -40%; left: 10%;
+    width: 250px; height: 250px;
+    background: rgba(255,255,255,0.06);
     border-radius: 50%;
 }
 .kids-header-inner {
@@ -59,40 +68,41 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.25rem;
     position: relative;
     z-index: 1;
 }
 .kids-mascot {
-    font-size: 3.5rem;
+    font-size: 5rem;
     animation: kids-bounce 2s ease-in-out infinite;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
 }
 @keyframes kids-bounce {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50%       { transform: translateY(-10px) rotate(3deg); }
+    0%, 100% { transform: translateY(0) rotate(-5deg) scale(1); }
+    50%       { transform: translateY(-16px) rotate(5deg) scale(1.08); }
 }
 .kids-greeting h1 {
-    font-size: 2rem;
+    font-size: 2.8rem;
     font-weight: 900;
     color: #fff;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
-    margin: 0 0 0.25rem;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+    margin: 0 0 0.35rem;
+    line-height: 1.1;
 }
 .kids-greeting p {
-    color: rgba(255,255,255,0.85);
-    font-size: 1rem;
+    color: rgba(255,255,255,0.9);
+    font-size: 1.2rem;
     margin: 0;
-    font-weight: 600;
+    font-weight: 700;
 }
 .kids-date-badge {
     background: rgba(255,255,255,0.2);
-    border: 2px solid rgba(255,255,255,0.4);
+    border: 3px solid rgba(255,255,255,0.45);
     border-radius: 999px;
-    padding: 0.4rem 1rem;
+    padding: 0.55rem 1.25rem;
     color: #fff;
-    font-weight: 700;
-    font-size: 0.875rem;
+    font-weight: 800;
+    font-size: 1rem;
     backdrop-filter: blur(4px);
 }
 
@@ -100,88 +110,79 @@
 .kids-school-switcher {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 1.25rem 2rem;
-    background: rgba(255,255,255,0.6);
+    gap: 1rem;
+    padding: 1.5rem 2.5rem;
+    background: rgba(255,255,255,0.65);
     backdrop-filter: blur(8px);
-    border-bottom: 2px dashed rgba(124,58,237,0.2);
+    border-bottom: 3px dashed rgba(124,58,237,0.25);
 }
 .kids-school-btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.25rem;
+    padding: 0.75rem 1.5rem;
     border-radius: 999px;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     font-weight: 800;
     cursor: pointer;
     border: 3px solid transparent;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     text-decoration: none;
 }
 .kids-school-btn.active {
     background: linear-gradient(135deg, #7c3aed, #db2777);
     color: #fff;
     border-color: #fff;
-    box-shadow: 0 4px 16px rgba(124,58,237,0.4);
-    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(124,58,237,0.45);
+    transform: scale(1.08);
 }
 .kids-school-btn:not(.active) {
     background: #fff;
     color: #6b21a8;
     border-color: #d8b4fe;
+    font-weight: 700;
 }
 .kids-school-btn:not(.active):hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
     border-color: #7c3aed;
-    box-shadow: 0 4px 12px rgba(124,58,237,0.2);
-}
-.kids-grade-label {
-    display: inline-block;
-    background: rgba(124,58,237,0.12);
-    color: #7c3aed;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.15rem 0.6rem;
-    border-radius: 999px;
-    margin-left: auto;
+    box-shadow: 0 4px 16px rgba(124,58,237,0.25);
 }
 
 /* Main content */
 .kids-main {
-    padding: 1.5rem 2rem 2rem;
+    padding: 2rem 2.5rem 3rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-    max-width: 1200px;
+    gap: 2.5rem;
+    max-width: 1300px;
     margin: 0 auto;
 }
 .kids-section-title {
-    font-size: 1.25rem;
+    font-size: 1.6rem;
     font-weight: 900;
     color: #4c1d95;
-    margin: 0 0 1rem;
+    margin: 0 0 1.25rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
 }
 
 /* Stars bar */
 .kids-stars-section {
     background: #fff;
-    border-radius: 1.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.1);
-    border: 3px solid #ede9fe;
+    border-radius: 2rem;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.12);
+    border: 4px solid #ede9fe;
 }
 .kids-stars-row {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 .kids-star {
-    font-size: 2rem;
+    font-size: 2.75rem;
     transition: transform 0.2s;
     filter: grayscale(0);
 }
@@ -189,10 +190,10 @@
     filter: grayscale(1);
     opacity: 0.3;
 }
-.kids-star:hover { transform: scale(1.3) rotate(10deg); }
+.kids-star:hover { transform: scale(1.35) rotate(12deg); }
 .kids-stars-count {
     margin-left: auto;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 900;
     color: #7c3aed;
 }
@@ -200,42 +201,42 @@
 /* Missions */
 .kids-missions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
 }
 .kids-mission-card {
-    border-radius: 1.25rem;
-    padding: 1.25rem;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    border: 3px solid rgba(255,255,255,0.6);
-    transition: transform 0.2s, box-shadow 0.2s;
+    gap: 1.25rem;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+    border: 4px solid rgba(255,255,255,0.6);
+    transition: transform 0.25s, box-shadow 0.25s;
     cursor: pointer;
     text-decoration: none;
 }
 .kids-mission-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.18);
 }
 .kids-mission-card.color-1 { background: linear-gradient(135deg, #fef08a, #fde047); }
 .kids-mission-card.color-2 { background: linear-gradient(135deg, #93c5fd, #60a5fa); }
 .kids-mission-card.color-3 { background: linear-gradient(135deg, #f9a8d4, #f472b6); }
 .kids-mission-card.color-4 { background: linear-gradient(135deg, #86efac, #4ade80); }
 .kids-mission-card.color-5 { background: linear-gradient(135deg, #fdba74, #fb923c); }
-.kids-mission-emoji { font-size: 2.5rem; flex-shrink: 0; }
+.kids-mission-emoji { font-size: 3.25rem; flex-shrink: 0; }
 .kids-mission-info { flex: 1; min-width: 0; }
 .kids-mission-class {
-    font-size: 0.7rem;
+    font-size: 0.82rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(0,0,0,0.5);
-    margin-bottom: 0.2rem;
+    color: rgba(0,0,0,0.45);
+    margin-bottom: 0.3rem;
 }
 .kids-mission-name {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 900;
     color: rgba(0,0,0,0.75);
     line-height: 1.3;
@@ -245,45 +246,45 @@
     color: rgba(0,0,0,0.7);
     border: none;
     border-radius: 999px;
-    padding: 0.35rem 0.9rem;
+    padding: 0.5rem 1.25rem;
     font-weight: 900;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     cursor: pointer;
-    margin-top: 0.5rem;
-    transition: background 0.2s;
+    margin-top: 0.6rem;
+    transition: all 0.2s;
 }
-.kids-start-btn:hover { background: rgba(0,0,0,0.25); }
+.kids-start-btn:hover { background: rgba(0,0,0,0.25); transform: scale(1.05); }
 .kids-no-missions {
     text-align: center;
-    padding: 2rem;
+    padding: 2.5rem;
     color: #7c3aed;
-    font-weight: 700;
-    font-size: 1.1rem;
+    font-weight: 800;
+    font-size: 1.3rem;
 }
 
 /* Classes */
 .kids-classes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
 }
 .kids-class-tile {
-    border-radius: 1.5rem;
-    padding: 1.5rem 1rem;
+    border-radius: 2rem;
+    padding: 2rem 1.25rem;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    gap: 0.6rem;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+    transition: transform 0.25s, box-shadow 0.25s;
     cursor: pointer;
     text-decoration: none;
-    border: 3px solid rgba(255,255,255,0.5);
+    border: 4px solid rgba(255,255,255,0.5);
 }
 .kids-class-tile:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+    transform: translateY(-8px) scale(1.04);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.18);
 }
 .kids-class-tile.tile-1 { background: linear-gradient(160deg, #ef4444, #dc2626); }
 .kids-class-tile.tile-2 { background: linear-gradient(160deg, #3b82f6, #2563eb); }
@@ -291,30 +292,30 @@
 .kids-class-tile.tile-4 { background: linear-gradient(160deg, #22c55e, #16a34a); }
 .kids-class-tile.tile-5 { background: linear-gradient(160deg, #f97316, #ea580c); }
 .kids-class-tile.tile-6 { background: linear-gradient(160deg, #ec4899, #db2777); }
-.kids-class-emoji { font-size: 2.75rem; }
+.kids-class-emoji { font-size: 3.5rem; }
 .kids-class-name {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     font-weight: 900;
     color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .kids-class-teacher {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.85);
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.88);
     font-weight: 700;
 }
 
 /* Empty state */
 .kids-empty {
     text-align: center;
-    padding: 3rem 1rem;
+    padding: 3.5rem 1rem;
     color: #6b21a8;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 800;
 }
 </style>
 
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <div class="kids-dashboard">
 
@@ -326,11 +327,11 @@
                 <h1>Hi {{ $firstName }}! 🌟</h1>
                 <p>Ready for today's adventures?</p>
             </div>
-            <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:1rem;">
                 <div class="kids-date-badge">
                     📅 {{ now()->format('D, M j') }}
                 </div>
-                <button wire:click="logout" type="button" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.5); border-radius: 999px; padding: 0.4rem 1rem; color: #fff; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">
+                <button wire:click="logout" type="button" style="background: rgba(255,255,255,0.25); border: 3px solid rgba(255,255,255,0.5); border-radius: 999px; padding: 0.5rem 1.25rem; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(4px);">
                     🚪 Sign Out
                 </button>
             </div>
@@ -338,28 +339,24 @@
     </div>
 
     {{-- ── SCHOOL SWITCHER ─────────────────────────────────────── --}}
-    @if($allContexts && $allContexts->count() > 1)
+    @if($allContexts && $allContexts->count() >= 1)
     <div class="kids-school-switcher">
-        <span style="font-weight:900;color:#6b21a8;font-size:0.85rem;align-self:center;">🏫 My Schools:</span>
         @foreach($allContexts as $schoolGroup)
-            @foreach($schoolGroup['contexts'] as $ctx)
-                @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
-                <button
-                    wire:click="switchContext('{{ $ctx['key'] }}')"
-                    class="kids-school-btn {{ $isActive ? 'active' : '' }}"
-                >
-                    🏫 {{ $schoolGroup['school']->name }}
-                    <span class="kids-grade-label">{{ $ctx['grade']->name ?? '' }}</span>
-                </button>
-            @endforeach
+            <div style="display:flex; flex-direction:column; align-items:center; gap:0.6rem;">
+                <span style="font-weight:900;color:#6b21a8;font-size:1rem;">🏫 {{ $schoolGroup['school']->name }}</span>
+                <div style="display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center;">
+                    @foreach($schoolGroup['contexts'] as $ctx)
+                        @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
+                        <button
+                            wire:click="switchContext('{{ $ctx['key'] }}')"
+                            class="kids-school-btn {{ $isActive ? 'active' : '' }}"
+                        >
+                            {{ $ctx['grade']->name ?? '' }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
         @endforeach
-    </div>
-    @elseif($allContexts && $allContexts->count() === 1)
-    <div class="kids-school-switcher" style="justify-content:center;">
-        <button class="kids-school-btn active">
-            🏫 {{ $allContexts->first()['school']->name }}
-            <span class="kids-grade-label">{{ $activeGradeName }}</span>
-        </button>
     </div>
     @endif
 
@@ -387,7 +384,7 @@
 
             @if($pendingAssignments->isEmpty())
                 <div class="kids-no-missions">
-                    🎉 All done! You finished all your missions today!
+                    🎉 All done! You finished all your missions today! 🏆
                 </div>
             @else
                 <div class="kids-missions-grid">
@@ -397,7 +394,7 @@
                             <div class="kids-mission-info">
                                 <div class="kids-mission-class">{{ $assignment->learningClass->name ?? 'Class' }}</div>
                                 <div class="kids-mission-name">{{ $assignment->title }}</div>
-                                <button wire:click="launchAssignment({{ $assignment->id }})" type="button" class="kids-start-btn">START! 🚀</button>
+                                <button type="button" class="kids-start-btn">START! 🚀</button>
                             </div>
                         </div>
                     @endforeach

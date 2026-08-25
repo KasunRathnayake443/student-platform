@@ -3,10 +3,10 @@
 namespace App\Filament\Student\Pages;
 
 use App\Models\Student;
-use App\Models\Assignment;
 use App\Services\StudentContextService;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Notifications\Notification;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
@@ -19,25 +19,27 @@ class Dashboard extends BaseDashboard
 
     public string $tier = 'junior';
 
+    /** @var array<string, mixed>|null */
     public ?array $activeContext = null;
 
-    public $allContexts = null;
+    /** @var Collection<int, array<string, mixed>>|null */
+    public ?Collection $allContexts = null;
 
     public ?Student $student = null;
 
     public function mount(): void
     {
         $user = Auth::user();
-        $this->student = $user?->student;
+        /** @var Student|null $student */
+        $student = $user?->student;
+        $this->student = $student;
 
-        if (! $this->student) {
+        if (! $this->student instanceof Student) {
             return;
         }
 
-        // Detect age tier
         $this->tier = $this->student->getAgeTier();
 
-        // Load contexts
         $service = app(StudentContextService::class);
         $this->activeContext = $service->getActiveContext($this->student);
         $this->allContexts = $service->getContextsGroupedBySchool($this->student);
@@ -46,12 +48,6 @@ class Dashboard extends BaseDashboard
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
-
-        Notification::make()
-            ->title('Navigation')
-            ->body('Switched to ' . ucfirst($tab) . ' section.')
-            ->info()
-            ->send();
     }
 
     public function switchContext(string $key): void
@@ -64,27 +60,9 @@ class Dashboard extends BaseDashboard
         $service->setActiveContext($this->student, $key);
         $this->activeContext = $service->getActiveContext($this->student);
         $this->allContexts = $service->getContextsGroupedBySchool($this->student);
-
-        Notification::make()
-            ->title('Context Switched!')
-            ->body('Now viewing ' . ($this->activeContext['school']->name ?? 'School') . ' - ' . ($this->activeContext['grade']->name ?? 'Grade'))
-            ->success()
-            ->send();
     }
 
-    public function launchAssignment(?int $id = null): void
-    {
-        $assignment = $id ? Assignment::find($id) : null;
-        $title = $assignment ? $assignment->title : 'Assignment Workspace';
-
-        Notification::make()
-            ->title('🚀 Mission Started: ' . $title)
-            ->body('Opening your interactive assignment workspace...')
-            ->info()
-            ->send();
-    }
-
-    public function logout()
+    public function logout(): RedirectResponse
     {
         Auth::guard('web')->logout();
         session()->invalidate();
@@ -100,7 +78,7 @@ class Dashboard extends BaseDashboard
             'student' => $this->student,
             'activeContext' => $this->activeContext,
             'allContexts' => $this->allContexts,
-            'firstName' => explode(' ', $this->student?->user?->name ?? 'Student')[0],
+            'firstName' => explode(' ', $this->student?->user->name ?? 'Student')[0],
         ];
     }
 }

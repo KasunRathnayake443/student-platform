@@ -172,14 +172,33 @@
     .ctx-list {
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
+        gap: 0.75rem;
         margin-top: 0.25rem;
+    }
+    .ctx-school-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .ctx-school-name {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #475569;
+        padding: 0 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .ctx-grades {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
     }
     .ctx-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.65rem 0.85rem;
+        padding: 0.55rem 0.85rem 0.55rem 1.5rem;
         border-radius: 0.75rem;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -607,9 +626,202 @@
         transform: translateY(-1px);
         box-shadow: 0 6px 18px rgba(124, 58, 237, 0.35);
     }
+
+    /* ══════════════════════════════════════════════════════════════
+       KIDS MODE (Age 5-10): Big, bold, playful, colorful
+       ══════════════════════════════════════════════════════════════ */
+
+    /* Kids Sidebar */
+    .kids-mode .custom-sidebar {
+        width: 300px;
+        background: linear-gradient(180deg, #faf5ff 0%, #f0e7ff 40%, #fce7f3 100%);
+        border-right: 3px solid #e9d5ff;
+        padding: 1.5rem 1.25rem;
+    }
+    .kids-mode .brand-header {
+        border-bottom: 3px dashed #d8b4fe;
+        padding-bottom: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    .kids-mode .brand-icon {
+        width: 3.75rem;
+        height: 3.75rem;
+        background: linear-gradient(135deg, #f472b6, #c084fc, #60a5fa);
+        border-radius: 1.1rem;
+        font-size: 2rem;
+        box-shadow: 0 6px 20px rgba(244, 114, 182, 0.35);
+        animation: kids-wiggle 3s ease-in-out infinite;
+    }
+    @keyframes kids-wiggle {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-5deg); }
+        75% { transform: rotate(5deg); }
+    }
+    .kids-mode .brand-title {
+        font-size: 1.4rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #7c3aed, #db2777);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .kids-mode .brand-sub {
+        font-size: 0.82rem;
+        color: #a855f7;
+    }
+
+    .kids-mode .nav-group-label {
+        font-size: 0.85rem;
+        font-weight: 900;
+        color: #7c3aed;
+        margin: 1.25rem 0 0.6rem 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .kids-mode .nav-menu {
+        gap: 0.5rem;
+    }
+    .kids-mode .nav-link {
+        padding: 1rem 1.15rem;
+        border-radius: 1rem;
+        font-size: 1.15rem;
+        font-weight: 800;
+        gap: 0.85rem;
+        border: 2px solid transparent;
+        background: rgba(255, 255, 255, 0.7);
+        color: #6b21a8;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .kids-mode .nav-link:hover {
+        background: #fff;
+        border-color: #c084fc;
+        color: #7c3aed;
+        transform: translateX(4px) scale(1.02);
+        box-shadow: 0 4px 16px rgba(168, 85, 247, 0.15);
+    }
+    .kids-mode .nav-link.active {
+        background: linear-gradient(135deg, #7c3aed, #a855f7);
+        color: #fff;
+        border-color: #7c3aed;
+        box-shadow: 0 6px 24px rgba(124, 58, 237, 0.3);
+        transform: scale(1.03);
+    }
+    .kids-mode .nav-link.active .nav-icon {
+        transform: scale(1.2);
+    }
+    .kids-mode .nav-icon {
+        font-size: 1.65rem;
+        width: 2rem;
+        text-align: center;
+    }
+
+    .kids-mode .ctx-school-name {
+        font-size: 0.9rem;
+        color: #7c3aed;
+        font-weight: 900;
+    }
+    .kids-mode .ctx-item {
+        padding: 0.75rem 1rem 0.75rem 1.75rem;
+        border-radius: 0.9rem;
+        font-size: 1rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.6);
+        border: 2px solid #e9d5ff;
+        color: #6b21a8;
+    }
+    .kids-mode .ctx-item:hover {
+        background: #f5f3ff;
+        border-color: #c084fc;
+        transform: translateX(3px);
+    }
+    .kids-mode .ctx-item.active {
+        background: linear-gradient(135deg, #ede9fe, #fce7f3);
+        border-color: #a855f7;
+        color: #7c3aed;
+        font-weight: 900;
+        box-shadow: 0 2px 12px rgba(168, 85, 247, 0.15);
+    }
+
+    /* Kids User Card */
+    .kids-mode .sidebar-user-card {
+        background: linear-gradient(135deg, #fdf4ff, #fce7f3);
+        border: 2px solid #e9d5ff;
+        border-radius: 1.25rem;
+        padding: 1rem;
+    }
+    .kids-mode .user-avatar {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.15rem;
+        background: linear-gradient(135deg, #f472b6, #c084fc);
+        box-shadow: 0 4px 14px rgba(244, 114, 182, 0.3);
+    }
+    .kids-mode .user-name {
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #7c3aed;
+    }
+    .kids-mode .user-role {
+        font-size: 0.82rem;
+        color: #a855f7;
+        font-weight: 700;
+    }
+    .kids-mode .btn-logout-icon {
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 0.85rem;
+        font-size: 1.2rem;
+        border: 2px solid #fda4af;
+        background: #fff1f2;
+    }
+
+    /* Kids Topbar */
+    .kids-mode .custom-topbar {
+        background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #eff6ff 100%);
+        border-bottom: 3px solid #e9d5ff;
+        padding: 1.75rem 2.5rem;
+    }
+    .kids-mode .topbar-title h1 {
+        font-size: 2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #7c3aed, #db2777);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .kids-mode .topbar-title p {
+        font-size: 1.05rem;
+        color: #7c3aed;
+        font-weight: 600;
+    }
+    .kids-mode .active-context-badge {
+        background: linear-gradient(135deg, #ede9fe, #fce7f3);
+        border: 2px solid #c084fc;
+        color: #7c3aed;
+        font-size: 0.95rem;
+        font-weight: 800;
+        padding: 0.65rem 1.3rem;
+    }
+    .kids-mode .btn-signout-top {
+        font-size: 1rem;
+        font-weight: 800;
+        padding: 0.65rem 1.5rem;
+        border-radius: 999px;
+        border: 2px solid #fda4af;
+    }
+
+    /* Kids workspace content — hide topbar, fill edge-to-edge */
+    .kids-mode .workspace-content {
+        padding: 0;
+        max-width: none;
+    }
+    .kids-mode .custom-topbar {
+        display: none;
+    }
     </style>
 
-    <div class="custom-app-container">
+    <div class="custom-app-container {{ $tier === 'kids' ? 'kids-mode' : '' }}">
         
         <!-- ── CUSTOM LIGHT SIDEBAR ── -->
         <aside class="custom-sidebar">
@@ -653,13 +865,17 @@
                 <div class="ctx-list">
                     @if($allContexts)
                         @foreach($allContexts as $schoolGroup)
-                            @foreach($schoolGroup['contexts'] as $ctx)
-                                @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
-                                <div wire:click="switchContext('{{ $ctx['key'] }}')" class="ctx-item {{ $isActive ? 'active' : '' }}">
-                                    <span>🏫 {{ Str::limit($schoolGroup['school']->name, 16) }}</span>
-                                    <span style="font-size: 0.72rem; opacity: 0.85;">{{ $ctx['grade']->name ?? '' }}</span>
+                            <div class="ctx-school-group">
+                                <div class="ctx-school-name">🏫 {{ Str::limit($schoolGroup['school']->name, 20) }}</div>
+                                <div class="ctx-grades">
+                                    @foreach($schoolGroup['contexts'] as $ctx)
+                                        @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
+                                        <div wire:click="switchContext('{{ $ctx['key'] }}')" class="ctx-item {{ $isActive ? 'active' : '' }}">
+                                            <span>{{ $ctx['grade']->name ?? '' }}</span>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
+                            </div>
                         @endforeach
                     @endif
                 </div>
@@ -778,7 +994,7 @@
                                             <span>📚 {{ $lessonCount }} Lessons</span>
                                             <span>📋 {{ $assignCount }} Assignments</span>
                                         </div>
-                                        <button wire:click="launchAssignment(null)" type="button" class="btn-action-start" style="width: 100%; text-align: center; padding: 0.7rem; font-size: 0.85rem;">
+                                        <button type="button" class="btn-action-start" style="width: 100%; text-align: center; padding: 0.7rem; font-size: 0.85rem;">
                                             View Lessons & Materials 🚀
                                         </button>
                                     </div>
@@ -830,7 +1046,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <button wire:click="launchAssignment({{ $assignment->id }})" type="button" class="btn-action-start">
+                                                <button type="button" class="btn-action-start">
                                                     {{ $isSubmitted ? 'View Submission 📄' : 'Submit Homework 🚀' }}
                                                 </button>
                                             </td>

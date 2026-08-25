@@ -139,9 +139,27 @@
     border-bottom: 1px solid #e2e8f0;
     padding: 0.75rem 2rem;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 1.25rem;
     overflow-x: auto;
+}
+.jd-school-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+.jd-school-name {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.jd-school-grades {
+    display: flex;
+    gap: 0.35rem;
 }
 .jd-school-tab {
     padding: 0.45rem 1.1rem;
@@ -405,18 +423,20 @@
     @if($allContexts && $allContexts->count() > 0)
     <div class="jd-school-tabs">
         @foreach($allContexts as $schoolGroup)
-            @foreach($schoolGroup['contexts'] as $ctx)
-                @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
-                <button
-                    wire:click="switchContext('{{ $ctx['key'] }}')"
-                    class="jd-school-tab {{ $isActive ? 'active' : '' }}"
-                >
-                    {{ $schoolGroup['school']->name }}
-                    @if($schoolGroup['contexts']->count() > 1)
-                        · {{ $ctx['grade']->name ?? '' }}
-                    @endif
-                </button>
-            @endforeach
+            <div class="jd-school-group">
+                <div class="jd-school-name">🏫 {{ $schoolGroup['school']->name }}</div>
+                <div class="jd-school-grades">
+                    @foreach($schoolGroup['contexts'] as $ctx)
+                        @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
+                        <button
+                            wire:click="switchContext('{{ $ctx['key'] }}')"
+                            class="jd-school-tab {{ $isActive ? 'active' : '' }}"
+                        >
+                            {{ $ctx['grade']->name ?? '' }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
         @endforeach
     </div>
     @endif
