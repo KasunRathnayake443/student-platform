@@ -62,13 +62,13 @@ class Dashboard extends BaseDashboard
         $this->allContexts = $service->getContextsGroupedBySchool($this->student);
     }
 
-    public function logout(): RedirectResponse
+    public function logout(): void
     {
         Auth::guard('web')->logout();
         session()->invalidate();
         session()->regenerateToken();
 
-        return redirect('/student/login');
+        $this->redirect('/student/login');
     }
 
     public ?int $selectedClassId = null;
