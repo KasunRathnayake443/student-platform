@@ -168,10 +168,10 @@
     .t-uname  { font-size:12.5px; font-weight:600; color:#1e293b; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
     .t-urole  { font-size:10.5px; color:#94a3b8; margin-top:1px; }
     .t-logout {
-        margin-left:auto; color:#94a3b8; background:none; border:none;
-        padding:5px; border-radius:6px; cursor:pointer; display:flex; transition:all .13s;
+        margin-left:auto; color:#ef4444; background:#fef2f2; border:1px solid #fecaca;
+        padding:6px; border-radius:7px; cursor:pointer; display:flex; transition:all .18s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .t-logout:hover { color:#ef4444; background:#fef2f2; }
+    .t-logout:hover { color:#ffffff; background:#dc2626; border-color:#dc2626; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25); transform: translateY(-1px); }
 
     /* ── Main ───────────────────────────────── */
     #t-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
@@ -347,10 +347,8 @@
                 </div>
                 <form method="POST" action="{{ route('filament.teacher.auth.logout') }}">
                     @csrf
-                    <button type="submit" class="t-logout" title="Sign out">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
+                    <button type="submit" class="t-logout" title="Sign out" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px;">
+                        Sign out
                     </button>
                 </form>
             </div>

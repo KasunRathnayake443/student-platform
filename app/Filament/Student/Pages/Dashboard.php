@@ -71,14 +71,35 @@ class Dashboard extends BaseDashboard
         return redirect('/student/login');
     }
 
+    public ?int $selectedClassId = null;
+
+    public function viewClassLessons(int $classId): void
+    {
+        $this->selectedClassId = $classId;
+    }
+
+    public function closeClassLessons(): void
+    {
+        $this->selectedClassId = null;
+    }
+
     protected function getViewData(): array
     {
+        $selectedClass = $this->selectedClassId
+            ? \App\Models\LearningClass::with([
+                'lessons' => fn ($q) => $q->where('is_published', true)->orderBy('sort_order'),
+                'lessons.attachments',
+                'teachers.user',
+            ])->find($this->selectedClassId)
+            : null;
+
         return [
             'tier' => $this->tier,
             'student' => $this->student,
             'activeContext' => $this->activeContext,
             'allContexts' => $this->allContexts,
             'firstName' => explode(' ', $this->student?->user->name ?? 'Student')[0],
+            'selectedClass' => $selectedClass,
         ];
     }
 }

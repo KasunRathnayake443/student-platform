@@ -269,14 +269,14 @@
     .t-user-chip-role { font-size:10.5px; color:#8b95a9; font-weight:500; }
     .t-logout-btn {
         display:flex; align-items:center; gap:9px;
-        padding:8px 11px; border-radius:9px;
-        font-size:13px; font-weight:500; color:#69748c;
-        text-decoration:none; transition:all .13s ease;
-        width:100%; border:none; background:none; cursor:pointer;
+        padding:8px 12px; border-radius:9px;
+        font-size:13px; font-weight:600; color:#ef4444;
+        text-decoration:none; transition:all .18s cubic-bezier(0.4, 0, 0.2, 1);
+        width:100%; border:1px solid #fecaca; background:#fef2f2; cursor:pointer;
     }
-    .t-logout-btn:hover { background:#fef2f2; color:#dc2626; }
-    .t-logout-btn svg { width:16px; height:16px; color:#98a2b8; transition:color .13s ease; }
-    .t-logout-btn:hover svg { color:#dc2626; }
+    .t-logout-btn:hover { background:#dc2626; color:#ffffff; border-color:#dc2626; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2); }
+    .t-logout-btn svg { width:16px; height:16px; color:#ef4444; transition:color .18s ease, transform .18s ease; }
+    .t-logout-btn:hover svg { color:#ffffff; transform: translateX(2px); }
 </style>
 
 <!-- ── SIDEBAR ──────────────────────────────── -->
@@ -381,10 +381,7 @@
 
         <form method="POST" action="{{ route('filament.teacher.auth.logout') }}">
             @csrf
-            <button type="submit" class="t-logout-btn">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
+            <button type="submit" class="t-logout-btn" style="justify-content: center;">
                 Sign out
             </button>
         </form>

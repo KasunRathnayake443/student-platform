@@ -27,8 +27,7 @@
                 <flux:menu.item
                     as="button"
                     type="submit"
-                    icon="arrow-right-start-on-rectangle"
-                    class="w-full cursor-pointer"
+                    class="w-full cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-700 dark:hover:text-red-300 font-medium"
                     data-test="logout-button"
                 >
                     {{ __('Log out') }}

@@ -51,16 +51,18 @@
     }
 @endphp
 
-<div>
+<div x-data="{ openClassId: null, openAssignmentId: null }">
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     /* Reset Page Container - Modern Light Theme */
-    html, body {
+    html, body, .fi-layout, .fi-main {
         margin: 0;
         padding: 0;
         width: 100%;
-        height: 100%;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
         background-color: #f8fafc;
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         color: #334155;
@@ -68,22 +70,33 @@
 
     .custom-app-container {
         display: flex;
-        min-height: 100vh;
+        height: 100vh;
+        max-height: 100vh;
         width: 100%;
         background: #f8fafc;
+        overflow: hidden;
     }
 
-    /* ── CUSTOM LIGHT SIDEBAR ── */
+    /* ── CUSTOM LIGHT SIDEBAR (Fixed Left Navigation) ── */
     .custom-sidebar {
         width: 260px;
+        height: 100vh;
+        max-height: 100vh;
         background: #ffffff;
         border-right: 1px solid #e2e8f0;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 1.75rem 1.25rem;
+        padding: 1.5rem 1.15rem;
         flex-shrink: 0;
         z-index: 20;
+        box-sizing: border-box;
+    }
+
+    .sidebar-scrollable-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 0.25rem;
     }
 
     .brand-header {
@@ -219,20 +232,26 @@
         font-weight: 700;
     }
 
-    /* User Card Bottom */
+    /* User Card Bottom Left */
     .sidebar-user-card {
-        padding: 1rem;
+        padding: 0.9rem;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 1rem;
+        border-radius: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        margin-top: 1rem;
+        flex-shrink: 0;
+    }
+    .user-profile-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
+        gap: 0.65rem;
     }
     .user-avatar {
-        width: 2.4rem;
-        height: 2.4rem;
+        width: 2.2rem;
+        height: 2.2rem;
         border-radius: 50%;
         background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
         display: flex;
@@ -240,7 +259,7 @@
         justify-content: center;
         font-weight: 800;
         color: #ffffff;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
     }
     .user-info {
@@ -248,7 +267,7 @@
         min-width: 0;
     }
     .user-name {
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         font-weight: 700;
         color: #0f172a;
         white-space: nowrap;
@@ -256,33 +275,39 @@
         text-overflow: ellipsis;
     }
     .user-role {
-        font-size: 0.73rem;
+        font-size: 0.72rem;
         color: #64748b;
         font-weight: 600;
     }
 
-    .btn-logout-icon {
-        background: #fee2e2;
-        border: 1px solid #fca5a5;
-        color: #dc2626;
-        width: 2.2rem;
-        height: 2.2rem;
+    .btn-sidebar-signout {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #ef4444;
         border-radius: 0.6rem;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s;
+        font-size: 0.8rem;
+        font-weight: 700;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .btn-logout-icon:hover {
-        background: #ef4444;
+    .btn-sidebar-signout:hover {
+        background: #dc2626;
         color: #ffffff;
-        border-color: #ef4444;
+        border-color: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
     }
 
-    /* ── MAIN LIGHT WORKSPACE ── */
+    /* ── MAIN LIGHT WORKSPACE (Scrollable Right Main Workspace) ── */
     .custom-workspace {
         flex: 1;
+        height: 100vh;
+        max-height: 100vh;
         display: flex;
         flex-direction: column;
         min-width: 0;
@@ -336,22 +361,23 @@
     .btn-signout-top {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        padding: 0.55rem 1.1rem;
-        background: #fee2e2;
-        border: 1px solid #fca5a5;
+        gap: 0.45rem;
+        padding: 0.55rem 1.15rem;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
         border-radius: 9999px;
         color: #dc2626;
         font-weight: 700;
         font-size: 0.85rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .btn-signout-top:hover {
-        background: #ef4444;
+        background: #dc2626;
         color: #ffffff;
-        border-color: #ef4444;
-        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        border-color: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
     }
 
     /* Content Container */
@@ -825,7 +851,7 @@
         
         <!-- ── CUSTOM LIGHT SIDEBAR ── -->
         <aside class="custom-sidebar">
-            <div>
+            <div class="sidebar-scrollable-content">
                 <!-- Brand -->
                 <div class="brand-header">
                     <div class="brand-icon">🎓</div>
@@ -881,17 +907,19 @@
                 </div>
             </div>
 
-            <!-- User Card Bottom -->
+            <!-- User Card & Sign Out at Bottom Left -->
             <div class="sidebar-user-card">
-                <div class="user-avatar">
-                    {{ strtoupper(substr($firstName, 0, 1)) }}
+                <div class="user-profile-row">
+                    <div class="user-avatar">
+                        {{ strtoupper(substr($firstName, 0, 1)) }}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ $student?->user?->name ?? 'Student' }}</div>
+                        <div class="user-role">{{ $activeGradeName }} Student</div>
+                    </div>
                 </div>
-                <div class="user-info">
-                    <div class="user-name">{{ $student?->user?->name ?? 'Student' }}</div>
-                    <div class="user-role">{{ $activeGradeName }} Student</div>
-                </div>
-                <button wire:click="logout" type="button" class="btn-logout-icon" title="Sign Out">
-                    🚪
+                <button wire:click="logout" type="button" class="btn-sidebar-signout" title="Sign Out">
+                    Sign Out
                 </button>
             </div>
         </aside>
@@ -924,9 +952,6 @@
                     <div class="active-context-badge">
                         📍 {{ $activeSchoolName }} › {{ $activeGradeName }}
                     </div>
-                    <button wire:click="logout" type="button" class="btn-signout-top">
-                        🚪 Sign Out
-                    </button>
                 </div>
             </header>
 
@@ -994,9 +1019,101 @@
                                             <span>📚 {{ $lessonCount }} Lessons</span>
                                             <span>📋 {{ $assignCount }} Assignments</span>
                                         </div>
-                                        <button type="button" class="btn-action-start" style="width: 100%; text-align: center; padding: 0.7rem; font-size: 0.85rem;">
+                                        <button @click="openClassId = {{ $class->id }}" type="button" class="btn-action-start" style="width: 100%; text-align: center; padding: 0.7rem; font-size: 0.85rem; cursor: pointer;">
                                             View Lessons & Materials 🚀
                                         </button>
+
+                                        <!-- Class Lessons Modal -->
+                                        <template x-teleport="body">
+                                            <div x-show="openClassId === {{ $class->id }}" x-cloak style="position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 1.5rem;" @keydown.escape.window="openClassId = null">
+                                                <div @click.outside="openClassId = null" style="background: #ffffff; border-radius: 1.25rem; width: 100%; max-width: 46rem; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #e2e8f0;">
+                                                    
+                                                    <!-- Header -->
+                                                    <div style="padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);">
+                                                        <div>
+                                                            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">📖 {{ $class->name }}</h2>
+                                                            <p style="font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; font-weight: 600;">
+                                                                Instructor: {{ $teacherName }} · {{ $lessonCount }} Lessons Available
+                                                            </p>
+                                                        </div>
+                                                        <button @click="openClassId = null" type="button" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 9999px; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 800; color: #475569; cursor: pointer;">
+                                                            ✕
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Lessons Body -->
+                                                    <div style="flex: 1; overflow-y: auto; padding: 1.75rem 2rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                                                        @php
+                                                            $publishedLessons = $class->lessons()->where('is_published', true)->with('attachments')->orderBy('sort_order')->get();
+                                                        @endphp
+
+                                                        @if($publishedLessons->isEmpty())
+                                                            <div style="text-align: center; padding: 3.5rem 1rem; color: #64748b;">
+                                                                <div style="font-size: 2.75rem; margin-bottom: 0.5rem;">📚</div>
+                                                                <h4 style="font-size: 1.15rem; font-weight: 800; color: #334155; margin: 0 0 0.25rem 0;">No Lessons Published Yet</h4>
+                                                                <p style="font-size: 0.88rem; margin: 0;">Your teacher has not published materials for this course yet.</p>
+                                                            </div>
+                                                        @else
+                                                            @foreach($publishedLessons as $lesson)
+                                                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                                                        <span style="font-size: 0.75rem; font-weight: 800; background: #ede9fe; color: #7c3aed; padding: 0.25rem 0.65rem; border-radius: 9999px;">
+                                                                            Lesson {{ $loop->iteration }}
+                                                                        </span>
+                                                                        <span style="font-size: 0.78rem; color: #64748b; font-weight: 600;">
+                                                                            {{ $lesson->created_at ? $lesson->created_at->format('M j, Y') : '' }}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;">{{ $lesson->title }}</h3>
+
+                                                                    @if($lesson->description)
+                                                                        <p style="font-size: 0.88rem; color: #475569; margin: 0; line-height: 1.5; font-weight: 500;">{{ $lesson->description }}</p>
+                                                                    @endif
+
+                                                                    @if($lesson->content)
+                                                                        <div style="font-size: 0.88rem; color: #334155; background: #ffffff; padding: 0.85rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; line-height: 1.6;">
+                                                                            {!! nl2br(e($lesson->content)) !!}
+                                                                        </div>
+                                                                    @endif
+
+                                                                    @if($lesson->video_url)
+                                                                        <div style="margin-top: 0.25rem;">
+                                                                            <a href="{{ $lesson->video_url }}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.4rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-weight: 700; font-size: 0.82rem; padding: 0.45rem 0.85rem; border-radius: 0.65rem; text-decoration: none;">
+                                                                                🎬 Watch Video Lesson ↗
+                                                                            </a>
+                                                                        </div>
+                                                                    @endif
+
+                                                                    @if($lesson->attachments && $lesson->attachments->count())
+                                                                        <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                                                                            <span style="font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Course Attachments & Downloads</span>
+                                                                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                                                                @foreach($lesson->attachments as $attachment)
+                                                                                    <a href="{{ \Illuminate\Support\Facades\Storage::url($attachment->file_path) }}" download style="display: inline-flex; align-items: center; gap: 0.4rem; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.75rem; border-radius: 0.65rem; text-decoration: none;">
+                                                                                        📄 {{ $attachment->original_name ?? 'Download Material' }}
+                                                                                        @if($attachment->file_size)
+                                                                                            <span style="font-size: 0.72rem; color: #64748b;">({{ round($attachment->file_size / 1024, 1) }} KB)</span>
+                                                                                        @endif
+                                                                                    </a>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Footer -->
+                                                    <div style="padding: 1.25rem 2rem; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: flex-end;">
+                                                        <button @click="openClassId = null" type="button" style="background: #7c3aed; color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; padding: 0.6rem 1.4rem; border-radius: 0.75rem; cursor: pointer;">
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 @endforeach
                             </div>
@@ -1046,9 +1163,82 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <button type="button" class="btn-action-start">
-                                                    {{ $isSubmitted ? 'View Submission 📄' : 'Submit Homework 🚀' }}
+                                                <button @click="openAssignmentId = {{ $assignment->id }}" type="button" class="btn-action-start" style="cursor: pointer;">
+                                                    {{ $isSubmitted ? 'View Submission 📄' : 'View Details 🚀' }}
                                                 </button>
+
+                                                <!-- Assignment Details Modal -->
+                                                <template x-teleport="body">
+                                                    <div x-show="openAssignmentId === {{ $assignment->id }}" x-cloak style="position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 1.5rem;" @keydown.escape.window="openAssignmentId = null">
+                                                        <div @click.outside="openAssignmentId = null" style="background: #ffffff; border-radius: 1.25rem; width: 100%; max-width: 44rem; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid #e2e8f0;">
+                                                            
+                                                            <!-- Header -->
+                                                            <div style="padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%);">
+                                                                <div>
+                                                                    <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">📋 {{ $assignment->title }}</h2>
+                                                                    <p style="font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; font-weight: 600;">
+                                                                        Class: {{ $assignment->learningClass->name ?? 'General Class' }} · Due: {{ $dueDate ? $dueDate->format('M j, Y') : 'No Deadline' }}
+                                                                    </p>
+                                                                </div>
+                                                                <button @click="openAssignmentId = null" type="button" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 9999px; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 800; color: #475569; cursor: pointer;">
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+
+                                                            <!-- Body -->
+                                                            <div style="flex: 1; overflow-y: auto; padding: 1.75rem 2rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                                                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                                                    <h4 style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Assignment Instructions</h4>
+                                                                    <p style="font-size: 0.92rem; color: #334155; margin: 0; line-height: 1.6; font-weight: 500;">
+                                                                        {{ $assignment->description ?? 'No specific instructions provided for this assignment.' }}
+                                                                    </p>
+                                                                </div>
+
+                                                                @if($assignment->attachments && $assignment->attachments->count())
+                                                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                                                        <h4 style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Reference Materials & Handouts</h4>
+                                                                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                                                            @foreach($assignment->attachments as $att)
+                                                                                <a href="{{ \Illuminate\Support\Facades\Storage::url($att->file_path) }}" download style="display: inline-flex; align-items: center; gap: 0.4rem; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.75rem; border-radius: 0.65rem; text-decoration: none;">
+                                                                                    📄 {{ $att->original_name ?? 'Download Attachment' }}
+                                                                                </a>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
+
+                                                                @php
+                                                                    $submission = \App\Models\AssignmentSubmission::where('student_id', $student?->id)->where('assignment_id', $assignment->id)->first();
+                                                                @endphp
+
+                                                                <div style="background: {{ $submission ? '#f0fdf4' : '#fff1f2' }}; border: 1px solid {{ $submission ? '#bbf7d0' : '#fecaca' }}; border-radius: 1rem; padding: 1.25rem;">
+                                                                    <h4 style="font-size: 0.88rem; font-weight: 800; color: {{ $submission ? '#166534' : '#991b1b' }}; margin: 0 0 0.5rem 0;">
+                                                                        {{ $submission ? '✓ Submission Received' : '⏳ Pending Homework Submission' }}
+                                                                    </h4>
+                                                                    @if($submission)
+                                                                        <p style="font-size: 0.82rem; color: #15803d; margin: 0 0 0.5rem 0; font-weight: 600;">
+                                                                            Submitted on {{ \Carbon\Carbon::parse($submission->created_at)->format('M j, Y · g:i A') }}
+                                                                        </p>
+                                                                        @if($submission->notes)
+                                                                            <p style="font-size: 0.88rem; color: #334155; margin: 0; font-weight: 500;">Notes: {{ $submission->notes }}</p>
+                                                                        @endif
+                                                                    @else
+                                                                        <p style="font-size: 0.85rem; color: #991b1b; margin: 0; font-weight: 500;">
+                                                                            Please submit your completed assignment file directly to your subject instructor or upload it via your student portal.
+                                                                        </p>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Footer -->
+                                                            <div style="padding: 1.25rem 2rem; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: flex-end;">
+                                                                <button @click="openAssignmentId = null" type="button" style="background: #dc2626; color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; padding: 0.6rem 1.4rem; border-radius: 0.75rem; cursor: pointer;">
+                                                                    Close
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -1189,3 +1379,91 @@
 
     </div>
 </div>
+
+{{-- ── LESSONS & MATERIALS MODAL OVERLAY ── --}}
+@if($selectedClass)
+    <div style="position: fixed; inset: 0; z-index: 100; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1.5rem;" wire:click.self="closeClassLessons">
+        <div style="background: #ffffff; border-radius: 1.25rem; width: 100%; max-width: 44rem; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid #e2e8f0;">
+            
+            <!-- Modal Header -->
+            <div style="padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);">
+                <div>
+                    <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">📖 {{ $selectedClass->name }}</h2>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; font-weight: 600;">
+                        Instructor: {{ $selectedClass->teachers->first()?->user?->name ?? 'Course Teacher' }} · {{ $selectedClass->lessons->count() }} Published Lessons
+                    </p>
+                </div>
+                <button wire:click="closeClassLessons" type="button" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 9999px; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 800; color: #475569; cursor: pointer; transition: all 0.2s;">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content (Lessons List) -->
+            <div style="flex: 1; overflow-y: auto; padding: 1.75rem 2rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                @if($selectedClass->lessons->isEmpty())
+                    <div style="text-align: center; padding: 3rem 1rem; color: #64748b;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📚</div>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: #334155; margin: 0 0 0.25rem 0;">No Lessons Published Yet</h4>
+                        <p style="font-size: 0.88rem; margin: 0;">Check back soon! Your teacher will publish learning materials here.</p>
+                    </div>
+                @else
+                    @foreach($selectedClass->lessons as $lesson)
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 0.75rem; font-weight: 800; background: #ede9fe; color: #7c3aed; padding: 0.25rem 0.65rem; border-radius: 9999px;">
+                                    Lesson {{ $loop->iteration }}
+                                </span>
+                                <span style="font-size: 0.78rem; color: #64748b; font-weight: 600;">
+                                    {{ $lesson->created_at ? $lesson->created_at->format('M j, Y') : '' }}
+                                </span>
+                            </div>
+
+                            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;">{{ $lesson->title }}</h3>
+
+                            @if($lesson->description)
+                                <p style="font-size: 0.88rem; color: #475569; margin: 0; line-height: 1.5; font-weight: 500;">{{ $lesson->description }}</p>
+                            @endif
+
+                            @if($lesson->content)
+                                <div style="font-size: 0.88rem; color: #334155; background: #ffffff; padding: 0.85rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; line-height: 1.6;">
+                                    {!! nl2br(e($lesson->content)) !!}
+                                </div>
+                            @endif
+
+                            @if($lesson->video_url)
+                                <div style="margin-top: 0.25rem;">
+                                    <a href="{{ $lesson->video_url }}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.4rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-weight: 700; font-size: 0.82rem; padding: 0.45rem 0.85rem; border-radius: 0.65rem; text-decoration: none;">
+                                        🎬 Watch Video Lesson ↗
+                                    </a>
+                                </div>
+                            @endif
+
+                            @if($lesson->attachments && $lesson->attachments->count())
+                                <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <span style="font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Course Attachments & Downloads</span>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                        @foreach($lesson->attachments as $attachment)
+                                            <a href="{{ \Illuminate\Support\Facades\Storage::url($attachment->file_path) }}" download style="display: inline-flex; align-items: center; gap: 0.4rem; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.75rem; border-radius: 0.65rem; text-decoration: none;">
+                                                📄 {{ $attachment->original_name ?? 'Download Material' }}
+                                                @if($attachment->file_size)
+                                                    <span style="font-size: 0.72rem; color: #64748b;">({{ round($attachment->file_size / 1024, 1) }} KB)</span>
+                                                @endif
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding: 1.25rem 2rem; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: flex-end;">
+                <button wire:click="closeClassLessons" type="button" style="background: #7c3aed; color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; padding: 0.6rem 1.4rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s;">
+                    Done / Close
+                </button>
+            </div>
+        </div>
+    </div>
+@endif

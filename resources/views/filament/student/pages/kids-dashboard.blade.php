@@ -331,9 +331,6 @@
                 <div class="kids-date-badge">
                     📅 {{ now()->format('D, M j') }}
                 </div>
-                <button wire:click="logout" type="button" style="background: rgba(255,255,255,0.25); border: 3px solid rgba(255,255,255,0.5); border-radius: 999px; padding: 0.5rem 1.25rem; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(4px);">
-                    🚪 Sign Out
-                </button>
             </div>
         </div>
     </div>

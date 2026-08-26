@@ -372,9 +372,6 @@
                 <div class="sd-context-pill">
                     📍 {{ $activeSchoolName }} › {{ $activeGradeName }}
                 </div>
-                <button wire:click="logout" type="button" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 0.5rem; padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                    🚪 Sign Out
-                </button>
             </div>
         </div>
 
