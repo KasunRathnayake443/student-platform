@@ -123,7 +123,7 @@ class SubmissionsRelationManager extends RelationManager
                 'desc'
             )
 
-            ->actions([
+            ->recordActions([
 
                 /*
                 |--------------------------------------------------------------------------
