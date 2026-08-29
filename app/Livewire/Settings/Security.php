@@ -109,7 +109,7 @@ class Security extends Component
         }
 
         Auth::user()->update([
-            'password' => $validated['password'],
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
         ]);
 
         $this->reset('current_password', 'password', 'password_confirmation');

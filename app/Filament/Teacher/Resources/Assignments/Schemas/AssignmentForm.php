@@ -141,11 +141,6 @@ class AssignmentForm
                             ->live()
                             ->afterStateUpdated(
                                 function (Set $set, bool $state): void {
-                                    $set(
-                                        'availability_type',
-                                        $state ? 'immediate' : 'scheduled'
-                                    );
-
                                     if ($state) {
                                         $set('start_at', null);
                                     }
@@ -154,11 +149,6 @@ class AssignmentForm
                             ->helperText(
                                 'Turn this off if students should wait until a specific date and time.'
                             ),
-
-                        TextInput::make('availability_type')
-                            ->hidden()
-                            ->dehydrated(true)
-                            ->default('immediate'),
 
                         DateTimePicker::make('start_at')
                             ->label('Start Date & Time')

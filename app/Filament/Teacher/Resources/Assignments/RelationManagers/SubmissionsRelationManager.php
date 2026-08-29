@@ -4,6 +4,7 @@ namespace App\Filament\Teacher\Resources\Assignments\RelationManagers;
 
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\AssignmentSubmissionAttachment;
 use App\Models\Teacher;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
@@ -17,6 +18,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class SubmissionsRelationManager extends RelationManager
 {
@@ -115,6 +119,21 @@ class SubmissionsRelationManager extends RelationManager
                     ->formatStateUsing(fn ($state) => $state ? 'Late' : 'On Time')
                     ->color(fn ($state) => $state ? 'danger' : 'success'),
 
+                TextColumn::make('attachments')
+                    ->label('Files')
+                    ->badge()
+                    ->color(fn (AssignmentSubmission $record) => $record->attachments->isEmpty() ? 'gray' : 'primary')
+                    ->icon(
+                        fn (AssignmentSubmission $record): ?string =>
+                            $record->attachments->isEmpty() ? null : 'heroicon-o-paper-clip'
+                    )
+                    ->formatStateUsing(
+                        fn (AssignmentSubmission $record): string =>
+                            $record->attachments->count() > 0
+                                ? $record->attachments->count().' file'.($record->attachments->count() > 1 ? 's' : '')
+                                : 'None'
+                    ),
+
                 TextColumn::make('score')
                     ->label('Score')
                     ->formatStateUsing(
@@ -207,6 +226,16 @@ class SubmissionsRelationManager extends RelationManager
                                     ])
                                     ->columnSpanFull(),
 
+                                Section::make('Attached Files')
+                                    ->schema([
+                                        TextEntry::make('attachments')
+                                            ->label('Attachment')
+                                            ->html()
+                                            ->state(fn (): HtmlString => $this->submissionAttachmentsHtml($record))
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columnSpanFull(),
+
                                 Section::make('Result')
                                     ->schema([
                                         TextEntry::make('score')
@@ -264,6 +293,26 @@ class SubmissionsRelationManager extends RelationManager
                     )
                     ->form(
                         fn (AssignmentSubmission $record): array => [
+                            Section::make('Student Submission')
+                                ->schema([
+                                    \Filament\Infolists\Components\TextEntry::make('student_answer')
+                                        ->label('Submitted Answer')
+                                        ->html()
+                                        ->state(
+                                            fn (): string => $record->content
+                                                ? strip_tags($record->content)
+                                                : 'No written answer was provided.'
+                                        )
+                                        ->columnSpanFull(),
+
+                                    \Filament\Infolists\Components\TextEntry::make('student_files')
+                                        ->label('Attached Files')
+                                        ->html()
+                                        ->state(fn (): HtmlString => $this->submissionAttachmentsHtml($record))
+                                        ->columnSpanFull(),
+                                ])
+                                ->columns(1),
+
                             Section::make('Student Result')
                                 ->schema([
                                     TextInput::make('score')
@@ -330,5 +379,35 @@ class SubmissionsRelationManager extends RelationManager
     protected function getCurrentTeacherId(): ?int
     {
         return auth()->user()?->teacher?->id;
+    }
+
+    /**
+     * HTML list of downloadable attachment links for a submission.
+     */
+    protected function submissionAttachmentsHtml(AssignmentSubmission $record): HtmlString
+    {
+        /** @var Collection<int, AssignmentSubmissionAttachment> $files */
+        $files = $record->attachments;
+
+        if ($files->isEmpty()) {
+            return new HtmlString(
+                '<span style="color:#9aa4b2;">No files were attached by the student.</span>'
+            );
+        }
+
+        $links = $files
+            ->map(
+                fn (AssignmentSubmissionAttachment $file): string => sprintf(
+                    '<a href="%s" target="_blank" rel="noopener" download style="display:inline-flex;align-items:center;gap:0.4rem;color:#0d9488;font-weight:700;text-decoration:none;margin-bottom:0.35rem;">📄 <span style="text-decoration:underline;">%s</span>%s</a>',
+                    e(Storage::disk('public')->url(ltrim($file->file_path, '/'))),
+                    e($file->original_name ?? basename($file->file_path)),
+                    $file->file_size
+                        ? ' <span style="color:#9aa4b2;font-weight:600;">('.round($file->file_size / 1024, 1).' KB)</span>'
+                        : ''
+                )
+            )
+            ->implode('<br>');
+
+        return new HtmlString($links);
     }
 }

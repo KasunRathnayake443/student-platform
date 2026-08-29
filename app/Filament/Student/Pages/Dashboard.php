@@ -2,15 +2,21 @@
 
 namespace App\Filament\Student\Pages;
 
+use App\Concerns\PasswordValidationRules;
+use App\Concerns\ProfileValidationRules;
 use App\Models\Student;
 use App\Services\StudentContextService;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class Dashboard extends BaseDashboard
 {
+    use PasswordValidationRules, ProfileValidationRules;
+
     protected static string $layout = 'filament-panels::components.layout.base';
 
     protected string $view = 'filament.student.pages.dashboard';
@@ -19,6 +25,9 @@ class Dashboard extends BaseDashboard
 
     public string $tier = 'junior';
 
+    /** @var int|string|null */
+    public $activeClassFilterId = null;
+
     /** @var array<string, mixed>|null */
     public ?array $activeContext = null;
 
@@ -26,6 +35,35 @@ class Dashboard extends BaseDashboard
     public ?Collection $allContexts = null;
 
     public ?Student $student = null;
+
+    public string $profileName = '';
+
+    public string $profileEmail = '';
+
+    public string $profilePhone = '';
+
+    public string $profileAddress = '';
+
+    public string $profileDateOfBirth = '';
+
+    public string $profileGender = 'male';
+
+    public string $profileParentName = '';
+
+    public string $profileParentPhone = '';
+
+    /** @var TemporaryUploadedFile|null */
+    public $profilePhoto = null;
+
+    public string $currentPassword = '';
+
+    public string $newPassword = '';
+
+    public string $newPassword_confirmation = '';
+
+    public string $profileMessage = '';
+
+    public string $profileMessageType = 'success';
 
     public function mount(): void
     {
@@ -43,11 +81,122 @@ class Dashboard extends BaseDashboard
         $service = app(StudentContextService::class);
         $this->activeContext = $service->getActiveContext($this->student);
         $this->allContexts = $service->getContextsGroupedBySchool($this->student);
+
+        $this->profileName = $user->name;
+        $this->profileEmail = $user->email;
+        $this->profilePhone = $this->student->phone ?? '';
+        $this->profileAddress = $this->student->address ?? '';
+        $this->profileDateOfBirth = $this->student->date_of_birth ?? '';
+        $this->profileGender = $this->student->gender ?? 'male';
+        $this->profileParentName = $this->student->parent_name ?? '';
+        $this->profileParentPhone = $this->student->parent_phone ?? '';
+
+        $tab = request()->query('tab');
+        if (is_string($tab) && in_array($tab, ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'profile'], true)) {
+            $this->activeTab = $tab;
+        }
+        $classFilter = request()->query('class_filter');
+        if ($classFilter !== null && ctype_digit((string) $classFilter)) {
+            $this->activeClassFilterId = (int) $classFilter;
+        }
+    }
+
+    public function updateProfile(): void
+    {
+        $user = Auth::user();
+
+        $validated = $this->validate([
+            'profileName' => $this->nameRules(),
+            'profileEmail' => $this->emailRules($user->id),
+            'profilePhone' => ['nullable', 'string', 'max:255'],
+            'profileAddress' => ['nullable', 'string', 'max:500'],
+            'profileDateOfBirth' => ['nullable', 'date', 'before:today'],
+            'profileGender' => ['nullable', 'in:male,female,other'],
+            'profileParentName' => ['nullable', 'string', 'max:255'],
+            'profileParentPhone' => ['nullable', 'string', 'max:255'],
+            'profilePhoto' => ['nullable', 'image', 'max:5120'],
+        ], [
+            'profileName.required' => 'Please tell us your name.',
+            'profileEmail.required' => 'We need an email to reach you.',
+            'profileEmail.email' => 'That email does not look quite right. Try again!',
+            'profileEmail.unique' => 'That email is already used by another account.',
+            'profileDateOfBirth.before' => 'Your date of birth must be in the past.',
+            'profilePhoto.image' => 'Please choose an image file for your photo.',
+            'profilePhoto.max' => 'Your photo is too big. Pick one under 5 MB.',
+        ]);
+
+        $user->name = $validated['profileName'];
+        $user->email = $validated['profileEmail'];
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        $student = $this->student;
+        $student->phone = $validated['profilePhone'];
+        $student->address = $validated['profileAddress'];
+        $student->date_of_birth = $validated['profileDateOfBirth'] ?: null;
+        $student->gender = $validated['profileGender'] ?: null;
+        $student->parent_name = $validated['profileParentName'];
+        $student->parent_phone = $validated['profileParentPhone'];
+
+        if ($this->profilePhoto instanceof TemporaryUploadedFile) {
+            $disk = (string) config('filament.default_filesystem_disk', 'local');
+            $old = $student->profile_photo;
+            $path = $this->profilePhoto->store('student-profile-photos', $disk);
+            $student->profile_photo = $path;
+
+            if ($old) {
+                Storage::disk($disk)->delete($old);
+            }
+
+            $this->profilePhoto = null;
+        }
+
+        $student->save();
+
+        $this->tier = $student->getAgeTier();
+
+        $this->profileMessage = 'Your profile is updated. Nice job!';
+        $this->profileMessageType = 'success';
+    }
+
+    public function updatePassword(): void
+    {
+        $this->validate([
+            'currentPassword' => $this->currentPasswordRules(),
+            'newPassword' => $this->passwordRules(),
+            'newPassword_confirmation' => ['required', 'string'],
+        ], [
+            'currentPassword.required' => 'Please type your current password.',
+            'currentPassword.current_password' => 'Your current password is not correct. Try again!',
+            'newPassword.required' => 'Please pick a new password.',
+            'newPassword.confirmed' => 'The two new passwords do not match. Try again!',
+            'newPassword_confirmation.required' => 'Please repeat your new password.',
+        ]);
+
+        Auth::user()->update([
+            'password' => Hash::make($this->newPassword),
+        ]);
+
+        $this->reset('currentPassword', 'newPassword', 'newPassword_confirmation');
+
+        $this->profileMessage = 'Password changed! Keep it a secret!';
+        $this->profileMessageType = 'success';
     }
 
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
+        $this->activeClassFilterId = null;
+    }
+
+    public function openTab(string $tab, ?int $classId = null): void
+    {
+        $this->activeTab = $tab;
+        $this->activeClassFilterId = $classId;
     }
 
     public function switchContext(string $key): void

@@ -31,17 +31,20 @@
 /* ───── Kids Dashboard Styles (Age 5-10: Big, Bold, Playful) ───── */
 .kids-dashboard {
     font-family: 'Nunito', 'Fredoka One', system-ui, sans-serif;
-    min-height: 100vh;
+    min-height: calc(100vh - 1px);
+    width: 100%;
+    max-width: 100%;
     background: linear-gradient(135deg, #ede9fe 0%, #f3e8ff 30%, #fce7f3 60%, #fff7ed 100%);
     padding: 0;
-    margin: -2rem -2.5rem;
+    margin: 0;
     overflow: hidden;
+    position: relative;
 }
 
 /* Header */
 .kids-header {
     background: linear-gradient(135deg, #7c3aed 0%, #a855f7 25%, #db2777 55%, #f97316 100%);
-    padding: 2rem 2.5rem 2.5rem;
+    padding: 2.25rem 2.5rem 3rem;
     position: relative;
     overflow: hidden;
     border-radius: 0 0 2.5rem 2.5rem;
@@ -150,10 +153,10 @@
 
 /* Main content */
 .kids-main {
-    padding: 2rem 2.5rem 3rem;
+    padding: 2.5rem 2.5rem 4rem;
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
+    gap: 3rem;
     max-width: 1300px;
     margin: 0 auto;
 }
@@ -161,7 +164,7 @@
     font-size: 1.6rem;
     font-weight: 900;
     color: #4c1d95;
-    margin: 0 0 1.25rem;
+    margin: 0 0 1.5rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -171,7 +174,7 @@
 .kids-stars-section {
     background: #fff;
     border-radius: 2rem;
-    padding: 2rem;
+    padding: 2.25rem 2.5rem;
     box-shadow: 0 8px 32px rgba(124,58,237,0.12);
     border: 4px solid #ede9fe;
 }
@@ -202,7 +205,7 @@
 .kids-missions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 .kids-mission-card {
     border-radius: 1.5rem;
@@ -266,7 +269,7 @@
 .kids-classes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 .kids-class-tile {
     border-radius: 2rem;
@@ -313,16 +316,98 @@
     font-size: 1.3rem;
     font-weight: 800;
 }
+
+/* Floating background emojis */
+.kids-bg-float {
+    position: absolute;
+    font-size: 2.2rem;
+    line-height: 1;
+    opacity: 0.16;
+    pointer-events: none;
+    animation: kids-float 9s ease-in-out infinite;
+    user-select: none;
+    z-index: 0;
+}
+@keyframes kids-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-30px) rotate(14deg); }
+}
+
+/* Confetti burst */
+.kids-confetti-piece {
+    position: fixed;
+    top: -24px;
+    width: 12px;
+    height: 18px;
+    z-index: 9999;
+    pointer-events: none;
+    border-radius: 3px;
+    animation: kids-confetti-fall linear forwards;
+}
+@keyframes kids-confetti-fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(720deg); opacity: 0.85; }
+}
+
+/* Clickable mascot */
+.kids-mascot {
+    cursor: pointer;
+}
+.kids-mascot:active { transform: scale(1.4) rotate(-12deg); }
+
+/* Interactive stars */
+.kids-star {
+    cursor: pointer;
+    user-select: none;
+}
+.kids-star.pop { animation: kids-pop 0.45s ease; }
+@keyframes kids-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.6) rotate(15deg); }
+    100% { transform: scale(1); }
+}
+
+/* Clickable tiles / missions */
+.kids-class-tile,
+.kids-mission-card {
+    position: relative;
+    cursor: pointer;
+}
+.kids-class-tile:active,
+.kids-mission-card:active { transform: scale(0.96) !important; }
+.kids-class-tile:hover .kids-class-emoji-inner,
+.kids-mission-card:hover .kids-mission-emoji { animation: kids-wiggle 0.6s ease infinite; }
+@keyframes kids-wiggle {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(8deg); }
+}
+
+/* Responsive fit */
+@media (max-width: 900px) {
+    .kids-header { padding: 1.5rem 1.5rem 2rem; }
+    .kids-header-inner { justify-content: center; text-align: center; }
+    .kids-greeting h1 { font-size: 1.9rem; }
+    .kids-main { padding: 1.5rem 1.25rem 2.5rem; gap: 2.5rem; }
+    .kids-section-title { font-size: 1.4rem; }
+    .kids-school-switcher { padding: 1.25rem 1.25rem; }
+}
 </style>
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <div class="kids-dashboard">
 
+    {{-- Floating background characters --}}
+    <div class="kids-bg-float" style="top: 18%; left: 4%; animation-delay: 0s;">🎈</div>
+    <div class="kids-bg-float" style="top: 45%; left: 92%; animation-delay: 1.4s;">🦄</div>
+    <div class="kids-bg-float" style="top: 72%; left: 6%; animation-delay: 2.8s;">🌟</div>
+    <div class="kids-bg-float" style="top: 85%; left: 88%; animation-delay: 4.1s;">🌈</div>
+    <div class="kids-bg-float" style="top: 30%; left: 80%; animation-delay: 5.5s;">🎨</div>
+
     {{-- ── HEADER ─────────────────────────────────────────────── --}}
     <div class="kids-header">
         <div class="kids-header-inner">
-            <div class="kids-mascot">⭐</div>
+            <div class="kids-mascot" role="button" title="Tap me for a surprise! 🎉" x-on:click="kidsCelebrate()">⭐</div>
             <div class="kids-greeting">
                 <h1>Hi {{ $firstName }}! 🌟</h1>
                 <p>Ready for today's adventures?</p>
@@ -360,14 +445,20 @@
     {{-- ── MAIN CONTENT ────────────────────────────────────────── --}}
     <div class="kids-main">
 
-        {{-- ⭐ My Stars --}}
+        {{-- ⭐ My Stars (tap a star to play) --}}
         <div class="kids-stars-section">
             <div class="kids-section-title">⭐ My Stars</div>
-            <div class="kids-stars-row">
+            <div class="kids-stars-row" x-data="{ filled: {{ $quizAvg }} }">
                 @for ($i = 1; $i <= 10; $i++)
-                    <span class="kids-star {{ $i <= $quizAvg ? '' : 'empty' }}">⭐</span>
+                    <span
+                        class="kids-star"
+                        :class="filled >= {{ $i }} ? '' : 'empty'"
+                        x-on:click="filled = (filled === {{ $i }}) ? filled - 1 : {{ $i }}; $event.currentTarget.classList.add('pop'); setTimeout(() => $event.currentTarget.classList.remove('pop'), 450);"
+                        role="button"
+                        title="Tap me!"
+                    >⭐</span>
                 @endfor
-                <span class="kids-stars-count">{{ $quizAvg }} / 10</span>
+                <span class="kids-stars-count" x-text="filled + ' / 10'"></span>
             </div>
         </div>
 
@@ -386,7 +477,12 @@
             @else
                 <div class="kids-missions-grid">
                     @foreach($pendingAssignments->take(6) as $i => $assignment)
-                        <div class="kids-mission-card {{ $missionColors[$i % 5] }}">
+                        <div
+                            class="kids-mission-card {{ $missionColors[$i % 5] }}"
+                            wire:click="viewClassLessons({{ $assignment->learning_class_id }})"
+                            role="button"
+                            title="Let's do this! 🚀"
+                        >
                             <div class="kids-mission-emoji">{{ $classEmojis[$i % count($classEmojis)] }}</div>
                             <div class="kids-mission-info">
                                 <div class="kids-mission-class">{{ $assignment->learningClass->name ?? 'Class' }}</div>
@@ -411,8 +507,13 @@
             @else
                 <div class="kids-classes-grid">
                     @foreach($activeClasses as $i => $class)
-                        <div class="kids-class-tile {{ $tileColors[$i % 6] }}">
-                            <div class="kids-class-emoji">{{ $tileEmojis[$i % count($tileEmojis)] }}</div>
+                        <div
+                            class="kids-class-tile {{ $tileColors[$i % 6] }}"
+                            wire:click="viewClassLessons({{ $class->id }})"
+                            role="button"
+                            title="Tap to open {{ $class->name }} 📖"
+                        >
+                            <div class="kids-class-emoji"><span class="kids-class-emoji-inner">{{ $tileEmojis[$i % count($tileEmojis)] }}</span></div>
                             <div class="kids-class-name">{{ $class->name }}</div>
                             <div class="kids-class-teacher">
                                 {{ $class->teachers->first()?->user?->name ?? 'Teacher' }}
@@ -425,3 +526,29 @@
 
     </div>
 </div>
+
+<script>
+function kidsCelebrate() {
+    const emojis = ['⭐', '🎉', '🌈', '🌟', '🎈', '🎊', '💜', '🦄', '🍭', '🎨'];
+    const colors = ['#a855f7', '#ec4899', '#f97316', '#22c55e', '#3b82f6', '#facc15'];
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'kids-confetti-piece';
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+        if (Math.random() < 0.4) {
+            piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            piece.style.background = 'transparent';
+            piece.style.fontSize = (16 + Math.random() * 18) + 'px';
+            piece.style.lineHeight = 1;
+            piece.style.width = 'auto';
+            piece.style.height = 'auto';
+        } else {
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        }
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4000);
+    }
+}
+window.kidsCelebrate = kidsCelebrate;
+</script>

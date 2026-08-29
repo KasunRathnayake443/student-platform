@@ -36,7 +36,7 @@ trait ProfileValidationRules
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
-    protected function emailRules(?int $userId = null): array
+    protected function emailRules(?int $userId = null, ?string $column = 'email'): array
     {
         return [
             'required',
@@ -44,8 +44,8 @@ trait ProfileValidationRules
             'email',
             'max:255',
             $userId === null
-                ? Rule::unique(User::class)
-                : Rule::unique(User::class)->ignore($userId),
+                ? Rule::unique(User::class, $column)
+                : Rule::unique(User::class, $column)->ignore($userId),
         ];
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
 {
@@ -46,6 +47,19 @@ class Student extends Model
 
         return $this->belongsTo(User::class);
 
+    }
+
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if (blank($this->profile_photo)) {
+            return null;
+        }
+
+        if ((string) config('filament.default_filesystem_disk', 'local') === 'public') {
+            return Storage::disk('public')->url($this->profile_photo);
+        }
+
+        return route('students.profile-photo', ['student' => $this]);
     }
 
     /*

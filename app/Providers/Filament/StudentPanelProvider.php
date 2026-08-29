@@ -3,7 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Student\Pages\Auth\StudentLogin;
+use App\Filament\Student\Pages\AssignmentView;
 use App\Filament\Student\Pages\Dashboard;
+use App\Filament\Student\Pages\LessonView;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,6 +35,8 @@ class StudentPanelProvider extends PanelProvider
             ])
             ->pages([
                 Dashboard::class,
+                LessonView::class,
+                AssignmentView::class,
             ])
             ->middleware([
                 EncryptCookies::class,

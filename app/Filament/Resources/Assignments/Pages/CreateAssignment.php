@@ -14,8 +14,18 @@ class CreateAssignment extends CreateRecord
     {
         unset(
             $data['existing_attachments'],
-            $data['new_attachments']
+            $data['new_attachments'],
         );
+
+        $isImmediate = (bool) ($data['available_immediately'] ?? true);
+
+        $data['availability_type'] = $isImmediate ? 'immediate' : 'scheduled';
+
+        if ($isImmediate) {
+            $data['start_at'] = null;
+        }
+
+        unset($data['available_immediately']);
 
         return $data;
     }

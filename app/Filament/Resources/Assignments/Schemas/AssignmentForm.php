@@ -150,13 +150,6 @@ class AssignmentForm
                                     bool $state
                                 ): void {
 
-                                    $set(
-                                        'availability_type',
-                                        $state
-                                            ? 'immediate'
-                                            : 'scheduled'
-                                    );
-
                                     /*
                                      * If assignment is made immediately
                                      * available, there is no need for a
@@ -170,17 +163,6 @@ class AssignmentForm
                             ->helperText(
                                 'Turn this off if students should wait until a specific date and time.'
                             ),
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Hidden database field
-                        |--------------------------------------------------------------------------
-                        */
-
-                        TextInput::make('availability_type')
-                            ->hidden()
-                            ->dehydrated(true)
-                            ->default('immediate'),
 
                         DateTimePicker::make('start_at')
                             ->label('Start Date & Time')
