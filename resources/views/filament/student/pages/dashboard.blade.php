@@ -132,6 +132,221 @@
     $filteredQuizAttempts = $classFilterId
         ? $quizAttempts->filter(fn ($a) => $a->quiz && (int) $a->quiz->learning_class_id === $classFilterId)
         : $quizAttempts;
+
+    // Quizzes across all enrolled classes (published only), enriched with the student's attempts
+    $allQuizzes = collect();
+    $quizzesByClassId = [];
+    foreach ($allClasses as $class) {
+        $list = $class->quizzes()
+            ->withCount('questions')
+            ->with(['learningClass', 'teacher.user'])
+            ->where('is_published', true)
+            ->get()
+            ->sortByDesc('created_at')
+            ->values();
+        $quizzesByClassId[$class->id] = $list;
+        $allQuizzes = $allQuizzes->merge($list);
+    }
+    $allQuizzes = $allQuizzes->values();
+
+    $myQuizAttemptsById = collect();
+    $quizStatusById = [];
+    $quizStateById = [];
+    $classHasQuizzes = [];
+    if ($student) {
+        if ($allQuizzes->isNotEmpty()) {
+            $myQuizAttemptsById = $student->quizAttempts()
+                ->whereIn('quiz_id', $allQuizzes->pluck('id'))
+                ->with('quiz')
+                ->get()
+                ->groupBy('quiz_id');
+        }
+        foreach ($allQuizzes as $quiz) {
+            $attempts = ($myQuizAttemptsById[$quiz->id] ?? collect())->values()
+                ->sortByDesc('completed_at')
+                ->values();
+            $finished = $attempts->filter(fn ($a) => in_array($a->status, ['submitted', 'time_expired'], true));
+            $latest = $attempts->first();
+            $best = $finished->max('percentage');
+            $canAttempt = $quiz->canStudentAttempt($student);
+            $remaining = $quiz->getRemainingAttempts($student);
+
+            if (! $quiz->isAvailable()) {
+                $state = 'locked';
+            } elseif ($quiz->isExpired()) {
+                $state = 'closed';
+            } elseif (! $canAttempt) {
+                $state = 'complete';
+            } elseif ($finished->isEmpty()) {
+                $state = 'available';
+            } else {
+                $state = ($latest && $latest->is_passed) ? 'retry_passed' : 'retry';
+            }
+
+            $quizStatusById[$quiz->id] = [
+                'attempts' => $attempts,
+                'finished_count' => $finished->count(),
+                'latest' => $latest,
+                'best' => $best !== null ? (int) round((float) $best) : null,
+                'can_attempt' => $canAttempt,
+                'remaining' => $remaining,
+            ];
+            $quizStateById[$quiz->id] = $state;
+        }
+    }
+    foreach ($allClasses as $class) {
+        $classHasQuizzes[$class->id] = ($classFilterId === null || (int) $class->id === $classFilterId)
+            && ($quizzesByClassId[$class->id] ?? collect())->isNotEmpty();
+    }
+    $filteredQuizzes = $classFilterId
+        ? $allQuizzes->where('learning_class_id', $classFilterId)->values()
+        : $allQuizzes;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // GRADES TAB DATA — all quiz attempts + assignment submissions
+    // ═══════════════════════════════════════════════════════════════════
+    $allGrades = collect();
+    $gradesByClassId = [];
+    $quizGradeCount = 0;
+    $assignmentGradeCount = 0;
+    $quizAvg = 0;
+    $assignmentAvg = 0;
+    $overallAvg = 0;
+    $gradedSubmissionsCount = 0;
+    $pendingGradesCount = 0;
+    $allFeedbacks = collect();
+
+    if ($student) {
+        // Quiz results (all finished attempts with scores)
+        $quizResults = $student->quizAttempts()
+            ->with(['quiz.learningClass', 'quiz.teacher.user'])
+            ->whereIn('status', ['submitted', 'time_expired'])
+            ->orderByDesc('completed_at')
+            ->get();
+
+        // Assignment results (all submitted or graded)
+        $assignmentResults = $student->assignmentSubmissions()
+            ->with(['assignment.learningClass', 'assignment.teacher', 'grader.user'])
+            ->whereIn('status', ['submitted', 'graded'])
+            ->orderByDesc('submitted_at')
+            ->get();
+
+        // Merge into unified feed
+        foreach ($quizResults as $qr) {
+            $classId = $qr->quiz?->learning_class_id;
+            $className = $qr->quiz?->learningClass?->name ?? 'Unknown Class';
+            $teacherName = $qr->quiz?->teacher?->user?->name ?? 'Teacher';
+            $schoolName = $qr->quiz?->learningClass?->grade?->school?->name ?? 'School';
+            $gradeName = $qr->quiz?->learningClass?->grade?->name ?? 'Grade';
+
+            $item = [
+                'type' => 'quiz',
+                'title' => $qr->quiz?->title ?? 'Quiz',
+                'class_name' => $className,
+                'class_id' => $classId,
+                'teacher' => $teacherName,
+                'school' => $schoolName,
+                'grade_level' => $gradeName,
+                'score' => (float) $qr->percentage,
+                'points' => $qr->score,
+                'max_points' => null,
+                'is_passed' => $qr->is_passed,
+                'status' => $qr->status === 'time_expired' ? 'timed_out' : 'submitted',
+                'status_label' => $qr->status === 'time_expired' ? '⏰ Timed Out' : '✅ Completed',
+                'date' => $qr->completed_at,
+                'attempt_number' => $qr->attempt_number,
+                'has_feedback' => false,
+                'feedback' => null,
+                'grader_name' => null,
+                'model_id' => $qr->id,
+                'quiz_id' => $qr->quiz_id,
+            ];
+            $allGrades->push($item);
+
+            if ($classId) {
+                $gradesByClassId[$classId][] = $item;
+            }
+            $quizGradeCount++;
+        }
+
+        foreach ($assignmentResults as $ar) {
+            $classId = $ar->assignment?->learning_class_id;
+            $className = $ar->assignment?->learningClass?->name ?? 'Unknown Class';
+            $teacherName = $ar->grader?->user?->name ?? $ar->assignment?->teacher?->user?->name ?? 'Teacher';
+            $schoolName = $ar->assignment?->learningClass?->grade?->school?->name ?? 'School';
+            $gradeName = $ar->assignment?->learningClass?->grade?->name ?? 'Grade';
+            $maxScore = $ar->assignment?->max_score ?? 100;
+            $scoreVal = $ar->score !== null ? (float) $ar->score : null;
+            $pct = $scoreVal !== null ? round(($scoreVal / $maxScore) * 100, 1) : null;
+
+            $item = [
+                'type' => 'assignment',
+                'title' => $ar->assignment?->title ?? 'Assignment',
+                'class_name' => $className,
+                'class_id' => $classId,
+                'teacher' => $teacherName,
+                'school' => $schoolName,
+                'grade_level' => $gradeName,
+                'score' => $pct,
+                'points' => $scoreVal,
+                'max_points' => $maxScore,
+                'is_passed' => $pct !== null && $pct >= 50,
+                'status' => $ar->status === 'graded' ? 'graded' : 'pending',
+                'status_label' => $ar->status === 'graded' ? '✅ Graded' : '⏳ Pending Review',
+                'date' => $ar->graded_at ?? $ar->submitted_at,
+                'attempt_number' => null,
+                'has_feedback' => (bool) $ar->feedback,
+                'feedback' => $ar->feedback,
+                'grader_name' => $ar->grader?->user?->name ?? null,
+                'model_id' => $ar->id,
+                'assignment_id' => $ar->assignment_id,
+            ];
+            $allGrades->push($item);
+
+            if ($classId) {
+                $gradesByClassId[$classId][] = $item;
+            }
+            $assignmentGradeCount++;
+
+            if ($ar->status === 'graded') {
+                $gradedSubmissionsCount++;
+            } else {
+                $pendingGradesCount++;
+            }
+
+            if ($ar->feedback) {
+                $allFeedbacks->push($item);
+            }
+        }
+
+        // Sort combined feed by date
+        $allGrades = $allGrades->sortByDesc('date')->values();
+        foreach ($gradesByClassId as &$items) {
+            usort($items, fn ($a, $b) => ($b['date']?->timestamp ?? 0) <=> ($a['date']?->timestamp ?? 0));
+        }
+
+        // Summary stats
+        $quizAvg = $quizResults->count() > 0
+            ? round($quizResults->avg('percentage'), 1)
+            : 0;
+        $assignmentScores = $assignmentResults->where('status', 'graded')->filter(fn ($s) => $s->percentage() !== null);
+        $assignmentAvg = $assignmentScores->count() > 0
+            ? round($assignmentScores->avg(fn ($s) => $s->percentage()), 1)
+            : 0;
+        $totalGraded = $quizResults->count() + $assignmentScores->count();
+        $totalScore = $quizResults->sum('percentage') + $assignmentScores->sum(fn ($s) => $s->percentage());
+        $overallAvg = $totalGraded > 0 ? round($totalScore / $totalGraded, 1) : 0;
+    }
+
+    // Class filter for grades (reuses $classFilterId from above)
+    $filteredGrades = $classFilterId
+        ? ($gradesByClassId[$classFilterId] ?? [])
+        : $allGrades->toArray();
+
+    $classHasGrades = [];
+    foreach ($allClasses as $class) {
+        $classHasGrades[$class->id] = ! empty($gradesByClassId[$class->id]);
+    }
 @endphp
 
 <div x-data="{ openClassId: null, openAssignmentId: null }">
@@ -1180,6 +1395,444 @@
         color: #ffffff;
     }
 
+    /* ── Assignment status colors (cards, pills, buttons) ── */
+    .assignment-item {
+        position: relative;
+        border-left: 6px solid #e2e8f0;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .assignment-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px -12px rgba(15, 23, 42, 0.18);
+    }
+    .asg-graded { background: #ecfdf5; border-color: #a7f3d0; border-left-color: #059669; }
+    .asg-submitted { background: #eff6ff; border-color: #bfdbfe; border-left-color: #2563eb; }
+    .asg-returned { background: #fffbeb; border-color: #fde68a; border-left-color: #d97706; }
+    .asg-pending { background: #f5f3ff; border-color: #ddd6fe; border-left-color: #7c3aed; }
+    .asg-notstarted { background: #f8fafc; border-color: #e2e8f0; border-left-color: #64748b; }
+    .asg-late { background: #fff7ed; border-color: #fed7aa; border-left-color: #ea580c; }
+    .asg-closed { background: #fef2f2; border-color: #fecaca; border-left-color: #dc2626; }
+
+    .assignment-status-pill.asg-pill-graded { background: #a7f3d0; color: #065f46; }
+    .assignment-status-pill.asg-pill-submitted { background: #bfdbfe; color: #1e40af; }
+    .assignment-status-pill.asg-pill-returned { background: #fde68a; color: #92400e; }
+    .assignment-status-pill.asg-pill-pending { background: #ddd6fe; color: #5b21b6; }
+    .assignment-status-pill.asg-pill-notstarted { background: #e2e8f0; color: #475569; }
+    .assignment-status-pill.asg-pill-late { background: #fed7aa; color: #9a3412; }
+    .assignment-status-pill.asg-pill-closed { background: #fecaca; color: #991b1b; }
+
+    .assignment-open-btn.asg-btn-graded { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 6px 16px -6px rgba(5, 150, 105, 0.55); }
+    .assignment-open-btn.asg-btn-graded:hover { box-shadow: 0 10px 20px -6px rgba(5, 150, 105, 0.7); }
+    .assignment-open-btn.asg-btn-submitted { background: linear-gradient(135deg, #2563eb, #3b82f6); box-shadow: 0 6px 16px -6px rgba(37, 99, 235, 0.55); }
+    .assignment-open-btn.asg-btn-submitted:hover { box-shadow: 0 10px 20px -6px rgba(37, 99, 235, 0.7); }
+    .assignment-open-btn.asg-btn-returned { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 6px 16px -6px rgba(217, 119, 6, 0.55); }
+    .assignment-open-btn.asg-btn-returned:hover { box-shadow: 0 10px 20px -6px rgba(217, 119, 6, 0.7); }
+    .assignment-open-btn.asg-btn-late { background: linear-gradient(135deg, #ea580c, #f97316); box-shadow: 0 6px 16px -6px rgba(234, 88, 12, 0.55); }
+    .assignment-open-btn.asg-btn-late:hover { box-shadow: 0 10px 20px -6px rgba(234, 88, 12, 0.7); }
+    .assignment-open-btn.asg-btn-closed { background: linear-gradient(135deg, #64748b, #94a3b8); box-shadow: 0 6px 16px -6px rgba(100, 116, 139, 0.55); }
+    .assignment-open-btn.asg-btn-closed:hover { box-shadow: 0 10px 20px -6px rgba(100, 116, 139, 0.7); }
+    .assignment-open-btn.asg-btn-notstarted { background: linear-gradient(135deg, #64748b, #94a3b8); box-shadow: 0 6px 16px -6px rgba(100, 116, 139, 0.55); }
+    .assignment-open-btn.asg-btn-notstarted:hover { box-shadow: 0 10px 20px -6px rgba(100, 116, 139, 0.7); }
+
+    /* ── Quiz cards (kids quiz tab) ── */
+    .quiz-class-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        border: 4px solid #e9d5ff;
+        border-radius: 1.75rem;
+        background: #ffffff;
+        padding: 1.4rem 1.5rem 1.1rem;
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+        margin-bottom: 1.7rem;
+    }
+    .quiz-class-group.kidc-red { border-top: 10px solid #ef4444; }
+    .quiz-class-group.kidc-blue { border-top: 10px solid #3b82f6; }
+    .quiz-class-group.kidc-purple { border-top: 10px solid #a855f7; }
+    .quiz-class-group.kidc-green { border-top: 10px solid #22c55e; }
+    .quiz-class-group.kidc-orange { border-top: 10px solid #f97316; }
+    .quiz-class-group.kidc-pink { border-top: 10px solid #ec4899; }
+    .quiz-class-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .quiz-class-title {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #4c1d95;
+    }
+    .quiz-class-meta {
+        font-size: 0.8rem;
+        font-weight: 800;
+        background: #ede9fe;
+        color: #7c3aed;
+        padding: 0.3rem 0.8rem;
+        border-radius: 9999px;
+        white-space: nowrap;
+    }
+    .quiz-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .quiz-item {
+        background: #faf5ff;
+        border: 3px solid #ede9fe;
+        border-radius: 1.5rem;
+        padding: 1.5rem 1.5rem 1.7rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        box-shadow: 0 6px 18px rgba(139, 92, 246, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .quiz-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 26px rgba(139, 92, 246, 0.15);
+    }
+    .quiz-item-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .quiz-state-pill {
+        font-weight: 900;
+        font-size: 0.85rem;
+        padding: 0.4rem 1rem;
+        border-radius: 9999px;
+        white-space: nowrap;
+    }
+    .quiz-score-pill {
+        font-weight: 900;
+        font-size: 1rem;
+        padding: 0.35rem 0.9rem;
+        border-radius: 9999px;
+        white-space: nowrap;
+    }
+    .quiz-score-pass { background: #a7f3d0; color: #065f46; }
+    .quiz-score-fail { background: #fecaca; color: #991b1b; }
+    .quiz-item h3 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #2e1065;
+        margin: 0;
+        line-height: 1.3;
+    }
+    .quiz-meta-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .quiz-meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #ede9fe;
+        color: #6d28d9;
+        font-weight: 800;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+    }
+    .quiz-desc {
+        font-size: 0.92rem;
+        color: #574b6d;
+        margin: 0;
+        line-height: 1.5;
+        font-weight: 600;
+    }
+    .quiz-open-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        align-self: flex-start;
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 900;
+        padding: 0.8rem 1.9rem;
+        border-radius: 9999px;
+        text-decoration: none;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        box-shadow: 0 10px 22px -8px rgba(124, 58, 237, 0.6);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+    }
+    .quiz-open-btn:hover {
+        transform: translateY(-3px) scale(1.03);
+        color: #ffffff;
+    }
+    .quiz-open-disabled {
+        background: #cbd5e1 !important;
+        box-shadow: none !important;
+        cursor: not-allowed;
+    }
+    .quiz-open-disabled:hover { transform: none; }
+    .qsp-available { background: #ddd6fe; color: #5b21b6; }
+    .qsp-retry { background: #fde68a; color: #92400e; }
+    .qsp-retry_passed { background: #a7f3d0; color: #065f46; }
+    .qsp-complete { background: #a7f3d0; color: #065f46; }
+    .qsp-locked { background: #e2e8f0; color: #475569; }
+    .qsp-closed { background: #fecaca; color: #991b1b; }
+    .qc-available { border-color: #ddd6fe; }
+    .qc-retry { border-color: #fde68a; }
+    .qc-retry_passed { border-color: #a7f3d0; }
+    .qc-retry_passed .quiz-open-btn,
+    .qc-retry_passed .quiz-open-btn:hover {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        color: #ffffff;
+    }
+    .qc-complete { border-color: #a7f3d0; }
+    .qc-complete .quiz-open-btn,
+    .qc-complete .quiz-open-btn:hover {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        color: #ffffff;
+    }
+    .qc-retry .quiz-open-btn,
+    .qc-retry .quiz-open-btn:hover {
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        color: #ffffff;
+    }
+    .qc-locked { border-color: #e2e8f0; }
+    .qc-closed { border-color: #fecaca; }
+
+    /* Kids quiz tab: flatten school/grade levels */
+    .kids-quizzes-panel .school-class-header,
+    .kids-quizzes-panel .grade-class-header,
+    .kids-quizzes-panel .quiz-class-meta { display: none; }
+    .kids-quizzes-panel .school-class-block,
+    .kids-quizzes-panel .grade-class-block { gap: 1.5rem; }
+
+    /* ═══ GRADES TAB ═══ */
+    .kids-grades-panel .school-class-header,
+    .kids-grades-panel .grade-class-header { display: none; }
+
+    .kids-grade-card {
+        background: #ffffff; border: 3px solid #ede9fe; border-radius: 1.35rem;
+        padding: 1.4rem 1.6rem; margin-bottom: 1rem;
+        box-shadow: 0 6px 18px -8px rgba(76,29,149,0.18);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kids-grade-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -8px rgba(76,29,149,0.25); }
+
+    /* kidc-* top border colors */
+    .kids-grade-card.kidc-red { border-top: 5px solid #f43f5e; }
+    .kids-grade-card.kidc-blue { border-top: 5px solid #3b82f6; }
+    .kids-grade-card.kidc-purple { border-top: 5px solid #8b5cf6; }
+    .kids-grade-card.kidc-green { border-top: 5px solid #22c55e; }
+    .kids-grade-card.kidc-orange { border-top: 5px solid #f97316; }
+    .kids-grade-card.kidc-pink { border-top: 5px solid #ec4899; }
+
+    .kids-grade-top {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.7rem;
+        margin-bottom: 0.75rem; flex-wrap: wrap;
+    }
+    .kids-grade-type {
+        font-size: 0.78rem; font-weight: 800; padding: 0.3rem 0.85rem;
+        border-radius: 9999px; letter-spacing: 0.02em;
+    }
+    .kids-grade-type.kgc-quiz { background: #ede9fe; color: #6d28d9; }
+    .kids-grade-type.kgc-assignment { background: #dbeafe; color: #1d4ed8; }
+
+    .kids-grade-score {
+        font-size: 1.3rem; font-weight: 900; padding: 0.3rem 1rem;
+        border-radius: 9999px; background: #f0fdf4;
+    }
+
+    .kids-grade-title {
+        font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.6rem;
+        line-height: 1.3;
+    }
+
+    .kids-grade-meta {
+        display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.7rem;
+    }
+    .kids-grade-meta span {
+        font-size: 0.82rem; font-weight: 700; color: #64748b;
+        background: #f8fafc; border: 1px solid #e2e8f0;
+        padding: 0.3rem 0.75rem; border-radius: 9999px;
+    }
+
+    .kids-grade-status {
+        display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+    }
+    .kids-grade-status-pill {
+        font-size: 0.82rem; font-weight: 800; padding: 0.35rem 0.9rem;
+        border-radius: 9999px;
+    }
+    .kgsp-pass { background: #dcfce7; color: #15803d; }
+    .kgsp-fail { background: #fee2e2; color: #991b1b; }
+
+    .kids-grade-points {
+        font-size: 0.85rem; font-weight: 700; color: #64748b;
+    }
+
+    .kids-grade-feedback {
+        margin-top: 1rem; padding: 1rem 1.15rem;
+        background: #f5f3ff; border: 1px solid #ede9fe;
+        border-radius: 1rem;
+    }
+    .kids-grade-feedback-head {
+        font-size: 0.82rem; font-weight: 800; color: #6d28d9;
+        margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;
+    }
+    .kids-grade-feedback-teacher { color: #8b5cf6; font-weight: 600; }
+    .kids-grade-feedback-text {
+        font-size: 0.95rem; line-height: 1.7; color: #475569; font-weight: 600;
+    }
+
+    /* Junior/Senior grades table feedback badge */
+    .grades-feedback-section { margin-top: 1rem; }
+    .grades-feedback-card {
+        background: #ffffff; border: 1px solid #ede9fe; border-radius: 1rem;
+        padding: 1.15rem 1.35rem; margin-bottom: 0.85rem;
+    }
+    .grades-feedback-head {
+        display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+        margin-bottom: 0.65rem;
+    }
+    .grades-feedback-type {
+        font-size: 0.78rem; font-weight: 800; padding: 0.25rem 0.7rem;
+        border-radius: 9999px; background: #ede9fe; color: #6d28d9;
+    }
+    .grades-feedback-title {
+        font-weight: 800; color: #0f172a; font-size: 0.95rem;
+    }
+    .grades-feedback-class {
+        font-size: 0.82rem; font-weight: 700; color: #64748b;
+    }
+    .grades-feedback-body { }
+    .grades-feedback-text {
+        font-size: 0.92rem; line-height: 1.7; color: #475569; font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .grades-feedback-meta {
+        font-size: 0.82rem; font-weight: 700; color: #94a3b8;
+    }
+
+    /* ── Assignment filter buttons (simple single-row strip) ── */
+    .asg-filter-bar {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.45rem;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        padding: 0.5rem 0.85rem;
+        margin: 0 0 0.65rem 0;
+        overflow-x: auto;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.05);
+    }
+    .asg-filter-bar::-webkit-scrollbar { height: 5px; }
+    .asg-filter-bar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+    .asg-filter-chip {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+    }
+    .asg-filter-chip:hover {
+        border-color: #a5b4fc;
+        background: #eef2ff;
+        color: #4338ca;
+    }
+    .asg-filter-chip-active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-color: transparent;
+        color: #ffffff;
+        box-shadow: 0 6px 14px -6px rgba(99, 102, 241, 0.6);
+    }
+    .asg-filter-chip-active:hover {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #ffffff;
+    }
+    .asg-filter-chip-count {
+        font-size: 0.68rem;
+        font-weight: 800;
+        background: #e2e8f0;
+        color: #475569;
+        padding: 0.06rem 0.42rem;
+        border-radius: 999px;
+    }
+    .asg-filter-chip-active .asg-filter-chip-count {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+    .asg-filter-active-note {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.76rem;
+        font-weight: 800;
+        color: #4338ca;
+        background: #eef2ff;
+        padding: 0.32rem 0.75rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    /* ── Assignment status legend (slim single-row) ── */
+    .asg-legend {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.9rem;
+        margin-bottom: 1.05rem;
+        padding: 0.45rem 0.85rem;
+        background: #ffffff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 999px;
+        overflow-x: auto;
+    }
+    .asg-legend::-webkit-scrollbar { height: 5px; }
+    .asg-legend::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+    .asg-legend-title {
+        flex-shrink: 0;
+        font-size: 0.9rem;
+        line-height: 1;
+    }
+    .asg-legend-item {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #475569;
+        white-space: nowrap;
+    }
+    .asg-legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .asg-legend-graded { background: #059669; }
+    .asg-legend-submitted { background: #2563eb; }
+    .asg-legend-returned { background: #d97706; }
+    .asg-legend-pending { background: #7c3aed; }
+    .asg-legend-notstarted { background: #64748b; }
+    .asg-legend-late { background: #ea580c; }
+    .asg-legend-closed { background: #dc2626; }
+
     /* ── Profile ── */
     .profile-wrap {
         display: flex;
@@ -1306,20 +1959,115 @@
     .kids-mode .profile-field input { border-radius: 1rem; border-width: 2px; font-size: 1rem; }
     .kids-mode .profile-save-btn { border-radius: 999px; font-size: 1rem; padding: 0.75rem 1.75rem; }
 
-    .kids-mode .tab-filter-select {
-        border: 3px solid #d8b4fe;
-        border-radius: 9999px;
-        background: #ffffff;
-        font-size: 1rem;
-        color: #6b21a8;
+    /* ── Kids: My Classes — big playful class cards ── */
+    .kids-mode .classes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 1.75rem;
     }
-    .kids-mode .class-action-btn {
+    .kids-mode .class-card {
+        border-radius: 1.9rem;
+        border: 4px solid #e9d5ff;
+        padding: 1.5rem 1.5rem 1.8rem;
+        gap: 1.15rem;
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+    }
+    .kids-mode .class-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 18px 45px rgba(124, 58, 237, 0.24);
+    }
+    .kids-mode .kidc-red { border-top: 10px solid #ef4444; }
+    .kids-mode .kidc-blue { border-top: 10px solid #3b82f6; }
+    .kids-mode .kidc-purple { border-top: 10px solid #a855f7; }
+    .kids-mode .kidc-green { border-top: 10px solid #22c55e; }
+    .kids-mode .kidc-orange { border-top: 10px solid #f97316; }
+    .kids-mode .kidc-pink { border-top: 10px solid #ec4899; }
+    .kids-mode .class-card-icon {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        border: none;
+        font-size: 1.8rem;
+        color: #ffffff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    }
+    .kids-mode .kidc-red .class-card-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .kids-mode .kidc-blue .class-card-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .kids-mode .kidc-purple .class-card-icon { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .kids-mode .kidc-green .class-card-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .kids-mode .kidc-orange .class-card-icon { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .kids-mode .kidc-pink .class-card-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+    .kids-mode .class-card .status-pill {
+        font-size: 0.85rem;
+        font-weight: 800;
+        padding: 0.45rem 1.1rem;
+        background: #dcfce7;
+        color: #15803d;
+        border: 2px solid #86efac;
+        border-radius: 999px;
+    }
+    .kids-mode .class-card h3 { font-size: 1.4rem !important; margin-bottom: 0.5rem !important; }
+    .kids-mode .class-card p { font-size: 1rem !important; color: #7c6ba6 !important; }
+    .kids-mode .class-stats {
+        background: #faf5ff;
+        border: 3px solid #ede9fe;
         border-radius: 1.25rem;
-        padding: 0.65rem 0.4rem;
+        padding: 0.9rem 1rem;
+        font-size: 0.95rem;
+        color: #4c1d95;
+        justify-content: center;
+        gap: 0.75rem;
     }
-    .kids-mode .class-action-emoji { font-size: 1.25rem; }
-    .kids-mode .class-action-label { font-size: 0.85rem; }
-    .kids-mode .class-action-none { border-radius: 1.25rem; padding: 0.65rem 0.4rem; }
+    .kids-mode .class-stats span {
+        background: #ffffff;
+        border-radius: 999px;
+        padding: 0.45rem 0.95rem;
+        border: 2px solid #e9d5ff;
+        box-shadow: 0 3px 8px rgba(139, 92, 246, 0.1);
+    }
+    .kids-mode .class-actions { gap: 0.9rem; }
+    .kids-mode .class-action-btn {
+        border-radius: 1.4rem;
+        padding: 1.05rem 0.35rem;
+        gap: 0.5rem;
+        border: 3px solid #ffffff;
+        color: #ffffff;
+        box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.35);
+    }
+    .kids-mode .class-action-btn:hover { transform: translateY(-4px) scale(1.04); }
+    .kids-mode .class-action-lesson { background: linear-gradient(160deg, #3b82f6, #2563eb); }
+    .kids-mode .class-action-lesson:hover { background: linear-gradient(160deg, #60a5fa, #3b82f6); }
+    .kids-mode .class-action-assign { background: linear-gradient(160deg, #fbbf24, #f59e0b); color: #78350f; }
+    .kids-mode .class-action-assign:hover { background: linear-gradient(160deg, #fcd34d, #fbbf24); color: #78350f; }
+    .kids-mode .class-action-quiz { background: linear-gradient(160deg, #a855f7, #7c3aed); }
+    .kids-mode .class-action-quiz:hover { background: linear-gradient(160deg, #c084fc, #9333ea); }
+    .kids-mode .class-action-emoji { font-size: 2rem; }
+    .kids-mode .class-action-label {
+        font-size: 0.7rem;
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        min-width: 0;
+        max-width: 100%;
+        padding: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .kids-mode .class-action-btn:hover .class-action-emoji { animation: kidc-wiggle 0.5s ease infinite; }
+    @keyframes kidc-wiggle {
+        0%, 100% { transform: rotate(-8deg); }
+        50% { transform: rotate(8deg); }
+    }
+    .kids-mode .class-action-none {
+        border-radius: 1.4rem;
+        padding: 1.05rem 0.35rem;
+        gap: 0.5rem;
+        border: 3px dashed #c4b5fd;
+        background: #faf5ff;
+        color: #a78bfa;
+        font-size: 0.85rem;
+    }
+    .kids-mode .class-action-none .class-action-emoji { font-size: 2rem; }
     .kids-mode .school-class-header { font-size: 1.35rem; color: #6b21a8; }
     .kids-mode .grade-class-header { color: #a855f7; font-size: 1rem; }
     .kids-mode .lesson-item {
@@ -1327,7 +2075,169 @@
         border-radius: 1.25rem;
     }
     .kids-mode .lesson-item h3 { font-size: 1.2rem; }
-    .kids-mode .lesson-class-badge { font-size: 0.85rem; }
+
+    /* ── Kids: Lessons tab — simple & playful (panel-scoped) ── */
+    .kids-lessons-panel .school-class-header,
+    .kids-lessons-panel .grade-class-header,
+    .kids-lessons-panel .lesson-class-meta { display: none; }
+    .kids-lessons-panel .school-class-block,
+    .kids-lessons-panel .grade-class-block { gap: 1.5rem; }
+    .kids-lessons-panel .lesson-class-group {
+        border: 4px solid #e9d5ff;
+        border-radius: 1.75rem;
+        background: #ffffff;
+        padding: 1.4rem 1.5rem 1.1rem;
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+        margin-bottom: 1.7rem;
+    }
+    .kids-lessons-panel .lesson-class-group.kidc-red { border-top: 10px solid #ef4444; }
+    .kids-lessons-panel .lesson-class-group.kidc-blue { border-top: 10px solid #3b82f6; }
+    .kids-lessons-panel .lesson-class-group.kidc-purple { border-top: 10px solid #a855f7; }
+    .kids-lessons-panel .lesson-class-group.kidc-green { border-top: 10px solid #22c55e; }
+    .kids-lessons-panel .lesson-class-group.kidc-orange { border-top: 10px solid #f97316; }
+    .kids-lessons-panel .lesson-class-group.kidc-pink { border-top: 10px solid #ec4899; }
+    .kids-lessons-panel .lesson-class-title {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #4c1d95;
+    }
+    .kids-lessons-panel .lesson-item {
+        border: 3px solid #ede9fe;
+        border-radius: 1.5rem;
+        background: #faf5ff;
+        padding: 1.5rem 1.5rem 1.7rem;
+        box-shadow: 0 6px 18px rgba(139, 92, 246, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kids-lessons-panel .lesson-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 26px rgba(139, 92, 246, 0.15);
+    }
+    .kids-lessons-panel .lesson-item h3 { font-size: 1.4rem; color: #2e1065; }
+    .kids-lessons-panel .lesson-class-badge {
+        font-size: 0.9rem;
+        padding: 0.35rem 0.9rem;
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+    .kids-lessons-panel .lesson-date { font-size: 0.85rem; color: #7c6ba6; font-weight: 700; }
+    .kids-lessons-panel .lesson-desc { font-size: 0.95rem; color: #574b6d; line-height: 1.6; }
+    .kids-lessons-panel .lesson-open-btn {
+        font-size: 1.05rem;
+        padding: 0.8rem 1.9rem;
+        color: #ffffff;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        box-shadow: 0 10px 22px -8px rgba(124, 58, 237, 0.6);
+        border-radius: 9999px;
+    }
+    .kids-lessons-panel .lesson-open-btn:hover {
+        transform: translateY(-3px) scale(1.03);
+        color: #ffffff;
+    }
+
+    /* ── Kids: Assignments tab — flat class cards, big friendly items ── */
+    .kids-assignments-panel .school-class-header,
+    .kids-assignments-panel .grade-class-header,
+    .kids-assignments-panel .assignment-class-meta { display: none; }
+    .kids-assignments-panel .school-class-block,
+    .kids-assignments-panel .grade-class-block { gap: 1.5rem; }
+    .kids-assignments-panel .assignment-class-group {
+        border: 4px solid #e9d5ff;
+        border-radius: 1.75rem;
+        background: #ffffff;
+        padding: 1.4rem 1.5rem 1.1rem;
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+        margin-bottom: 1.7rem;
+    }
+    .kids-assignments-panel .assignment-class-group.kidc-red { border-top: 10px solid #ef4444; }
+    .kids-assignments-panel .assignment-class-group.kidc-blue { border-top: 10px solid #3b82f6; }
+    .kids-assignments-panel .assignment-class-group.kidc-purple { border-top: 10px solid #a855f7; }
+    .kids-assignments-panel .assignment-class-group.kidc-green { border-top: 10px solid #22c55e; }
+    .kids-assignments-panel .assignment-class-group.kidc-orange { border-top: 10px solid #f97316; }
+    .kids-assignments-panel .assignment-class-group.kidc-pink { border-top: 10px solid #ec4899; }
+    .kids-assignments-panel .assignment-class-title {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #4c1d95;
+    }
+    .kids-assignments-panel .assignment-item {
+        border: 3px solid #ede9fe;
+        border-radius: 1.5rem;
+        padding: 1.5rem 1.5rem 1.7rem;
+        box-shadow: 0 6px 18px rgba(139, 92, 246, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kids-assignments-panel .assignment-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 26px rgba(139, 92, 246, 0.15);
+    }
+    .kids-assignments-panel .assignment-item h3 { font-size: 1.4rem; color: #2e1065; }
+    .kids-assignments-panel .assignment-status-pill { font-size: 0.85rem; padding: 0.4rem 1rem; }
+    .kids-assignments-panel .assignment-date { font-size: 0.85rem; color: #7c6ba6; font-weight: 700; }
+    .kids-assignments-panel .assignment-desc { font-size: 0.95rem; color: #574b6d; line-height: 1.6; }
+    .kids-assignments-panel .assignment-meta-chip { font-size: 0.8rem; padding: 0.35rem 0.8rem; }
+    .kids-assignments-panel .assignment-open-btn { font-size: 1.05rem; padding: 0.8rem 1.9rem; border-radius: 9999px; }
+    .kids-assignments-panel .assignment-open-btn:hover { transform: translateY(-3px) scale(1.03); color: #ffffff; }
+
+    /* Kids assignment filter strip: bigger, bouncy, purple & purple-lavender */
+    .kids-mode .asg-filter-bar {
+        background: #ffffff;
+        border: 3px solid #e9d5ff;
+        border-radius: 999px;
+        padding: 0.55rem 0.8rem;
+        box-shadow: 0 6px 20px rgba(168, 85, 247, 0.15);
+    }
+    .kids-mode .asg-filter-bar::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 99px; }
+    .kids-mode .asg-filter-chip {
+        font-size: 0.95rem;
+        padding: 0.5rem 1.15rem;
+        border: 2px solid #e9d5ff;
+        background: #fdf4ff;
+        color: #581c87;
+        border-radius: 999px;
+        box-shadow: 0 3px 8px rgba(139, 92, 246, 0.12);
+    }
+    .kids-mode .asg-filter-chip:hover {
+        border-color: #c084fc;
+        background: #f5e9ff;
+        color: #581c87;
+        transform: translateY(-2px);
+    }
+    .kids-mode .asg-filter-chip-active {
+        background: linear-gradient(135deg, #9333ea, #a855f7);
+        border-color: transparent;
+        color: #ffffff;
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.45);
+    }
+    .kids-mode .asg-filter-chip-active:hover {
+        background: linear-gradient(135deg, #9333ea, #a855f7);
+        border-color: transparent;
+        color: #ffffff;
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.45);
+        transform: none;
+    }
+    .kids-mode .asg-filter-chip-count {
+        background: #ede9fe;
+        color: #6d28d9;
+        font-size: 0.72rem;
+        padding: 0.1rem 0.5rem;
+    }
+    .kids-mode .asg-filter-chip-active .asg-filter-chip-count { background: rgba(255, 255, 255, 0.28); color: #ffffff; }
+    .kids-mode .asg-filter-active-note { background: #fef3c7; color: #92400e; }
+    .kids-mode .asg-legend {
+        border: 2px dashed #e9d5ff;
+        background: #ffffff;
+        padding: 0.5rem 0.85rem;
+    }
+    .kids-mode .asg-legend-item { font-size: 0.8rem; color: #574b6d; }
+    .kids-mode .asg-legend-title { font-size: 1.05rem; }
+    .kids-mode .asg-legend-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 1.5px rgba(168, 85, 247, 0.25);
+    }
 
     /* ══════════════════════════════════════════════════════════════
        KIDS MODE (Age 5-10): Big, bold, playful, colorful
@@ -1727,6 +2637,11 @@
                                 You are not enrolled in any classes yet. Ask your teacher to add you!
                             </div>
                         @else
+                            @php
+                                $kidsClassIdx = 0;
+                                $kidsCardColors = ['kidc-red', 'kidc-blue', 'kidc-purple', 'kidc-green', 'kidc-orange', 'kidc-pink'];
+                                $kidsCardIcons  = ['🔢', '📖', '🎨', '🔬', '🌍', '🎵', '🏃', '✏️', '🖥️', '⚽'];
+                            @endphp
                             @foreach($allClassGroups as $schoolGroup)
                                 <div class="school-class-block">
                                     <div class="school-class-header">
@@ -1744,10 +2659,13 @@
                                                         $assignCount  = $class->assignments()->where('is_published', true)->count();
                                                         $quizCount    = $class->quizzes()->where('is_published', true)->count();
                                                         $teacherName  = $class->teachers->first()?->user?->name ?? 'Course Instructor';
+                                                        $kidsClassIdx++;
+                                                        $kidCardColor = $kidsCardColors[($kidsClassIdx - 1) % 6];
+                                                        $kidCardIcon  = $kidsCardIcons[($kidsClassIdx - 1) % count($kidsCardIcons)];
                                                     @endphp
-                                                    <div class="class-card">
+                                                    <div class="class-card {{ $tier === 'kids' ? 'kids-class-card ' . $kidCardColor : '' }}">
                                                         <div style="display:flex; align-items:center; justify-content:space-between;">
-                                                            <div class="class-card-icon">📘</div>
+                                                            <div class="class-card-icon">{{ $tier === 'kids' ? $kidCardIcon : '📘' }}</div>
                                                             <span class="status-pill status-ok">Active</span>
                                                         </div>
                                                         <div>
@@ -1806,23 +2724,54 @@
 
                 {{-- ── TAB 3: LESSONS (grouped by school › grade › class) ── --}}
                 @elseif($activeTab === 'lessons')
-                    <div class="glass-card">
+                    <div class="glass-card {{ $tier === 'kids' ? 'kids-lessons-panel' : '' }}">
                         <div class="glass-card-title">
                             <span>📚 My Lessons & Materials</span>
                             <span style="font-size: 0.85rem; color: #7c3aed; font-weight: 700;">{{ $allLessons->count() }} Lesson(s)</span>
                         </div>
 
-                        @if($allClasses->count() > 1 || $filteredClass)
-                            <div class="tab-filter-bar">
-                                <span class="tab-filter-label">🎯 Filter by class</span>
-                                <select wire:model.live="activeClassFilterId" class="tab-filter-select">
-                                    <option value="">All my classes</option>
-                                    @foreach($allClasses as $class)
-                                        <option value="{{ $class->id }}" @selected((string) $activeClassFilterId === (string) $class->id)>
-                                            {{ $class->name }}{{ ! empty($classSchoolMap[$class->id]) ? ' · ' . $classSchoolMap[$class->id] : '' }}
-                                        </option>
+                        @php
+                            $kidsLessonIdx = 0;
+                            $kidsLessonColors = ['kidc-red', 'kidc-blue', 'kidc-purple', 'kidc-green', 'kidc-orange', 'kidc-pink'];
+                            $kidsLessonTotal = 0;
+                            foreach ($allClassGroups as $sg2) {
+                                foreach ($sg2['groups'] as $g2) {
+                                    foreach ($g2['classes'] as $c2) {
+                                        $kidsLessonTotal += ($lessonsByClassId[$c2->id] ?? collect())->count();
+                                    }
+                                }
+                            }
+                        @endphp
+
+                        @if($allLessons->isNotEmpty() && ($allClasses->count() > 1 || $filteredClass))
+                            <div class="asg-filter-bar">
+                                <button
+                                    wire:click="setTab('lessons')"
+                                    type="button"
+                                    class="asg-filter-chip {{ $classFilterId === null ? 'asg-filter-chip-active' : '' }}">
+                                    🌍 All
+                                    <span class="asg-filter-chip-count">{{ $kidsLessonTotal }}</span>
+                                </button>
+
+                                @foreach($allClassGroups as $schoolGroup)
+                                    @foreach($schoolGroup['groups'] as $gradeGroup)
+                                        @foreach($gradeGroup['classes'] as $class)
+                                            @if($classHasLessons[$class->id] ?? false)
+                                                <button
+                                                    wire:click="openTab('lessons', {{ (int) $class->id }})"
+                                                    type="button"
+                                                    class="asg-filter-chip {{ (int) $class->id === $classFilterId ? 'asg-filter-chip-active' : '' }}">
+                                                    📘 {{ $class->name }}
+                                                    <span class="asg-filter-chip-count">{{ $lessonsByClassId[$class->id]->count() }}</span>
+                                                </button>
+                                            @endif
+                                        @endforeach
                                     @endforeach
-                                </select>
+                                @endforeach
+
+                                @if($filteredClass)
+                                    <span class="asg-filter-active-note">📍 {{ $filteredClass->name }}</span>
+                                @endif
                             </div>
                         @endif
 
@@ -1866,7 +2815,8 @@
                                                     <div class="grade-class-header">📗 {{ $gradeGroup['grade']->name ?? 'Class Group' }}</div>
                                                     @foreach($gradeGroup['classes'] as $class)
                                                         @if($classHasLessons[$class->id] ?? false)
-                                                            <div class="lesson-class-group">
+                                                            @php $kidsLessonIdx++; @endphp
+                                                            <div class="lesson-class-group {{ $tier === 'kids' ? 'kids-lesson-group ' . $kidsLessonColors[($kidsLessonIdx - 1) % 6] : '' }}">
                                                                 <div class="lesson-class-head">
                                                                     <span class="lesson-class-title">📘 {{ $class->name }}</span>
                                                                     <span class="lesson-class-meta">
@@ -1912,23 +2862,52 @@
 
                 {{-- ── TAB 4: ASSIGNMENTS (grouped by school › grade › class) ── --}}
                 @elseif($activeTab === 'assignments')
-                    <div class="glass-card">
+                    <div class="glass-card {{ $tier === 'kids' ? 'kids-assignments-panel' : '' }}">
                         <div class="glass-card-title">
                             <span>📋 Homework & Assignments List</span>
                             <span style="font-size: 0.85rem; color: #dc2626; font-weight: 700;">{{ $filteredAssignments->count() }} Task(s)</span>
                         </div>
 
-                        @if($allClasses->count() > 1 || $filteredClass)
-                            <div class="tab-filter-bar">
-                                <span class="tab-filter-label">🎯 Filter by class</span>
-                                <select wire:model.live="activeClassFilterId" class="tab-filter-select">
-                                    <option value="">All my classes</option>
-                                    @foreach($allClasses as $class)
-                                        <option value="{{ $class->id }}" @selected((string) $activeClassFilterId === (string) $class->id)>
-                                            {{ $class->name }}{{ ! empty($classSchoolMap[$class->id]) ? ' · ' . $classSchoolMap[$class->id] : '' }}
-                                        </option>
+                        @if($allAssignments->isNotEmpty())
+                            <div class="asg-filter-bar">
+                                <button
+                                    wire:click="setTab('assignments')"
+                                    type="button"
+                                    class="asg-filter-chip {{ $classFilterId === null ? 'asg-filter-chip-active' : '' }}">
+                                    🌍 All
+                                    <span class="asg-filter-chip-count">{{ $allAssignments->count() }}</span>
+                                </button>
+
+                                @foreach($allClassGroups as $schoolGroup)
+                                    @foreach($schoolGroup['groups'] as $gradeGroup)
+                                        @foreach($gradeGroup['classes'] as $class)
+                                            @if(($assignmentsByClassId[$class->id] ?? collect())->isNotEmpty())
+                                                <button
+                                                    wire:click="openTab('assignments', {{ (int) $class->id }})"
+                                                    type="button"
+                                                    class="asg-filter-chip {{ (int) $class->id === $classFilterId ? 'asg-filter-chip-active' : '' }}">
+                                                    📘 {{ $class->name }}
+                                                    <span class="asg-filter-chip-count">{{ $assignmentsByClassId[$class->id]->count() }}</span>
+                                                </button>
+                                            @endif
+                                        @endforeach
                                     @endforeach
-                                </select>
+                                @endforeach
+
+                                @if($filteredClass)
+                                    <span class="asg-filter-active-note">📍 {{ $filteredClass->name }}</span>
+                                @endif
+                            </div>
+
+                            <div class="asg-legend">
+                                <span class="asg-legend-title">🎨</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-graded"></i> Graded</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-submitted"></i> Submitted</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-returned"></i> Returned</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-pending"></i> Pending</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-notstarted"></i> Not started</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-late"></i> Late</span>
+                                <span class="asg-legend-item"><i class="asg-legend-dot asg-legend-closed"></i> Missed</span>
                             </div>
                         @endif
 
@@ -1941,6 +2920,7 @@
                                 @endif
                             </div>
                         @else
+                            @php $kidsAssignIdx = 0; $kidsAssignColors = ['kidc-red', 'kidc-blue', 'kidc-purple', 'kidc-green', 'kidc-orange', 'kidc-pink']; @endphp
                             @foreach($allClassGroups as $schoolGroup)
                                 @php
                                     $schoolAssignTotal = 0;
@@ -1972,7 +2952,8 @@
                                                     <div class="grade-class-header">📗 {{ $gradeGroup['grade']->name ?? 'Class Group' }}</div>
                                                     @foreach($gradeGroup['classes'] as $class)
                                                         @if($classHasAssignments[$class->id] ?? false)
-                                                            <div class="assignment-class-group">
+                                                            @php $kidsAssignIdx++; @endphp
+                                                            <div class="assignment-class-group {{ $tier === 'kids' ? 'kids-assignment-group ' . $kidsAssignColors[($kidsAssignIdx - 1) % 6] : '' }}">
                                                                 <div class="assignment-class-head">
                                                                     <span class="assignment-class-title">📘 {{ $class->name }}</span>
                                                                     <span class="assignment-class-meta">{{ $assignmentsByClassId[$class->id]->count() }} task(s)</span>
@@ -1980,58 +2961,77 @@
                                                                 <div class="assignment-list">
                                                                     @foreach($assignmentsByClassId[$class->id] as $assignment)
                                                                         @php
-                                                                            $submission = $studentSubmissionMap[$assignment->id] ?? null;
-                                                                            $assignmentTeacher = $assignment->teacher?->user?->name ?? ($class->teachers->first()?->user?->name ?? 'Course Teacher');
-                                                                            $assignmentDue = $assignment->end_at;
-                                                                            $assignmentStatus = $submission && $submission->isGraded() && $submission->score !== null
-                                                                                ? 'graded'
-                                                                                : ($submission ? ($submission->status === 'returned' ? 'returned' : 'submitted') : 'pending');
-                                                                            $assignmentStatusLabel = match ($assignmentStatus) {
-                                                                                'graded' => '✅ Graded · ' . round($submission->percentage() ?: 0) . '%',
-                                                                                'returned' => '↩️ Returned',
-                                                                                'submitted' => '⏳ Submitted',
-                                                                                default => $assignment->isExpired() ? '⛔ Missed deadline' : '📝 Pending',
-                                                                            };
-                                                                            $assignmentStatusClass = match ($assignmentStatus) {
-                                                                                'graded' => 'status-ok',
-                                                                                'returned', 'submitted' => 'status-warn',
-                                                                                default => $assignment->isExpired() ? 'status-bad' : 'status-pending',
-                                                                            };
+$submission = $studentSubmissionMap[$assignment->id] ?? null;
+                                                                    $assignmentTeacher = $assignment->teacher?->user?->name ?? ($class->teachers->first()?->user?->name ?? 'Course Teacher');
+                                                                    $assignmentDue = $assignment->end_at;
+                                                                    $assignmentStatus = $submission && $submission->isGraded() && $submission->score !== null
+                                                                        ? 'graded'
+                                                                        : ($submission
+                                                                            ? ($submission->status === 'returned' ? 'returned' : 'submitted')
+                                                                            : ($assignment->isExpired()
+                                                                                ? ($assignment->acceptsLateSubmissions() && $assignment->lateSubmissionDeadline()?->isFuture()
+                                                                                    ? 'late'
+                                                                                    : 'closed')
+                                                                                : ($assignment->isAvailable()
+                                                                                    ? 'pending'
+                                                                                    : 'not_started')));
+                                                                    $assignmentStatusLabel = match ($assignmentStatus) {
+                                                                        'graded' => '✅ Graded · ' . round($submission->percentage() ?: 0) . '%',
+                                                                        'returned' => '↩️ Returned · Resubmit',
+                                                                        'submitted' => '⏳ Submitted · Awaiting grade',
+                                                                        'late' => '⚠️ Late — submit now',
+                                                                        'closed' => '⛔ Missed deadline',
+                                                                        'not_started' => '🔒 Starts ' . ($assignment->start_at ? $assignment->start_at->format('M j, g:i A') : 'Soon'),
+                                                                        default => '📝 Pending — to do',
+                                                                    };
+                                                                    $assignmentStatusClass = 'asg-pill-' . $assignmentStatus;
+                                                                    $assignmentCardClass = 'asg-' . $assignmentStatus;
+                                                                    $assignmentBtnClass = 'asg-btn-' . $assignmentStatus;
+                                                                    $assignmentBtnLabel = match ($assignmentStatus) {
+                                                                        'graded' => 'View Grade ✅',
+                                                                        'returned' => 'Resubmit Assignment ↩️',
+                                                                        'submitted' => 'View Submission 📄',
+                                                                        'late' => 'Submit Now ⚠️',
+                                                                        'closed' => 'View Details ⛔',
+                                                                        'not_started' => 'View Details 🔒',
+                                                                        default => 'View & Submit Assignment 📝',
+                                                                    };
                                                                         @endphp
-                                                                        <div class="assignment-item">
-                                                                            <div class="assignment-item-top">
-                                                                                <span class="assignment-status-pill {{ $assignmentStatusClass }}">
-                                                                                    {{ $assignmentStatusLabel }}
-                                                                                </span>
-                                                                                <span class="assignment-date">
-                                                                                    📅 {{ $assignmentDue ? $assignmentDue->format('M j, Y · g:i A') : 'No deadline' }}
-                                                                                </span>
-                                                                            </div>
+<div class="assignment-item {{ $assignmentCardClass }}">
+                                                            <div class="assignment-item-top">
+                                                                <span class="assignment-status-pill {{ $assignmentStatusClass }}">
+                                                                    {{ $assignmentStatusLabel }}
+                                                                </span>
+                                                                <span class="assignment-date">
+                                                                    📅 {{ $assignmentDue ? $assignmentDue->format('M j, Y · g:i A') : 'No deadline' }}
+                                                                </span>
+                                                            </div>
 
-                                                                            <h3>{{ $assignment->title }}</h3>
+                                                            <h3>{{ $assignment->title }}</h3>
 
-                                                                            <p class="assignment-desc">👨‍🏫 {{ $assignmentTeacher }}</p>
+                                                            <p class="assignment-desc">👨‍🏫 {{ $assignmentTeacher }}</p>
 
-                                                                            @if($assignment->description)
-                                                                                <p class="assignment-desc">{{ \Illuminate\Support\Str::limit(strip_tags($assignment->description), 180) }}</p>
-                                                                            @endif
+                                                            @if($assignment->description)
+                                                                <p class="assignment-desc">{{ \Illuminate\Support\Str::limit(strip_tags($assignment->description), 180) }}</p>
+                                                            @endif
 
-                                                                            <div class="assignment-meta-row">
-                                                                                <span class="assignment-meta-chip">🎯 {{ $assignment->max_score }} marks</span>
-                                                                            </div>
+                                                            <div class="assignment-meta-row">
+                                                                <span class="assignment-meta-chip">🎯 {{ $assignment->max_score }} marks</span>
+                                                                @if($assignmentStatus === 'graded')
+                                                                    <span class="assignment-meta-chip">🏆 Score {{ $submission->score }} / {{ $assignment->max_score }} · {{ round($submission->percentage() ?: 0) }}%</span>
+                                                                @endif
+                                                                @if($assignmentStatus === 'submitted' && $submission && $submission->submitted_at)
+                                                                    <span class="assignment-meta-chip">🕓 Submitted {{ $submission->submitted_at->format('M j · g:i A') }}</span>
+                                                                @endif
+                                                                @if($assignmentStatus === 'not_started' && $assignment->start_at)
+                                                                    <span class="assignment-meta-chip">🔒 Opens {{ $assignment->start_at->format('M j · g:i A') }}</span>
+                                                                @endif
+                                                            </div>
 
-                                                                            <a href="{{ \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $assignment->id]) }}" class="assignment-open-btn">
-                                                                                @if($assignmentStatus === 'graded')
-                                                                                    View Grade ✅
-                                                                                @elseif($assignmentStatus === 'returned')
-                                                                                    Resubmit Assignment ↩️
-                                                                                @elseif($assignmentStatus === 'submitted')
-                                                                                    View Submission 📄
-                                                                                @else
-                                                                                    View &amp; Submit Assignment 📝
-                                                                                @endif
-                                                                            </a>
-                                                                        </div>
+                                                            <a href="{{ \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $assignment->id]) }}" class="assignment-open-btn {{ $assignmentBtnClass }}">
+                                                                {{ $assignmentBtnLabel }}
+                                                            </a>
+                                                        </div>
                                                                     @endforeach
                                                                 </div>
                                                             </div>
@@ -2048,145 +3048,456 @@
 
                 {{-- ── TAB 5: QUIZZES ── --}}
                 @elseif($activeTab === 'quizzes')
-                    <div class="glass-card">
+                    <div class="glass-card {{ $tier === 'kids' ? 'kids-quizzes-panel' : '' }}">
                         <div class="glass-card-title">
-                            <span>🧠 Quiz History & Results</span>
-                            <span style="font-size: 0.85rem; color: #7c3aed; font-weight: 700;">Average Score: {{ $quizAvgPct }}%</span>
+                            <span>🧠 My Quizzes</span>
+                            <span style="font-size: 0.85rem; color: #7c3aed; font-weight: 700;">
+                                @if($tier === 'kids')
+                                    {{ $allQuizzes->count() }} Quiz(zes)
+                                @else
+                                    Average Score: {{ $quizAvgPct }}%
+                                @endif
+                            </span>
                         </div>
 
-                        @if($allClasses->count() > 1 || $filteredClass)
-                            <div class="tab-filter-bar">
-                                <span class="tab-filter-label">🎯 Filter by class</span>
-                                <select wire:model.live="activeClassFilterId" class="tab-filter-select">
-                                    <option value="">All my classes</option>
-                                    @foreach($allClasses as $class)
-                                        <option value="{{ $class->id }}" @selected((string) $activeClassFilterId === (string) $class->id)>
-                                            {{ $class->name }}{{ ! empty($classSchoolMap[$class->id]) ? ' · ' . $classSchoolMap[$class->id] : '' }}
-                                        </option>
+                        @php
+                            $kidsQuizIdx = 0;
+                        @endphp
+
+                        @if($allQuizzes->isNotEmpty() && ($allClasses->count() > 1 || $filteredClass))
+                            <div class="asg-filter-bar">
+                                <button
+                                    wire:click="setTab('quizzes')"
+                                    type="button"
+                                    class="asg-filter-chip {{ $classFilterId === null ? 'asg-filter-chip-active' : '' }}">
+                                    🌍 All
+                                    <span class="asg-filter-chip-count">{{ $allQuizzes->count() }}</span>
+                                </button>
+
+                                @foreach($allClassGroups as $schoolGroup)
+                                    @foreach($schoolGroup['groups'] as $gradeGroup)
+                                        @foreach($gradeGroup['classes'] as $class)
+                                            @if($classHasQuizzes[$class->id] ?? false)
+                                                <button
+                                                    wire:click="openTab('quizzes', {{ (int) $class->id }})"
+                                                    type="button"
+                                                    class="asg-filter-chip {{ (int) $class->id === $classFilterId ? 'asg-filter-chip-active' : '' }}">
+                                                    📘 {{ $class->name }}
+                                                    <span class="asg-filter-chip-count">{{ $quizzesByClassId[$class->id]->count() }}</span>
+                                                </button>
+                                            @endif
+                                        @endforeach
                                     @endforeach
-                                </select>
+                                @endforeach
+
+                                @if($filteredClass)
+                                    <span class="asg-filter-active-note">📍 {{ $filteredClass->name }}</span>
+                                @endif
                             </div>
                         @endif
 
-                        @if($filteredQuizAttempts->isEmpty())
-                            <div class="tab-filter-empty">
-                                @if($filteredClass)
-                                    No quiz attempts for <strong>{{ $filteredClass->name }}</strong> yet. Take your first quiz to track progress!
-                                @else
-                                    No quiz attempts recorded yet. Take your first quiz to track your progress!
-                                @endif
-                            </div>
+                        @if($tier === 'kids')
+                            @if($allQuizzes->isEmpty())
+                                <div class="tab-filter-empty">
+                                    @if($filteredClass)
+                                        No quizzes published yet for <strong>{{ $filteredClass->name }}</strong>. Check back soon!
+                                    @else
+                                        🧠 No quizzes published yet. Check back soon — your teacher will add fun quizzes here!
+                                    @endif
+                                </div>
+                            @else
+                                @foreach($allClassGroups as $schoolGroup)
+                                    @php
+                                        $schoolQuizTotal = 0;
+                                        foreach ($schoolGroup['groups'] as $sg) {
+                                            foreach ($sg['classes'] as $sc) {
+                                                if ($classHasQuizzes[$sc->id] ?? false) {
+                                                    $schoolQuizTotal += ($quizzesByClassId[$sc->id] ?? collect())->count();
+                                                }
+                                            }
+                                        }
+                                    @endphp
+                                    @if($schoolQuizTotal > 0)
+                                        <div class="school-class-block">
+                                            <div class="school-class-header">
+                                                🏫 {{ $schoolGroup['school']->name ?? 'School' }}
+                                                <span class="school-class-count">{{ $schoolQuizTotal }} quiz(es)</span>
+                                            </div>
+                                            @foreach($schoolGroup['groups'] as $gradeGroup)
+                                                @php
+                                                    $gradeQuizTotal = 0;
+                                                    foreach ($gradeGroup['classes'] as $gc) {
+                                                        if ($classHasQuizzes[$gc->id] ?? false) {
+                                                            $gradeQuizTotal += ($quizzesByClassId[$gc->id] ?? collect())->count();
+                                                        }
+                                                    }
+                                                @endphp
+                                                @if($gradeQuizTotal > 0)
+                                                    <div class="grade-class-block">
+                                                        <div class="grade-class-header">📗 {{ $gradeGroup['grade']->name ?? 'Class Group' }}</div>
+                                                        @foreach($gradeGroup['classes'] as $class)
+                                                            @if($classHasQuizzes[$class->id] ?? false)
+                                                                @php $kidsQuizIdx++; @endphp
+                                                                <div class="quiz-class-group {{ 'kidc-' . ['red','blue','purple','green','orange','pink'][($kidsQuizIdx - 1) % 6] }}">
+                                                                    <div class="quiz-class-head">
+                                                                        <span class="quiz-class-title">🧩 {{ $class->name }}</span>
+                                                                        <span class="quiz-class-meta">{{ $quizzesByClassId[$class->id]->count() }} quiz(es)</span>
+                                                                    </div>
+                                                                    <div class="quiz-list">
+                                                                        @foreach($quizzesByClassId[$class->id] as $quiz)
+                                                                            @php
+                                                                                $qStatus = $quizStatusById[$quiz->id] ?? ['attempts' => collect(), 'finished_count' => 0, 'latest' => null, 'best' => null, 'can_attempt' => false, 'remaining' => null];
+                                                                                $qState = $quizStateById[$quiz->id] ?? 'closed';
+                                                                                $qBtnLabel = match ($qState) {
+                                                                                    'available' => '▶️ Start Quiz!',
+                                                                                    'retry' => '🔁 Try Again!',
+                                                                                    'retry_passed' => '🔁 Take It Again',
+                                                                                    'complete' => '👀 View My Result',
+                                                                                    'locked' => '🔒 Not Open Yet',
+                                                                                    default => '⛔ Quiz Ended',
+                                                                                };
+                                                                                $qPillLabel = match ($qState) {
+                                                                                    'available' => '▶️ Ready to Play',
+                                                                                    'retry' => '💪 Almost There!',
+                                                                                    'retry_passed' => '✅ You Passed!',
+                                                                                    'complete' => '🏁 Quiz Complete',
+                                                                                    'locked' => '🔒 Opens ' . ($quiz->start_at?->format('M j') ?? 'Soon'),
+                                                                                    default => '⛔ This Quiz Ended',
+                                                                                };
+                                                                                $qOpenable = in_array($qState, ['available', 'retry', 'retry_passed', 'complete'], true);
+                                                                                $qTeacher = $quiz->teacher?->user?->name ?? $class->teachers->first()?->user?->name ?? 'Your Teacher';
+                                                                                $qRemaining = $qStatus['remaining'] ?? null;
+                                                                            @endphp
+                                                                            <div class="quiz-item qc-{{ $qState }}">
+                                                                                <div class="quiz-item-top">
+                                                                                    <span class="quiz-state-pill qsp-{{ $qState }}">{{ $qPillLabel }}</span>
+                                                                                    @if($qStatus['best'] !== null)
+                                                                                        <span class="quiz-score-pill {{ $qState === 'complete' || $qState === 'retry_passed' ? 'quiz-score-pass' : 'quiz-score-fail' }}">
+                                                                                            🎯 {{ $qStatus['best'] }}%
+                                                                                        </span>
+                                                                                    @endif
+                                                                                </div>
+
+                                                                                <h3>{{ $quiz->title }}</h3>
+
+                                                                                <div class="quiz-meta-row">
+                                                                                    <span class="quiz-meta-chip">🧩 {{ $quiz->questions_count ?? 0 }} questions</span>
+                                                                                    @if($quiz->time_limit_minutes)
+                                                                                        <span class="quiz-meta-chip">⏱️ {{ $quiz->time_limit_minutes }} min</span>
+                                                                                    @endif
+                                                                                    <span class="quiz-meta-chip">🎯 Pass {{ $quiz->passing_percentage }}%</span>
+                                                                                </div>
+
+                                                                                @if($qStatus['attempts']->isNotEmpty())
+                                                                                    <p class="quiz-desc">📅 {{ $qStatus['finished_count'] }} attempt(s) · Last {{ $qStatus['latest']?->completed_at?->format('M j') }}</p>
+                                                                                @else
+                                                                                    <p class="quiz-desc">👨‍🏫 {{ $qTeacher }}</p>
+                                                                                @endif
+
+                                                                                @if($qOpenable)
+                                                                                    <a href="{{ \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz->id]) }}" class="quiz-open-btn">
+                                                                                        {{ $qBtnLabel }}
+                                                                                    </a>
+                                                                                @else
+                                                                                    <span class="quiz-open-btn quiz-open-disabled">{{ $qBtnLabel }}</span>
+                                                                                @endif
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                @endforeach
+                            @endif
                         @else
-                            <table class="custom-table">
-                                <thead>
-                                    <tr>
-                                        <th>Quiz Title</th>
-                                        <th>Completion Date</th>
-                                        <th>Score %</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($filteredQuizAttempts as $attempt)
+                            @if($filteredQuizAttempts->isEmpty())
+                                <div class="tab-filter-empty">
+                                    @if($filteredClass)
+                                        No quiz attempts for <strong>{{ $filteredClass->name }}</strong> yet. Take your first quiz to track progress!
+                                    @else
+                                        No quiz attempts recorded yet. Take your first quiz to track your progress!
+                                    @endif
+                                </div>
+                            @else
+                                <table class="custom-table">
+                                    <thead>
                                         <tr>
-                                            <td class="class-title">{{ $attempt->quiz->title ?? 'Subject Quiz' }}</td>
-                                            <td class="teacher-name">{{ $attempt->completed_at?->format('M j, Y · g:i A') ?? '—' }}</td>
-                                            <td style="font-size: 1.15rem; font-weight: 800; color: {{ $attempt->is_passed ? '#15803d' : '#b91c1c' }};">
-                                                {{ round($attempt->percentage) }}%
-                                            </td>
-                                            <td>
-                                                <span class="status-pill {{ $attempt->is_passed ? 'status-ok' : 'status-pending' }}">
-                                                    {{ $attempt->is_passed ? '✓ PASSED' : '✗ NEEDS IMPROVEMENT' }}
-                                                </span>
-                                            </td>
+                                            <th>Quiz Title</th>
+                                            <th>Completion Date</th>
+                                            <th>Score %</th>
+                                            <th>Status</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($filteredQuizAttempts as $attempt)
+                                            <tr>
+                                                <td class="class-title">{{ $attempt->quiz->title ?? 'Subject Quiz' }}</td>
+                                                <td class="teacher-name">{{ $attempt->completed_at?->format('M j, Y · g:i A') ?? '—' }}</td>
+                                                <td style="font-size: 1.15rem; font-weight: 800; color: {{ $attempt->is_passed ? '#15803d' : '#b91c1c' }};">
+                                                    {{ round($attempt->percentage) }}%
+                                                </td>
+                                                <td>
+                                                    <span class="status-pill {{ $attempt->is_passed ? 'status-ok' : 'status-pending' }}">
+                                                        {{ $attempt->is_passed ? '✓ PASSED' : '✗ NEEDS IMPROVEMENT' }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @endif
                         @endif
                     </div>
 
                 {{-- ── TAB 6: GRADES ── --}}
                 @elseif($activeTab === 'grades')
-                    <div style="display: flex; flex-direction: column; gap: 1.75rem;">
-                        
-                        <!-- Grade Overview Cards -->
-                        <div class="kpi-grid">
-                            <div class="kpi-card kpi-card-purple">
-                                <div class="kpi-header">
-                                    <span class="kpi-label">OVERALL AVERAGE</span>
-                                    <span class="kpi-icon">🏆</span>
-                                </div>
-                                <div class="kpi-value">{{ $quizAvgPct }}%</div>
-                                <div class="kpi-sub">Academic Grade: {{ $quizAvgPct >= 75 ? 'A (Distinction)' : 'B (Credit)' }}</div>
-                            </div>
-
-                            <div class="kpi-card kpi-card-emerald">
-                                <div class="kpi-header">
-                                    <span class="kpi-label">PASSED QUIZZES</span>
-                                    <span class="kpi-icon">✓</span>
-                                </div>
-                                <div class="kpi-value">{{ $quizPassed }}/{{ $quizAttempts->count() }}</div>
-                                <div class="kpi-sub">Tests Cleared</div>
-                            </div>
-
-                            <div class="kpi-card kpi-card-blue">
-                                <div class="kpi-header">
-                                    <span class="kpi-label">SUBMISSIONS</span>
-                                    <span class="kpi-icon">📄</span>
-                                </div>
-                                <div class="kpi-value">{{ $submittedCount }}</div>
-                                <div class="kpi-sub">Assignments Turned In</div>
-                            </div>
-
-                            <div class="kpi-card kpi-card-amber">
-                                <div class="kpi-header">
-                                    <span class="kpi-label">STATUS</span>
-                                    <span class="kpi-icon">🌟</span>
-                                </div>
-                                <div class="kpi-value">Good</div>
-                                <div class="kpi-sub">Active Student</div>
-                            </div>
+                    <div class="glass-card {{ $tier === 'kids' ? 'kids-grades-panel' : '' }}">
+                        <div class="glass-card-title">
+                            <span>🏆 My Grades</span>
+                            <span style="font-size: 0.85rem; color: #7c3aed; font-weight: 700;">
+                                @if($tier === 'kids')
+                                    {{ $allGrades->count() }} result(s)
+                                @else
+                                    Average: {{ $overallAvg }}%
+                                @endif
+                            </span>
                         </div>
 
-                        <!-- Grades Breakdown Table -->
-                        <div class="glass-card">
-                            <div class="glass-card-title">
-                                <span>🏆 Subject Grades & Academic Report</span>
-                            </div>
+                        @php
+                            $kidsGradeIdx = 0;
+                        @endphp
 
-                            <table class="custom-table">
-                                <thead>
-                                    <tr>
-                                        <th>Class Name</th>
-                                        <th>Teacher</th>
-                                        <th>Assignments Done</th>
-                                        <th>Subject Performance</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($activeClasses as $class)
-                                        @php
-                                            $pendingCount = $class->assignments()
-                                                ->where('is_published', true)
-                                                ->whereDoesntHave('submissions', fn($q) => $q->where('student_id', $student?->id))
-                                                ->count();
-                                        @endphp
-                                        <tr>
-                                            <td class="class-title">{{ $class->name }}</td>
-                                            <td class="teacher-name">{{ $class->teachers->first()?->user?->name ?? '—' }}</td>
-                                            <td style="color: #475569; font-weight: 600;">
-                                                {{ $pendingCount === 0 ? 'All Completed ✅' : $pendingCount . ' Pending Tasks' }}
-                                            </td>
-                                            <td>
-                                                <span class="status-pill status-ok">Satisfactory</span>
-                                            </td>
-                                        </tr>
+                        {{-- Class filter chips --}}
+                        @if($allGrades->isNotEmpty() && ($allClasses->count() > 1 || $filteredClass))
+                            <div class="asg-filter-bar">
+                                <button
+                                    wire:click="setTab('grades')"
+                                    type="button"
+                                    class="asg-filter-chip {{ $classFilterId === null ? 'asg-filter-chip-active' : '' }}">
+                                    🌍 All
+                                    <span class="asg-filter-chip-count">{{ $allGrades->count() }}</span>
+                                </button>
+
+                                @foreach($allClassGroups as $schoolGroup)
+                                    @foreach($schoolGroup['groups'] as $gradeGroup)
+                                        @foreach($gradeGroup['classes'] as $class)
+                                            @if($classHasGrades[$class->id] ?? false)
+                                                <button
+                                                    wire:click="openTab('grades', {{ (int) $class->id }})"
+                                                    type="button"
+                                                    class="asg-filter-chip {{ (int) $class->id === $classFilterId ? 'asg-filter-chip-active' : '' }}">
+                                                    📘 {{ $class->name }}
+                                                    <span class="asg-filter-chip-count">{{ count($gradesByClassId[$class->id] ?? []) }}</span>
+                                                </button>
+                                            @endif
+                                        @endforeach
                                     @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                @endforeach
 
+                                @if($filteredClass)
+                                    <span class="asg-filter-active-note">📍 {{ $filteredClass->name }}</span>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if(empty($filteredGrades) && $allGrades->isEmpty())
+                            <div class="tab-filter-empty">
+                                @if($filteredClass)
+                                    No grades recorded for <strong>{{ $filteredClass->name }}</strong> yet. Keep studying!
+                                @else
+                                    📊 No grades yet. Complete some quizzes or assignments to see your results here!
+                                @endif
+                            </div>
+                        @else
+                            {{-- Summary KPI cards --}}
+                            <div class="kpi-grid">
+                                <div class="kpi-card kpi-card-purple">
+                                    <div class="kpi-header">
+                                        <span class="kpi-label">OVERALL AVERAGE</span>
+                                        <span class="kpi-icon">🏆</span>
+                                    </div>
+                                    <div class="kpi-value">{{ $overallAvg }}%</div>
+                                    <div class="kpi-sub">{{ $overallAvg >= 90 ? '🌟 Excellent' : ($overallAvg >= 75 ? '👍 Good' : ($overallAvg >= 60 ? '📈 Fair' : '💪 Keep Trying')) }}</div>
+                                </div>
+
+                                <div class="kpi-card kpi-card-emerald">
+                                    <div class="kpi-header">
+                                        <span class="kpi-label">QUIZ AVERAGE</span>
+                                        <span class="kpi-icon">🧠</span>
+                                    </div>
+                                    <div class="kpi-value">{{ $quizAvg }}%</div>
+                                    <div class="kpi-sub">{{ $quizGradeCount }} quiz(es) completed</div>
+                                </div>
+
+                                <div class="kpi-card kpi-card-blue">
+                                    <div class="kpi-header">
+                                        <span class="kpi-label">ASSIGNMENTS</span>
+                                        <span class="kpi-icon">📋</span>
+                                    </div>
+                                    <div class="kpi-value">{{ $assignmentAvg }}%</div>
+                                    <div class="kpi-sub">{{ $gradedSubmissionsCount }} graded · {{ $pendingGradesCount }} pending</div>
+                                </div>
+
+                                <div class="kpi-card kpi-card-amber">
+                                    <div class="kpi-header">
+                                        <span class="kpi-label">TOTAL RESULTS</span>
+                                        <span class="kpi-icon">📊</span>
+                                    </div>
+                                    <div class="kpi-value">{{ $allGrades->count() }}</div>
+                                    <div class="kpi-sub">{{ $allFeedbacks->count() }} feedback(s) received</div>
+                                </div>
+                            </div>
+
+                            {{-- Grades list --}}
+                            @if($tier === 'kids')
+                                {{-- Kids: colorful grade cards --}}
+                                @foreach($filteredGrades as $grade)
+                                    @php
+                                        $kidsGradeIdx++;
+                                        $colorClass = 'kidc-' . ['red','blue','purple','green','orange','pink'][($kidsGradeIdx - 1) % 6];
+                                        $isQuiz = $grade['type'] === 'quiz';
+                                        $scorePct = $grade['score'] ?? 0;
+                                        $scoreColor = $scorePct >= 80 ? '#16a34a' : ($scorePct >= 60 ? '#ca8a04' : '#dc2626');
+                                        $scoreBg = $scorePct >= 80 ? '#f0fdf4' : ($scorePct >= 60 ? '#fefce8' : '#fef2f2');
+                                    @endphp
+                                    <div class="kids-grade-card {{ $colorClass }}">
+                                        <div class="kids-grade-top">
+                                            <span class="kids-grade-type {{ $isQuiz ? 'kgc-quiz' : 'kgc-assignment' }}">
+                                                {{ $isQuiz ? '🧠 Quiz' : '📋 Assignment' }}
+                                            </span>
+                                            <span class="kids-grade-score" style="color: {{ $scoreColor }}; background: {{ $scoreBg }};">
+                                                {{ $scorePct }}%
+                                            </span>
+                                        </div>
+
+                                        <h3 class="kids-grade-title">{{ $grade['title'] }}</h3>
+
+                                        <div class="kids-grade-meta">
+                                            <span>📘 {{ $grade['class_name'] }}</span>
+                                            <span>👤 {{ $grade['teacher'] }}</span>
+                                            <span>📅 {{ $grade['date']?->format('M j, Y') ?? '—' }}</span>
+                                        </div>
+
+                                        <div class="kids-grade-status">
+                                            <span class="kids-grade-status-pill {{ $grade['is_passed'] ? 'kgsp-pass' : 'kgsp-fail' }}">
+                                                {{ $grade['status_label'] }}
+                                            </span>
+                                            @if(! $isQuiz && $grade['points'] !== null)
+                                                <span class="kids-grade-points">
+                                                    {{ $grade['points'] }} / {{ $grade['max_points'] }} pts
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        @if($grade['has_feedback'] && $grade['feedback'])
+                                            <div class="kids-grade-feedback">
+                                                <div class="kids-grade-feedback-head">
+                                                    💬 Teacher Feedback
+                                                    @if($grade['grader_name'])
+                                                        <span class="kids-grade-feedback-teacher">— {{ $grade['grader_name'] }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="kids-grade-feedback-text">{!! $grade['feedback'] !!}</div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @else
+                                {{-- Junior/Senior: table layout --}}
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Title</th>
+                                            <th>Class</th>
+                                            <th>Teacher</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Feedback</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($filteredGrades as $grade)
+                                            @php
+                                                $isQuiz = $grade['type'] === 'quiz';
+                                                $scorePct = $grade['score'] ?? 0;
+                                                $scoreColor = $scorePct >= 80 ? '#16a34a' : ($scorePct >= 60 ? '#ca8a04' : '#dc2626');
+                                            @endphp
+                                            <tr>
+                                                <td>
+                                                    <span class="status-pill {{ $isQuiz ? 'status-ok' : 'status-pending' }}" style="font-size: 0.8rem;">
+                                                        {{ $isQuiz ? '🧠 Quiz' : '📋 Assignment' }}
+                                                    </span>
+                                                </td>
+                                                <td class="class-title">{{ $grade['title'] }}</td>
+                                                <td style="color: #64748b; font-weight: 600;">{{ $grade['class_name'] }}</td>
+                                                <td class="teacher-name">{{ $grade['teacher'] }}</td>
+                                                <td style="font-size: 1.15rem; font-weight: 800; color: {{ $scoreColor }};">
+                                                    {{ $scorePct }}%
+                                                    @if(! $isQuiz && $grade['points'] !== null)
+                                                        <span style="font-size: 0.8rem; color: #64748b;">({{ $grade['points'] }}/{{ $grade['max_points'] }})</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <span class="status-pill {{ $grade['is_passed'] ? 'status-ok' : 'status-pending' }}">
+                                                        {{ $grade['status_label'] }}
+                                                    </span>
+                                                </td>
+                                                <td style="color: #64748b;">{{ $grade['date']?->format('M j, Y') ?? '—' }}</td>
+                                                <td>
+                                                    @if($grade['has_feedback'] && $grade['feedback'])
+                                                        <span class="status-pill status-ok" style="font-size: 0.8rem;" title="{{ $grade['feedback'] }}">
+                                                            💬 Feedback
+                                                            @if($grade['grader_name'])
+                                                                — {{ $grade['grader_name'] }}
+                                                            @endif
+                                                        </span>
+                                                    @else
+                                                        <span style="color: #cbd5e1; font-weight: 600;">—</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @endif
+
+                            {{-- Feedback section (all feedbacks combined) --}}
+                            @if($allFeedbacks->isNotEmpty())
+                                <div class="grades-feedback-section">
+                                    <div class="glass-card-title" style="margin-top: 0.5rem;">
+                                        <span>💬 Teacher Feedback</span>
+                                        <span style="font-size: 0.85rem; color: #7c3aed; font-weight: 700;">{{ $allFeedbacks->count() }} feedback(s)</span>
+                                    </div>
+
+                                    @foreach($allFeedbacks as $fb)
+                                        @php
+                                            $fbIsQuiz = $fb['type'] === 'quiz';
+                                        @endphp
+                                        <div class="grades-feedback-card">
+                                            <div class="grades-feedback-head">
+                                                <span class="grades-feedback-type">{{ $fbIsQuiz ? '🧠 Quiz' : '📋 Assignment' }}</span>
+                                                <span class="grades-feedback-title">{{ $fb['title'] }}</span>
+                                                <span class="grades-feedback-class">📘 {{ $fb['class_name'] }}</span>
+                                            </div>
+                                            <div class="grades-feedback-body">
+                                                <div class="grades-feedback-text">{!! $fb['feedback'] !!}</div>
+                                                <div class="grades-feedback-meta">
+                                                    👤 {{ $fb['grader_name'] ?? $fb['teacher'] }}
+                                                    · 📅 {{ $fb['date']?->format('M j, Y') ?? '—' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endif
                     </div>
 
                 {{-- ── TAB 7: PROFILE ── --}}
@@ -2346,91 +3657,3 @@
 
     </div>
 </div>
-
-{{-- ── LESSONS & MATERIALS MODAL OVERLAY ── --}}
-@if($selectedClass)
-    <div style="position: fixed; inset: 0; z-index: 100; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1.5rem;" wire:click.self="closeClassLessons">
-        <div style="background: #ffffff; border-radius: 1.25rem; width: 100%; max-width: 44rem; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid #e2e8f0;">
-            
-            <!-- Modal Header -->
-            <div style="padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);">
-                <div>
-                    <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">📖 {{ $selectedClass->name }}</h2>
-                    <p style="font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; font-weight: 600;">
-                        Instructor: {{ $selectedClass->teachers->first()?->user?->name ?? 'Course Teacher' }} · {{ $selectedClass->lessons->count() }} Published Lessons
-                    </p>
-                </div>
-                <button wire:click="closeClassLessons" type="button" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 9999px; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 800; color: #475569; cursor: pointer; transition: all 0.2s;">
-                    ✕
-                </button>
-            </div>
-
-            <!-- Modal Content (Lessons List) -->
-            <div style="flex: 1; overflow-y: auto; padding: 1.75rem 2rem; display: flex; flex-direction: column; gap: 1.25rem;">
-                @if($selectedClass->lessons->isEmpty())
-                    <div style="text-align: center; padding: 3rem 1rem; color: #64748b;">
-                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📚</div>
-                        <h4 style="font-size: 1.1rem; font-weight: 700; color: #334155; margin: 0 0 0.25rem 0;">No Lessons Published Yet</h4>
-                        <p style="font-size: 0.88rem; margin: 0;">Check back soon! Your teacher will publish learning materials here.</p>
-                    </div>
-                @else
-                    @foreach($selectedClass->lessons as $lesson)
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <span style="font-size: 0.75rem; font-weight: 800; background: #ede9fe; color: #7c3aed; padding: 0.25rem 0.65rem; border-radius: 9999px;">
-                                    Lesson {{ $loop->iteration }}
-                                </span>
-                                <span style="font-size: 0.78rem; color: #64748b; font-weight: 600;">
-                                    {{ $lesson->created_at ? $lesson->created_at->format('M j, Y') : '' }}
-                                </span>
-                            </div>
-
-                            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;">{{ $lesson->title }}</h3>
-
-                            @if($lesson->description)
-                                <p style="font-size: 0.88rem; color: #475569; margin: 0; line-height: 1.5; font-weight: 500;">{{ $lesson->description }}</p>
-                            @endif
-
-                            @if($lesson->content)
-                                <div style="font-size: 0.88rem; color: #334155; background: #ffffff; padding: 0.85rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; line-height: 1.6;">
-                                    {!! nl2br(e($lesson->content)) !!}
-                                </div>
-                            @endif
-
-                            @if($lesson->video_url)
-                                <div style="margin-top: 0.25rem;">
-                                    <a href="{{ $lesson->video_url }}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.4rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-weight: 700; font-size: 0.82rem; padding: 0.45rem 0.85rem; border-radius: 0.65rem; text-decoration: none;">
-                                        🎬 Watch Video Lesson ↗
-                                    </a>
-                                </div>
-                            @endif
-
-                            @if($lesson->attachments && $lesson->attachments->count())
-                                <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                                    <span style="font-size: 0.78rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Course Attachments & Downloads</span>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                                        @foreach($lesson->attachments as $attachment)
-                                            <a href="{{ \Illuminate\Support\Facades\Storage::url($attachment->file_path) }}" download style="display: inline-flex; align-items: center; gap: 0.4rem; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.75rem; border-radius: 0.65rem; text-decoration: none;">
-                                                📄 {{ $attachment->original_name ?? 'Download Material' }}
-                                                @if($attachment->file_size)
-                                                    <span style="font-size: 0.72rem; color: #64748b;">({{ round($attachment->file_size / 1024, 1) }} KB)</span>
-                                                @endif
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                @endif
-            </div>
-
-            <!-- Modal Footer -->
-            <div style="padding: 1.25rem 2rem; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: flex-end;">
-                <button wire:click="closeClassLessons" type="button" style="background: #7c3aed; color: #ffffff; border: none; font-weight: 700; font-size: 0.88rem; padding: 0.6rem 1.4rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s;">
-                    Done / Close
-                </button>
-            </div>
-        </div>
-    </div>
-@endif

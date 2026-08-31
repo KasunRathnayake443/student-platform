@@ -47,7 +47,7 @@
     padding: 2.25rem 2.5rem 3rem;
     position: relative;
     overflow: hidden;
-    border-radius: 0 0 2.5rem 2.5rem;
+    border-radius: 0;
     box-shadow: 0 12px 40px rgba(124, 58, 237, 0.4);
 }
 .kids-header::before {
@@ -245,6 +245,7 @@
     line-height: 1.3;
 }
 .kids-start-btn {
+    display: inline-block;
     background: rgba(0,0,0,0.15);
     color: rgba(0,0,0,0.7);
     border: none;
@@ -477,19 +478,18 @@
             @else
                 <div class="kids-missions-grid">
                     @foreach($pendingAssignments->take(6) as $i => $assignment)
-                        <div
+                        <a
+                            href="{{ \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $assignment->id]) }}"
                             class="kids-mission-card {{ $missionColors[$i % 5] }}"
-                            wire:click="viewClassLessons({{ $assignment->learning_class_id }})"
-                            role="button"
                             title="Let's do this! 🚀"
                         >
                             <div class="kids-mission-emoji">{{ $classEmojis[$i % count($classEmojis)] }}</div>
                             <div class="kids-mission-info">
                                 <div class="kids-mission-class">{{ $assignment->learningClass->name ?? 'Class' }}</div>
                                 <div class="kids-mission-name">{{ $assignment->title }}</div>
-                                <button type="button" class="kids-start-btn">START! 🚀</button>
+                                <span class="kids-start-btn">START! 🚀</span>
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @endif
@@ -507,10 +507,9 @@
             @else
                 <div class="kids-classes-grid">
                     @foreach($activeClasses as $i => $class)
-                        <div
+                        <a
+                            href="?tab=lessons&class_filter={{ (int) $class->id }}"
                             class="kids-class-tile {{ $tileColors[$i % 6] }}"
-                            wire:click="viewClassLessons({{ $class->id }})"
-                            role="button"
                             title="Tap to open {{ $class->name }} 📖"
                         >
                             <div class="kids-class-emoji"><span class="kids-class-emoji-inner">{{ $tileEmojis[$i % count($tileEmojis)] }}</span></div>
@@ -518,7 +517,7 @@
                             <div class="kids-class-teacher">
                                 {{ $class->teachers->first()?->user?->name ?? 'Teacher' }}
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @endif

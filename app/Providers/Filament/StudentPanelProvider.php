@@ -6,6 +6,7 @@ use App\Filament\Student\Pages\Auth\StudentLogin;
 use App\Filament\Student\Pages\AssignmentView;
 use App\Filament\Student\Pages\Dashboard;
 use App\Filament\Student\Pages\LessonView;
+use App\Filament\Student\Pages\QuizAttempt;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -37,6 +38,7 @@ class StudentPanelProvider extends PanelProvider
                 Dashboard::class,
                 LessonView::class,
                 AssignmentView::class,
+                QuizAttempt::class,
             ])
             ->middleware([
                 EncryptCookies::class,
