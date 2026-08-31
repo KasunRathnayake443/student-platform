@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
@@ -226,6 +227,14 @@ class Student extends Model
         );
     }
 
+    public function calendarNotes(): HasMany
+    {
+        return $this->hasMany(
+            CalendarNote::class,
+            'student_id'
+        );
+    }
+
     /**
      * Determine dashboard tier based on date_of_birth.
      * Returns: 'kids' | 'junior' | 'senior'
@@ -236,7 +245,7 @@ class Student extends Model
             return 'senior';
         }
 
-        $age = \Illuminate\Support\Carbon::parse($this->date_of_birth)->age;
+        $age = Carbon::parse($this->date_of_birth)->age;
 
         return match (true) {
             $age <= 10 => 'kids',    // Age 5 to 10 -> Kids Dashboard

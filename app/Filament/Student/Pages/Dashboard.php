@@ -7,6 +7,7 @@ use App\Concerns\ProfileValidationRules;
 use App\Models\Student;
 use App\Services\StudentContextService;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -35,6 +36,15 @@ class Dashboard extends BaseDashboard
     public ?Collection $allContexts = null;
 
     public ?Student $student = null;
+
+    public int $calendarYear = 0;
+
+    public int $calendarMonth = 0;
+
+    /** @var string|null */
+    public $calendarSelectedDate = null;
+
+    public string $calendarNoteText = '';
 
     public string $profileName = '';
 
@@ -92,7 +102,7 @@ class Dashboard extends BaseDashboard
         $this->profileParentPhone = $this->student->parent_phone ?? '';
 
         $tab = request()->query('tab');
-        if (is_string($tab) && in_array($tab, ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'profile'], true)) {
+        if (is_string($tab) && in_array($tab, ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'calendar', 'profile'], true)) {
             $this->activeTab = $tab;
         }
         $classFilter = request()->query('class_filter');
@@ -197,6 +207,59 @@ class Dashboard extends BaseDashboard
     {
         $this->activeTab = $tab;
         $this->activeClassFilterId = $classId;
+        if ($tab === 'calendar') {
+            $this->calendarSelectedDate = null;
+            $this->calendarNoteText = '';
+        }
+    }
+
+    public function prevCalendarMonth(): void
+    {
+        $m = Carbon::create($this->calendarYear ?: now()->year, $this->calendarMonth ?: now()->month, 1)
+            ->subMonth();
+        $this->calendarYear = $m->year;
+        $this->calendarMonth = $m->month;
+        $this->calendarSelectedDate = null;
+        $this->calendarNoteText = '';
+    }
+
+    public function nextCalendarMonth(): void
+    {
+        $m = Carbon::create($this->calendarYear ?: now()->year, $this->calendarMonth ?: now()->month, 1)
+            ->addMonth();
+        $this->calendarYear = $m->year;
+        $this->calendarMonth = $m->month;
+        $this->calendarSelectedDate = null;
+        $this->calendarNoteText = '';
+    }
+
+    public function saveCalendarNote(): void
+    {
+        $date = $this->calendarSelectedDate;
+        if (! $date || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $date) || ! $this->student) {
+            return;
+        }
+
+        $trimmed = trim($this->calendarNoteText);
+        if ($trimmed === '') {
+            return;
+        }
+
+        $this->student->calendarNotes()->updateOrCreate(
+            ['note_date' => $date],
+            ['content' => $trimmed]
+        );
+
+        $this->calendarNoteText = '';
+    }
+
+    public function deleteCalendarNote(int $noteId): void
+    {
+        if (! $this->student) {
+            return;
+        }
+
+        $this->student->calendarNotes()->where('id', $noteId)->delete();
     }
 
     public function switchContext(string $key): void
@@ -207,6 +270,13 @@ class Dashboard extends BaseDashboard
 
         $service = app(StudentContextService::class);
         $service->setActiveContext($this->student, $key);
+        $this->activeContext = $service->getActiveContext($this->student);
+        $this->allContexts = $service->getContextsGroupedBySchool($this->student);
+    }
+
+    public function refreshContext(): void
+    {
+        $service = app(StudentContextService::class);
         $this->activeContext = $service->getActiveContext($this->student);
         $this->allContexts = $service->getContextsGroupedBySchool($this->student);
     }

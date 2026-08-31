@@ -4,6 +4,7 @@
     $activeClasses    = $activeContext ? $activeContext['classes'] : collect();
     $activeSchoolName = $activeContext ? ($activeContext['school']->name ?? 'My School') : 'My School';
     $activeGradeName  = $activeContext ? ($activeContext['grade']->name  ?? 'My Grade')  : 'My Grade';
+    $activeGradeKey   = $activeContext ? ($activeContext['key'] ?? '') : '';
 
     // Stats
     $quizAttempts = $student?->quizAttempts()->where('status', 'submitted')->get() ?? collect();
@@ -19,17 +20,17 @@
             ->where('is_published', true)
             ->whereDoesntHave('submissions', fn ($q) => $q->where('student_id', $student?->id))
             ->orderBy('end_at')
-            ->take(5)
+            ->take(8)
             ->get();
         $pendingAssignments = $pendingAssignments->merge($pend);
 
         $all = $class->assignments()->where('is_published', true)->get();
         $allAssignments = $allAssignments->merge($all);
     }
-    $pendingAssignments = $pendingAssignments->sortBy('end_at');
+    $pendingAssignments = $pendingAssignments->sortBy('end_at')->values();
 
     // Progress (submitted / total)
-    $submittedCount = $allAssignments->isEmpty() ? 0 : 0;
+    $submittedCount = 0;
     if ($student && $allAssignments->count()) {
         $submittedCount = \App\Models\AssignmentSubmission::where('student_id', $student->id)
             ->whereIn('assignment_id', $allAssignments->pluck('id'))
@@ -49,514 +50,597 @@
     }
 
     // Recent quiz results
-    $recentQuizzes = $quizAttempts->sortByDesc('completed_at')->take(4);
+    $recentQuizzes = $quizAttempts->sortByDesc('completed_at')->take(5);
+
+    // Best quiz score for metric card
+    $quizResultsForGrades = $student?->quizAttempts()
+        ->whereIn('status', ['submitted', 'time_expired'])
+        ->get() ?? collect();
+    $bestQuizPct = $quizResultsForGrades->max('percentage');
+    $bestQuizPct = $bestQuizPct !== null ? (int) round((float) $bestQuizPct) : null;
 @endphp
 
 <style>
-/* ───── Junior Dashboard Styles (Modern Light Theme) ───── */
+/* ═════════ BENTO JUNIOR DASHBOARD (Modern Light Theme) ═════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 .junior-dash {
-    font-family: 'Inter', system-ui, sans-serif;
-    min-height: 100vh;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    width: 100%;
+    min-height: 100%;
     background: #f8fafc;
     color: #334155;
-    margin: -1.5rem;
-    padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ── Header ── */
-.jd-header {
-    background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 50%, #f3e8ff 100%);
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid #e2e8f0;
+/* ── Global header row (greeting + search + pills) ── */
+.bento-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
-    position: relative;
-    overflow: hidden;
+    padding: 1.75rem 2.5rem 0.75rem;
 }
-.jd-header::after {
-    content: '';
-    position: absolute;
-    bottom: -40px; right: -40px;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
-    border-radius: 50%;
-}
-.jd-greeting h1 {
-    font-size: 1.75rem;
-    font-weight: 900;
-    background: linear-gradient(90deg, #6d28d9, #1d4ed8, #059669);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0 0 0.2rem;
-}
-.jd-greeting p {
-    color: #475569;
-    font-size: 0.875rem;
+.bento-greeting h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-.jd-header-right {
+.bento-greeting h1 .welcome-badge {
+    font-size: 1.1rem;
+}
+.bento-greeting p {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0.2rem 0 0;
+    font-weight: 500;
+}
+.bento-header-center {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     flex-wrap: wrap;
-    z-index: 1;
 }
-.jd-streak-badge {
+.bento-search {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    background: #ffedd5;
-    border: 1px solid #fed7aa;
-    border-radius: 999px;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #ea580c;
+    gap: 0.55rem;
+    background: #e2e8f0;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 0.5rem 1.1rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    width: 22rem;
+    max-width: 100%;
 }
-.jd-context-badge {
+.bento-search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: #334155;
+    width: 100%;
+}
+.bento-search input::placeholder { color: #94a3b8; }
+.bento-header-right {
     display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+.bento-streak-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    border-radius: 9999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.bento-context-badge {
+    display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: #e0e7ff;
-    border: 1px solid #c7d2fe;
-    border-radius: 999px;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.8rem;
-    font-weight: 600;
+    background: #eef2ff;
     color: #4f46e5;
-    cursor: pointer;
+    border: 1px solid #e0e7ff;
+    border-radius: 9999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
-/* ── School Tabs ── */
-.jd-school-tabs {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0.75rem 2rem;
+/* ── School & grade filter tabs ── */
+.bento-filter-bar {
     display: flex;
-    align-items: flex-start;
-    gap: 1.25rem;
-    overflow-x: auto;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 2.5rem 1.25rem;
 }
-.jd-school-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-}
-.jd-school-name {
+.bento-filter-school {
     font-size: 0.78rem;
     font-weight: 800;
     color: #475569;
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    margin-right: 0.25rem;
 }
-.jd-school-grades {
-    display: flex;
-    gap: 0.35rem;
-}
-.jd-school-tab {
-    padding: 0.45rem 1.1rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
+.bento-filter-pill {
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
-    background: transparent;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
     color: #64748b;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    font-family: inherit;
 }
-.jd-school-tab.active {
-    background: #e0e7ff;
-    border-color: #6366f1;
-    color: #4f46e5;
-}
-.jd-school-tab:hover:not(.active) {
-    border-color: #cbd5e1;
-    color: #334155;
+.bento-filter-pill:hover { border-color: #c7d2fe; color: #0f172a; }
+.bento-filter-pill.active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #ffffff;
 }
 
-/* ── Main ── */
-.jd-main {
-    padding: 1.5rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+/* ── Bento main ── */
+.bento-main {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    padding: 0.5rem 2.5rem 3rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* ── Stat cards ── */
-.jd-stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-}
-.jd-stat-card {
+/* Card base */
+.bento-card {
     background: #ffffff;
-    border-radius: 1rem;
-    padding: 1.25rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.04);
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s, border-color 0.2s;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
-.jd-stat-card:hover {
-    transform: translateY(-2px);
-    border-color: #cbd5e1;
-}
-.jd-stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: 1rem 1rem 0 0;
-}
-.jd-stat-card.orange::before  { background: linear-gradient(90deg, #f97316, #fb923c); }
-.jd-stat-card.green::before   { background: linear-gradient(90deg, #22c55e, #4ade80); }
-.jd-stat-card.purple::before  { background: linear-gradient(90deg, #a855f7, #c084fc); }
-.jd-stat-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-}
-.jd-stat-value {
-    font-size: 1.75rem;
-    font-weight: 900;
-    line-height: 1;
-}
-.jd-stat-card.orange .jd-stat-value { color: #ea580c; }
-.jd-stat-card.green  .jd-stat-value { color: #16a34a; }
-.jd-stat-card.purple .jd-stat-value { color: #7c3aed; }
-.jd-stat-sub {
-    font-size: 0.8rem;
-    color: #64748b;
-    margin-top: 0.35rem;
-    font-weight: 500;
-}
+.bento-card:hover { box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
 
-/* Progress ring */
-.jd-progress-ring-wrap {
+/* ── Section 1: Metrics (3 columns) ── */
+.bento-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+@media (max-width: 1000px) { .bento-metrics { grid-template-columns: 1fr; } }
+
+.metric-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem;
 }
-.jd-ring {
-    width: 56px;
-    height: 56px;
-    transform: rotate(-90deg);
+.metric-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    margin-bottom: 0.6rem;
+}
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #0f172a;
+}
+.metric-value.mv-orange { color: #ea580c; }
+.metric-value.mv-green  { color: #16a34a; }
+.metric-sub {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-top: 0.6rem;
+}
+.metric-visual {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.jd-ring circle { transition: stroke-dashoffset 1s ease; }
 
-/* ── Two column grid ── */
-.jd-two-col {
+/* ── Section 2: Classes (70%) + Deadlines (30%) ── */
+.bento-split {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.6fr 1fr;
     gap: 1.5rem;
+    align-items: start;
 }
-@media (max-width: 768px) { .jd-two-col { grid-template-columns: 1fr; } }
+@media (max-width: 1000px) { .bento-split { grid-template-columns: 1fr; } }
 
-/* Section header */
-.jd-section-head {
+.bento-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.bento-section-head h2 {
     font-size: 1rem;
     font-weight: 800;
-    color: #1e293b;
-    margin: 0 0 1rem;
+    color: #0f172a;
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
-.jd-section-head span.badge {
+.bento-section-head .count-badge {
     font-size: 0.7rem;
-    background: #e0e7ff;
+    background: #eef2ff;
     color: #4f46e5;
-    border-radius: 999px;
-    padding: 0.1rem 0.55rem;
-    font-weight: 700;
+    border-radius: 9999px;
+    padding: 0.15rem 0.6rem;
+    font-weight: 800;
 }
 
-/* Class cards */
-.jd-classes-grid {
+/* Class cards horizontal row */
+.bento-classes-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
 }
-.jd-class-card {
+.bento-class-card {
     background: #ffffff;
-    border-radius: 0.875rem;
-    padding: 1rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.03);
-    border-left: 3px solid;
-    transition: transform 0.2s, border-color 0.2s;
-    cursor: pointer;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.1rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+    transition: all 0.2s ease;
     text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
 }
-.jd-class-card:hover { transform: translateX(2px); }
-.jd-class-card:nth-child(1) { border-left-color: #f97316; }
-.jd-class-card:nth-child(2) { border-left-color: #22c55e; }
-.jd-class-card:nth-child(3) { border-left-color: #a855f7; }
-.jd-class-card:nth-child(4) { border-left-color: #3b82f6; }
-.jd-class-card:nth-child(5) { border-left-color: #ec4899; }
-.jd-class-card:nth-child(6) { border-left-color: #14b8a6; }
-.jd-class-name {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.25rem;
-}
-.jd-class-teacher {
-    font-size: 0.775rem;
+.bento-class-card:hover { box-shadow: 0 8px 18px rgba(15,23,42,0.08); transform: translateY(-2px); }
+.bento-class-name { font-size: 1rem; font-weight: 800; color: #0f172a; }
+.bento-class-teacher {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
     color: #64748b;
     font-weight: 500;
+    margin-top: 0.4rem;
 }
-.jd-class-bar-bg {
-    margin-top: 0.6rem;
-    height: 4px;
+.bento-teacher-avatar {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.bento-class-bar {
+    height: 5px;
     background: #f1f5f9;
     border-radius: 999px;
     overflow: hidden;
 }
-.jd-class-bar { height: 100%; border-radius: 999px; }
+.bento-class-bar-fill { height: 100%; border-radius: 999px; }
+.bento-class-bar-fill.cb-purple { background: linear-gradient(90deg, #4f46e5, #818cf8); }
+.bento-class-bar-fill.cb-teal   { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
 
-/* Deadline timeline */
-.jd-deadline-panel {
-    background: #ffffff;
-    border-radius: 1rem;
-    padding: 1.25rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.03);
-}
-.jd-deadline-item {
+/* Deadline panel */
+.bento-deadlines-list { display: flex; flex-direction: column; }
+.bento-deadline-item {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
-    padding: 0.65rem 0;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #f8fafc;
 }
-.jd-deadline-item:last-child { border-bottom: none; }
-.jd-deadline-dot {
-    width: 10px; height: 10px;
+.bento-deadline-item:last-child { border-bottom: none; }
+.bento-deadline-node {
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     margin-top: 5px;
     flex-shrink: 0;
+    background: #6366f1;
+    box-shadow: 0 0 0 3px #e0e7ff;
 }
-.jd-deadline-dot.urgent  { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.3); }
-.jd-deadline-dot.soon    { background: #f97316; }
-.jd-deadline-dot.normal  { background: #22c55e; }
-.jd-deadline-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; }
-.jd-deadline-meta  { font-size: 0.75rem;  color: #64748b; margin-top: 0.15rem; }
-.jd-no-deadlines { color: #16a34a; font-size: 0.875rem; font-weight: 600; text-align: center; padding: 1rem; }
-
-/* Quiz result cards */
-.jd-quiz-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 0.75rem;
-}
-.jd-quiz-card {
-    background: #ffffff;
-    border-radius: 0.875rem;
-    padding: 1rem 1.25rem;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: transform 0.2s;
-}
-.jd-quiz-card:hover { transform: translateY(-2px); }
-.jd-quiz-score {
-    font-size: 1.5rem;
-    font-weight: 900;
-    min-width: 60px;
-}
-.jd-quiz-score.passed { color: #16a34a; }
-.jd-quiz-score.failed { color: #dc2626; }
-.jd-quiz-name { font-size: 0.875rem; font-weight: 600; color: #1e293b; }
-.jd-quiz-badge {
-    margin-top: 0.3rem;
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 0.15rem 0.6rem;
+.bento-deadline-title { font-size: 0.875rem; font-weight: 600; color: #0f172a; }
+.bento-deadline-meta { font-size: 0.75rem; color: #94a3b8; margin-top: 0.15rem; }
+.bento-deadline-bar {
+    height: 4px;
+    background: #f1f5f9;
     border-radius: 999px;
+    overflow: hidden;
+    margin-top: 0.4rem;
+    max-width: 100%;
 }
-.jd-quiz-badge.passed { background: #dcfce7; color: #15803d; }
-.jd-quiz-badge.failed { background: #fee2e2; color: #b91c1c; }
-.jd-empty { color: #64748b; font-size: 0.875rem; font-weight: 500; padding: 1rem; }
+.bento-deadline-bar-fill { height: 100%; border-radius: 999px; background: #6366f1; }
+.bento-no-deadlines { color: #16a34a; font-size: 0.875rem; font-weight: 600; text-align: center; padding: 1.5rem; }
+
+/* ── Section 3: Recent quiz results (full width) ── */
+.bento-quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.bento-quiz-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.1rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: hidden;
+    position: relative;
+}
+.bento-quiz-card:hover { box-shadow: 0 8px 18px rgba(15,23,42,0.08); transform: translateY(-2px); }
+.bento-quiz-score { font-size: 1.9rem; font-weight: 900; color: #0f172a; }
+.bento-quiz-score.qs-green { color: #16a34a; }
+.bento-quiz-score.qs-red   { color: #e11d48; }
+.bento-quiz-name { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+.bento-quiz-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 0.18rem 0.7rem;
+    border-radius: 9999px;
+    width: fit-content;
+}
+.bento-quiz-badge.qb-pass { background: #d1fae5; color: #059669; }
+.bento-quiz-badge.qb-fail { background: #ffe4e6; color: #e11d48; }
+.bento-quiz-wave { margin-top: auto; width: 100%; height: 34px; }
+
+.bento-empty { color: #94a3b8; font-size: 0.875rem; font-weight: 500; padding: 1.5rem 0; }
 </style>
 
 <div class="junior-dash">
 
-    {{-- ── HEADER ── --}}
-    <div class="jd-header">
-        <div class="jd-greeting">
-            <h1>Hey {{ $firstName }}! 👋</h1>
-            <p>{{ now()->format('l, F j') }} · Keep it up!</p>
+    {{-- ── GLOBAL HEADER ROW ── --}}
+    <div class="bento-header">
+        <div class="bento-greeting">
+            <h1>Hey {{ $firstName }}! <span class="welcome-badge">🟣</span></h1>
+            <p>{{ now()->format('l, F j') }} - Here's how your week is going</p>
         </div>
-        <div class="jd-header-right">
-            @if($streak > 0)
-            <div class="jd-streak-badge">🔥 {{ $streak }}-day streak</div>
-            @endif
-            <div class="jd-context-badge">
-                {{ $activeSchoolName }} › {{ $activeGradeName }} ▾
+        <div class="bento-header-center">
+            <div class="bento-search">
+                <span>🔍</span>
+                <input type="text" placeholder="Search courses, assignments...">
+            </div>
+            <div class="bento-header-right">
+                @if($streak > 0)
+                <span class="bento-streak-pill">🔥 {{ $streak }}-day streak</span>
+                @endif
+                <span class="bento-context-badge">📍 {{ $activeSchoolName }} › {{ $activeGradeName }}</span>
             </div>
         </div>
     </div>
 
-    {{-- ── SCHOOL TABS ── --}}
-    @if($allContexts && $allContexts->count() > 0)
-    <div class="jd-school-tabs">
+    {{-- ── SCHOOL & GRADE FILTER TABS ── --}}
+    @if($allContexts)
+    <div class="bento-filter-bar">
         @foreach($allContexts as $schoolGroup)
-            <div class="jd-school-group">
-                <div class="jd-school-name">🏫 {{ $schoolGroup['school']->name }}</div>
-                <div class="jd-school-grades">
-                    @foreach($schoolGroup['contexts'] as $ctx)
-                        @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
-                        <button
-                            wire:click="switchContext('{{ $ctx['key'] }}')"
-                            class="jd-school-tab {{ $isActive ? 'active' : '' }}"
-                        >
-                            {{ $ctx['grade']->name ?? '' }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
+            <span class="bento-filter-school">🏫 {{ $schoolGroup['school']->name }}</span>
+            @foreach($schoolGroup['contexts'] as $ctx)
+                @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
+                <button
+                    wire:click="switchContext('{{ $ctx['key'] }}')"
+                    class="bento-filter-pill {{ $isActive ? 'active' : '' }}"
+                >
+                    {{ $ctx['grade']->name ?? '' }}
+                </button>
+            @endforeach
         @endforeach
     </div>
     @endif
 
-    {{-- ── MAIN CONTENT ── --}}
-    <div class="jd-main">
+    {{-- ── BENTO MAIN ── --}}
+    <div class="bento-main">
 
-        {{-- Stat row --}}
-        <div class="jd-stats-row">
-            {{-- Assignments --}}
-            <div class="jd-stat-card orange">
-                <div class="jd-stat-label">📋 Assignments</div>
-                <div class="jd-stat-value">{{ $pendingAssignments->count() }}</div>
-                <div class="jd-stat-sub">due · {{ $allAssignments->count() }} total</div>
+        {{-- SECTION 1: METRICS --}}
+        <div class="bento-metrics">
+            {{-- Assigned --}}
+            <div class="bento-card metric-card">
+                <div>
+                    <div class="metric-label">📋 Assigned</div>
+                    <div class="metric-value mv-orange">{{ $pendingAssignments->count() }}</div>
+                    <div class="metric-sub">pending · {{ $submittedCount }} done</div>
+                </div>
+                <div class="metric-visual">
+                    <svg width="54" height="54" viewBox="0 0 54 54">
+                        <circle cx="27" cy="27" r="22" fill="none" stroke="#f1f5f9" stroke-width="6"/>
+                        @php
+                            $pendCircle = $allAssignments->count() ? ($pendingAssignments->count() / max(1, $allAssignments->count())) : 0;
+                            $pendCirc = round(2 * pi() * 22 * $pendCircle, 2);
+                        @endphp
+                        <circle cx="27" cy="27" r="22" fill="none" stroke="#f97316" stroke-width="6"
+                            stroke-dasharray="{{ round(2 * pi() * 22, 2) }}"
+                            stroke-dashoffset="{{ $pendCirc }}"
+                            stroke-linecap="round" transform="rotate(-90 27 27)"/>
+                    </svg>
+                </div>
             </div>
 
-            {{-- Quiz avg --}}
-            <div class="jd-stat-card green">
-                <div class="jd-stat-label">🧠 Quiz Avg</div>
-                <div class="jd-stat-value">{{ $quizAvgPct }}%</div>
-                <div class="jd-stat-sub">{{ $quizPassed }} passed · {{ $quizAttempts->count() }} attempts</div>
+            {{-- Quiz Average --}}
+            <div class="bento-card metric-card">
+                <div>
+                    <div class="metric-label">🧠 Quiz Average</div>
+                    <div class="metric-value mv-green">{{ $quizAvgPct }}%</div>
+                    <div class="metric-sub">{{ $quizPassed }} passed · {{ $quizAttempts->count() }} attempts</div>
+                </div>
+                <div class="metric-visual">
+                    <svg width="44" height="48" viewBox="0 0 44 48">
+                        <rect x="4" y="24" width="8" height="20" rx="2" fill="#a7f3d0"/>
+                        <rect x="16" y="12" width="8" height="32" rx="2" fill="#34d399"/>
+                        <rect x="28" y="4" width="8" height="40" rx="2" fill="#10b981"/>
+                    </svg>
+                </div>
             </div>
 
             {{-- Progress --}}
-            <div class="jd-stat-card purple">
-                <div class="jd-stat-label">📊 Progress</div>
-                <div class="jd-progress-ring-wrap">
-                    <svg class="jd-ring" viewBox="0 0 56 56">
-                        <circle cx="28" cy="28" r="22" fill="none" stroke="#1e1b4b" stroke-width="6"/>
-                        <circle cx="28" cy="28" r="22" fill="none" stroke="#a855f7" stroke-width="6"
-                            stroke-dasharray="{{ round(2 * pi() * 22, 2) }}"
-                            stroke-dashoffset="{{ round(2 * pi() * 22 * (1 - $progressPct / 100), 2) }}"
-                            stroke-linecap="round"/>
+            <div class="bento-card metric-card">
+                <div>
+                    <div class="metric-label">📊 Progress</div>
+                    <div class="metric-value" style="color:#4f46e5;">{{ $progressPct }}%</div>
+                    <div class="metric-sub">assignments done</div>
+                </div>
+                <div class="metric-visual">
+                    <svg width="64" height="64" viewBox="0 0 64 64">
+                        <circle cx="32" cy="32" r="26" fill="none" stroke="#f1f5f9" stroke-width="8"/>
+                        <circle cx="32" cy="32" r="26" fill="none" stroke="#4f46e5" stroke-width="8"
+                            stroke-dasharray="{{ round(2 * pi() * 26, 2) }}"
+                            stroke-dashoffset="{{ round(2 * pi() * 26 * (1 - $progressPct / 100), 2) }}"
+                            stroke-linecap="round" transform="rotate(-90 32 32)"/>
+                        <text x="32" y="38" text-anchor="middle" font-size="16" font-weight="900" fill="#4f46e5" font-family="Inter, sans-serif">{{ $progressPct }}%</text>
                     </svg>
-                    <div>
-                        <div class="jd-stat-value">{{ $progressPct }}%</div>
-                        <div class="jd-stat-sub">assignments done</div>
-                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- Two column: classes + deadlines --}}
-        <div class="jd-two-col">
+        {{-- SECTION 2: CLASSES + DEADLINES --}}
+        <div class="bento-split">
 
-            {{-- My Classes --}}
-            <div>
-                <div class="jd-section-head">
-                    📖 My Classes
-                    <span class="badge">{{ $activeClasses->count() }}</span>
+            {{-- My Classes (70%) --}}
+            <div class="bento-card">
+                <div class="bento-section-head">
+                    <h2>📖 My Classes <span class="count-badge">{{ $activeClasses->count() }}</span></h2>
                 </div>
                 @if($activeClasses->isEmpty())
-                    <div class="jd-empty">No classes yet in this context.</div>
+                    <div class="bento-empty">No classes yet in this context.</div>
                 @else
-                    <div class="jd-classes-grid">
+                    <div class="bento-classes-row">
+                        @php $clsIdx = 0; @endphp
                         @foreach($activeClasses->take(6) as $class)
-                            <div class="jd-class-card">
-                                <div class="jd-class-name">{{ $class->name }}</div>
-                                <div class="jd-class-teacher">
-                                    👤 {{ $class->teachers->first()?->user?->name ?? 'Teacher' }}
+                            @php
+                                $clsIdx++;
+                                $teacherName = $class->teachers->first()?->user?->name ?? 'Teacher';
+                                $initials = strtoupper(collect(explode(' ', $teacherName))->map(fn ($n) => substr($n, 0, 1))->take(2)->implode(''));
+                                $barColor = $clsIdx % 2 === 0 ? 'cb-teal' : 'cb-purple';
+                                $classProgress = rand(30, 100);
+                            @endphp
+                            <a href="{{ \App\Filament\Student\Pages\Dashboard::getUrl(['tab' => 'classes']) }}" class="bento-class-card">
+                                <div>
+                                    <div class="bento-class-name">{{ $class->name }}</div>
+                                    <div class="bento-class-teacher">
+                                        <span class="bento-teacher-avatar">{{ $initials }}</span>
+                                        {{ $teacherName }}
+                                    </div>
                                 </div>
-                                <div class="jd-class-bar-bg">
-                                    <div class="jd-class-bar" style="width: {{ rand(30, 100) }}%; background: linear-gradient(90deg, #6366f1, #a855f7);"></div>
+                                <div class="bento-class-bar">
+                                    <div class="bento-class-bar-fill {{ $barColor }}" style="width: {{ $classProgress }}%;"></div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            {{-- Upcoming Deadlines (30%) --}}
+            <div class="bento-card">
+                <div class="bento-section-head">
+                    <h2>🏆 Upcoming Deadlines</h2>
+                </div>
+                @if($pendingAssignments->isEmpty())
+                    <div class="bento-no-deadlines">✅ You're all caught up!</div>
+                @else
+                    <div class="bento-deadlines-list">
+                        @foreach($pendingAssignments->take(6) as $assignment)
+                            @php
+                                $dueDate = $assignment->end_at ? \Carbon\Carbon::parse($assignment->end_at) : null;
+                                $daysLeft = $dueDate ? now()->diffInDays($dueDate, false) : null;
+                            @endphp
+                            <div class="bento-deadline-item">
+                                <div class="bento-deadline-node"></div>
+                                <div style="width: 100%;">
+                                    <div class="bento-deadline-title">{{ $assignment->title }}</div>
+                                    <div class="bento-deadline-meta">
+                                        {{ $assignment->learningClass->name ?? 'Class' }}
+                                        @if($dueDate)
+                                            · Due {{ $dueDate->format('M j') }}
+                                            @if($daysLeft !== null && $daysLeft >= 0)
+                                                ({{ $daysLeft === 0 ? 'Today!' : $daysLeft . 'd left' }})
+                                            @endif
+                                        @endif
+                                    </div>
+                                    <div class="bento-deadline-bar">
+                                        <div class="bento-deadline-bar-fill" style="width: {{ rand(15, 75) }}%;"></div>
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 @endif
             </div>
-
-            {{-- Upcoming Deadlines --}}
-            <div class="jd-deadline-panel">
-                <div class="jd-section-head">📅 Upcoming Deadlines</div>
-                @if($pendingAssignments->isEmpty())
-                    <div class="jd-no-deadlines">✅ You're all caught up!</div>
-                @else
-                    @foreach($pendingAssignments->take(6) as $assignment)
-                        @php
-                            $dueDate = $assignment->end_at ? \Carbon\Carbon::parse($assignment->end_at) : null;
-                            $daysLeft = $dueDate ? now()->diffInDays($dueDate, false) : null;
-                            $dotClass = match(true) {
-                                $daysLeft !== null && $daysLeft <= 1  => 'urgent',
-                                $daysLeft !== null && $daysLeft <= 3  => 'soon',
-                                default                               => 'normal',
-                            };
-                        @endphp
-                        <div class="jd-deadline-item">
-                            <div class="jd-deadline-dot {{ $dotClass }}"></div>
-                            <div>
-                                <div class="jd-deadline-title">{{ $assignment->title }}</div>
-                                <div class="jd-deadline-meta">
-                                    {{ $assignment->learningClass->name ?? 'Class' }}
-                                    @if($dueDate)
-                                        · Due {{ $dueDate->format('M j') }}
-                                        @if($daysLeft !== null && $daysLeft >= 0)
-                                            ({{ $daysLeft === 0 ? 'Today!' : $daysLeft . 'd left' }})
-                                        @endif
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                @endif
-            </div>
         </div>
 
-        {{-- Recent quiz results --}}
-        <div>
-            <div class="jd-section-head">🧠 Recent Quiz Results</div>
+        {{-- SECTION 3: RECENT QUIZ RESULTS --}}
+        <div class="bento-card">
+            <div class="bento-section-head">
+                <h2>🧠 Recent Quiz Results</h2>
+            </div>
             @if($recentQuizzes->isEmpty())
-                <div class="jd-empty">No quiz attempts yet. Give one a try!</div>
+                <div class="bento-empty">No quiz attempts yet. Give one a try!</div>
             @else
-                <div class="jd-quiz-grid">
+                <div class="bento-quiz-grid">
                     @foreach($recentQuizzes as $attempt)
-                        <div class="jd-quiz-card">
-                            <div class="jd-quiz-score {{ $attempt->is_passed ? 'passed' : 'failed' }}">
-                                {{ round($attempt->percentage) }}%
-                            </div>
-                            <div>
-                                <div class="jd-quiz-name">{{ $attempt->quiz->title ?? 'Quiz' }}</div>
-                                <span class="jd-quiz-badge {{ $attempt->is_passed ? 'passed' : 'failed' }}">
-                                    {{ $attempt->is_passed ? '✓ PASSED' : '✗ FAILED' }}
-                                </span>
+                        @php
+                            $passed = (bool) $attempt->is_passed;
+                            $pct = (int) round((float) $attempt->percentage);
+                        @endphp
+                        <div class="bento-quiz-card">
+                            <div class="bento-quiz-score {{ $passed ? 'qs-green' : 'qs-red' }}">{{ $pct }}%</div>
+                            <div class="bento-quiz-name">{{ $attempt->quiz->title ?? 'Quiz' }}</div>
+                            <span class="bento-quiz-badge {{ $passed ? 'qb-pass' : 'qb-fail' }}">
+                                {{ $passed ? 'PASSED' : 'FAILED' }}
+                            </span>
+                            <div class="bento-quiz-wave">
+                                <svg width="100%" height="34" viewBox="0 0 200 34" preserveAspectRatio="none">
+                                    @php
+                                        $waveColors = $passed
+                                            ? 'linear-gradient(90deg, #6366f1, #a855f7)'
+                                            : 'linear-gradient(90deg, #f43f5e, #fb7185)';
+                                        $waveFill = $passed ? '#6366f1' : '#f43f5e';
+                                    @endphp
+                                    <defs>
+                                        <linearGradient id="wave-{{ $attempt->id }}" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stop-color="{{ $passed ? '#6366f1' : '#f43f5e' }}"/>
+                                            <stop offset="100%" stop-color="{{ $passed ? '#a855f7' : '#fb7185' }}"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0,20 C25,8 40,28 60,18 C80,8 95,22 110,14 C130,4 150,20 165,12 C180,6 190,14 200,10 L200,34 L0,34 Z"
+                                        fill="url(#wave-{{ $attempt->id }})" opacity="0.15"/>
+                                    <path d="M0,26 C25,16 40,32 60,24 C80,16 95,28 110,22 C130,14 150,26 165,20 C180,15 190,20 200,18"
+                                        fill="none" stroke="{{ $waveFill }}" stroke-width="1.5" opacity="0.5"/>
+                                </svg>
                             </div>
                         </div>
                     @endforeach
