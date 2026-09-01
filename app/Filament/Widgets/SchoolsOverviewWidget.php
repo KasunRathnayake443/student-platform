@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
-use App\Models\Grade;
 use App\Models\LearningClass;
 use App\Models\Lesson;
 use App\Models\School;
@@ -102,10 +101,10 @@ class SchoolsOverviewWidget extends Widget
         return LearningClass::whereHas('grade', function ($query) {
             $query->where('school_id', $this->selectedSchoolId);
         })
-        ->with(['grade', 'assignments', 'lessons'])
-        ->withCount(['students', 'teachers', 'assignments', 'lessons'])
-        ->orderBy('name')
-        ->get();
+            ->with(['grade', 'assignments', 'lessons'])
+            ->withCount(['students', 'teachers', 'assignments', 'lessons'])
+            ->orderBy('name')
+            ->get();
     }
 
     public function getSelectedSchoolAssignmentsProperty()
@@ -117,10 +116,10 @@ class SchoolsOverviewWidget extends Widget
         return Assignment::whereHas('learningClass.grade', function ($query) {
             $query->where('school_id', $this->selectedSchoolId);
         })
-        ->with(['learningClass.grade', 'teacher.user'])
-        ->withCount('submissions')
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->with(['learningClass.grade', 'teacher.user'])
+            ->withCount('submissions')
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function getSelectedSchoolLessonsProperty()
@@ -132,10 +131,10 @@ class SchoolsOverviewWidget extends Widget
         return Lesson::whereHas('learningClass.grade', function ($query) {
             $query->where('school_id', $this->selectedSchoolId);
         })
-        ->with(['learningClass.grade', 'teacher.user', 'attachments'])
-        ->withCount('attachments')
-        ->orderBy('sort_order')
-        ->get();
+            ->with(['learningClass.grade', 'teacher.user', 'attachments'])
+            ->withCount('attachments')
+            ->orderBy('sort_order')
+            ->get();
     }
 
     public function getSelectedClassProperty()
@@ -151,8 +150,8 @@ class SchoolsOverviewWidget extends Widget
             'lessons.attachments',
             'assignments.submissions.student.user',
         ])
-        ->withCount(['students', 'teachers', 'lessons', 'assignments'])
-        ->find($this->selectedClassId);
+            ->withCount(['students', 'teachers', 'lessons', 'assignments'])
+            ->find($this->selectedClassId);
     }
 
     public function getSelectedAssignmentProperty()
@@ -168,8 +167,8 @@ class SchoolsOverviewWidget extends Widget
             'submissions.student.user',
             'submissions.attachments',
         ])
-        ->withCount('submissions')
-        ->find($this->selectedAssignmentId);
+            ->withCount('submissions')
+            ->find($this->selectedAssignmentId);
     }
 
     public function getSelectedSubmissionProperty()

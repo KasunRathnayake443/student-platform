@@ -1,0 +1,36 @@
+name: Deploy Laravel to cPanel
+
+on:
+  push:
+    branches: [ main ] # Change to 'master' if your main branch is master
+
+jobs:
+  web-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get latest code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2' # Match your cPanel PHP version
+
+    - name: Install Composer Dependencies
+      run: composer install --no-dev --optimize-autoloader --no-interaction
+
+    - name: Sync files to cPanel via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: ./
+        exclude: |
+          **/.git**
+          **/.github**
+          .env
+          tests/
+          phpunit.xml
+          README.md

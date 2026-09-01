@@ -13,22 +13,22 @@ return new class extends Migration
     {
         Schema::create('learning_classes', function (Blueprint $table) {
             $table->id();
-        
+
             $table->foreignId('grade_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
+
             $table->string('name');
-        
+
             $table->enum('medium', [
                 'Sinhala',
                 'English',
                 'Tamil',
             ]);
-        
+
             $table->boolean('is_active')
                 ->default(true);
-        
+
             $table->timestamps();
         });
     }

@@ -6,16 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
 
         Schema::create('class_student', function (Blueprint $table) {
 
-
             $table->id();
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -23,16 +19,11 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-
             $table->foreignId('student_id')
 
                 ->constrained()
 
                 ->cascadeOnDelete();
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -44,17 +35,11 @@ return new class extends Migration
             |
             */
 
-
             $table->foreignId('student_enrollment_id')
 
                 ->constrained('student_enrollments')
 
                 ->cascadeOnDelete();
-
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -62,22 +47,13 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-
             $table->foreignId('learning_class_id')
 
                 ->constrained()
 
                 ->cascadeOnDelete();
 
-
-
-
-
             $table->timestamps();
-
-
-
-
 
             /*
             |--------------------------------------------------------------------------
@@ -85,24 +61,17 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-
             $table->unique([
 
                 'student_enrollment_id',
 
-                'learning_class_id'
+                'learning_class_id',
 
             ]);
-
-
 
         });
 
     }
-
-
-
-
 
     public function down(): void
     {
@@ -110,5 +79,4 @@ return new class extends Migration
         Schema::dropIfExists('class_student');
 
     }
-
 };

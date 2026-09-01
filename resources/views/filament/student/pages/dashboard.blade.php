@@ -1617,6 +1617,47 @@
     .kids-quizzes-panel .school-class-block,
     .kids-quizzes-panel .grade-class-block { gap: 1.5rem; }
 
+    /* Teens/Adults quiz tab: more compact, professional-looking cards */
+    .teens-quizzes-panel .quiz-class-group {
+        border: 1px solid #e2e8f0;
+        border-left: 5px solid #7c3aed;
+        border-radius: 1.1rem;
+        background: #fbfaff;
+        padding: 1.1rem 1.25rem;
+        box-shadow: 0 3px 12px rgba(124, 58, 237, 0.08);
+        margin-bottom: 1.4rem;
+    }
+    .teens-quizzes-panel .quiz-class-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #3730a3;
+    }
+    .teens-quizzes-panel .quiz-item {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.9rem;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    }
+    .teens-quizzes-panel .quiz-item h3 {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: #1e1b4b;
+    }
+    .teens-quizzes-panel .quiz-open-btn {
+        font-size: 0.9rem;
+        padding: 0.6rem 1.4rem;
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        box-shadow: 0 6px 14px -6px rgba(79, 70, 229, 0.6);
+    }
+    .teens-quizzes-panel .quiz-meta-chip,
+    .teens-quizzes-panel .quiz-state-pill,
+    .teens-quizzes-panel .quiz-score-pill {
+        font-size: 0.76rem;
+        padding: 0.3rem 0.75rem;
+    }
+    .teens-quizzes-panel .quiz-desc { font-size: 0.85rem; }
+
     /* ═══ GRADES TAB ═══ */
     .kids-grades-panel .school-class-header,
     .kids-grades-panel .grade-class-header { display: none; }
@@ -3064,14 +3105,13 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
 
                 {{-- ── TAB 5: QUIZZES ── --}}
                 @elseif($activeTab === 'quizzes')
-                    <div class="glass-card {{ $tier === 'kids' ? 'kids-quizzes-panel' : '' }}">
+                        <div class="glass-card {{ $tier === 'kids' ? 'kids-quizzes-panel' : 'teens-quizzes-panel' }}">
                         <div class="glass-card-title">
                             <span>🧠 My Quizzes</span>
                             <span style="font-size: 0.85rem; color: #4f46e5; font-weight: 700;">
-                                @if($tier === 'kids')
-                                    {{ $allQuizzes->count() }} Quiz(zes)
-                                @else
-                                    Average Score: {{ $quizAvgPct }}%
+                                {{ $allQuizzes->count() }} quiz(es)
+                                @if($quizAttempts->count() > 0)
+                                    · Avg {{ $quizAvgPct }}%
                                 @endif
                             </span>
                         </div>
@@ -3112,16 +3152,15 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                             </div>
                         @endif
 
-                        @if($tier === 'kids')
-                            @if($allQuizzes->isEmpty())
-                                <div class="tab-filter-empty">
-                                    @if($filteredClass)
-                                        No quizzes published yet for <strong>{{ $filteredClass->name }}</strong>. Check back soon!
-                                    @else
-                                        🧠 No quizzes published yet. Check back soon — your teacher will add fun quizzes here!
-                                    @endif
-                                </div>
-                            @else
+                        @if($allQuizzes->isEmpty())
+                            <div class="tab-filter-empty">
+                                @if($filteredClass)
+                                    No quizzes published yet for <strong>{{ $filteredClass->name }}</strong>. Check back soon!
+                                @else
+                                    🧠 No quizzes published yet. Check back soon — your teacher will add new quizzes here!
+                                @endif
+                            </div>
+                        @else
                                 @foreach($allClassGroups as $schoolGroup)
                                     @php
                                         $schoolQuizTotal = 0;
@@ -3230,44 +3269,6 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                     @endif
                                 @endforeach
                             @endif
-                        @else
-                            @if($filteredQuizAttempts->isEmpty())
-                                <div class="tab-filter-empty">
-                                    @if($filteredClass)
-                                        No quiz attempts for <strong>{{ $filteredClass->name }}</strong> yet. Take your first quiz to track progress!
-                                    @else
-                                        No quiz attempts recorded yet. Take your first quiz to track your progress!
-                                    @endif
-                                </div>
-                            @else
-                                <table class="custom-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Quiz Title</th>
-                                            <th>Completion Date</th>
-                                            <th>Score %</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($filteredQuizAttempts as $attempt)
-                                            <tr>
-                                                <td class="class-title">{{ $attempt->quiz->title ?? 'Subject Quiz' }}</td>
-                                                <td class="teacher-name">{{ $attempt->completed_at?->format('M j, Y · g:i A') ?? '—' }}</td>
-                                                <td style="font-size: 1.15rem; font-weight: 800; color: {{ $attempt->is_passed ? '#15803d' : '#b91c1c' }};">
-                                                    {{ round($attempt->percentage) }}%
-                                                </td>
-                                                <td>
-                                                    <span class="status-pill {{ $attempt->is_passed ? 'status-ok' : 'status-pending' }}">
-                                                        {{ $attempt->is_passed ? '✓ PASSED' : '✗ NEEDS IMPROVEMENT' }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @endif
-                        @endif
                     </div>
 
                 {{-- ── TAB 6: GRADES ── --}}

@@ -4,15 +4,68 @@ namespace App\Filament\Resources\Quizzes\Pages;
 
 use App\Filament\Resources\Quizzes\QuizResource;
 use App\Models\Quiz;
+use App\Services\QuizImportService;
+use App\Services\QuizQuestionsService;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Arr;
+use RuntimeException;
 
 class CreateQuiz extends CreateRecord
 {
     protected static string $resource = QuizResource::class;
 
+    /** @var array<int, array<string, mixed>>|null */
+    protected ?array $deferredQuestions = null;
+
+    protected mixed $deferredImportFile = null;
+
+    /** @var array<int, int> */
+    protected array $deferredTeacherIds = [];
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $fillData = [
+            'max_attempts' => 1,
+            'passing_percentage' => 50,
+            'show_correct_answers_after_submission' => true,
+            'available_immediately' => true,
+            'availability_type' => 'immediate',
+            'is_published' => true,
+        ];
+
+        if ($classId = (int) request()->query('learningClassId')) {
+            $fillData['learning_class_id'] = $classId;
+        }
+
+        if ($teacher = auth()->user()?->teacher) {
+            $fillData['teacher_ids'] = [$teacher->getKey()];
+        }
+
+        $this->form->fill(array_merge($fillData, array_filter($this->data ?? [], fn ($v) => $v !== null)));
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [];
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        unset($data['questions']);
+        $this->deferredQuestions = $data['questions'] ?? [];
+        $this->deferredImportFile = $data['import_file'] ?? null;
+
+        $this->deferredTeacherIds = $this->normaliseTeacherIds($data['teacher_ids'] ?? []);
+
+        if (empty($this->deferredTeacherIds) && auth()->user()?->teacher) {
+            $this->deferredTeacherIds = [auth()->user()->teacher->getKey()];
+        }
+
+        $data['teacher_id'] = Arr::first($this->deferredTeacherIds);
+
+        unset($data['questions'], $data['import_file'], $data['teacher_ids']);
 
         return $data;
     }
@@ -22,33 +75,72 @@ class CreateQuiz extends CreateRecord
         /** @var Quiz $record */
         $record = $this->record;
 
-        $state = $this->form->getState();
-        $questionsData = $state['questions'] ?? [];
+        $questionsData = $this->deferredQuestions ?? [];
 
-        $totalPoints = 0;
-        foreach ($questionsData as $index => $qData) {
-            $points = (int) ($qData['points'] ?? 1);
-            $totalPoints += $points;
+        if ($questionsData === [] && ! blank($this->deferredImportFile)) {
+            try {
+                $importFile = $this->deferredImportFile;
+                $imported = app(QuizImportService::class)
+                    ->parseStoredPath(is_array($importFile) ? $importFile[0] : $importFile);
 
-            $question = $record->questions()->create([
-                'question_text' => $qData['question_text'],
-                'points' => $points,
-                'explanation' => $qData['explanation'] ?? null,
-                'sort_order' => $index + 1,
-                'question_image' => $qData['question_image'] ?? null,
-                'question_video' => $qData['question_video'] ?? null,
-            ]);
+                foreach ($imported as $q) {
+                    $questionsData[] = $q;
+                }
+            } catch (RuntimeException $e) {
+                $this->notifyImportFailure($e);
 
-            $optionsData = $qData['options'] ?? [];
-            foreach ($optionsData as $optIndex => $optData) {
-                $question->options()->create([
-                    'option_text' => $optData['option_text'],
-                    'is_correct' => (bool) ($optData['is_correct'] ?? false),
-                    'sort_order' => $optIndex + 1,
-                ]);
+                return;
             }
         }
 
-        $record->updateQuietly(['total_points' => $totalPoints]);
+        app(QuizQuestionsService::class)->saveQuestions($record, $questionsData);
+
+        $this->syncAssignedTeachers($record);
+    }
+
+    /**
+     * All selected teachers become assignees for the quiz.
+     */
+    protected function syncAssignedTeachers(Quiz $quiz): void
+    {
+        $teacherIds = $this->deferredTeacherIds;
+
+        if ($teacherIds === []) {
+            $teacherIds = Arr::wrap($quiz->teacher_id);
+        }
+
+        $quiz->teachers()->sync(
+            array_values(array_filter(array_map(intval(...), $teacherIds)))
+        );
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    protected function normaliseTeacherIds(mixed $value): array
+    {
+        if (! is_array($value)) {
+            $value = [$value];
+        }
+
+        return array_values(
+            array_unique(
+                array_filter(array_map(intval(...), $value))
+            )
+        );
+    }
+
+    protected function notifyImportFailure(RuntimeException $e): void
+    {
+        Notification::make()
+            ->title('Could not import questions')
+            ->body($e->getMessage())
+            ->danger()
+            ->send();
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('view', ['record' => $this->getRecord()]);
     }
 }

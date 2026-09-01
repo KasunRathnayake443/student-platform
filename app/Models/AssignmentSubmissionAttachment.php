@@ -16,12 +16,10 @@ class AssignmentSubmissionAttachment extends Model
         'sort_order',
     ];
 
-
     protected $casts = [
         'file_size' => 'integer',
         'sort_order' => 'integer',
     ];
-
 
     /*
     |--------------------------------------------------------------------------

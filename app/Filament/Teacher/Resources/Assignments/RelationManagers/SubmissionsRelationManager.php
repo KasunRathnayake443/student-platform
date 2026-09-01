@@ -124,12 +124,10 @@ class SubmissionsRelationManager extends RelationManager
                     ->badge()
                     ->color(fn (AssignmentSubmission $record) => $record->attachments->isEmpty() ? 'gray' : 'primary')
                     ->icon(
-                        fn (AssignmentSubmission $record): ?string =>
-                            $record->attachments->isEmpty() ? null : 'heroicon-o-paper-clip'
+                        fn (AssignmentSubmission $record): ?string => $record->attachments->isEmpty() ? null : 'heroicon-o-paper-clip'
                     )
                     ->formatStateUsing(
-                        fn (AssignmentSubmission $record): string =>
-                            $record->attachments->count() > 0
+                        fn (AssignmentSubmission $record): string => $record->attachments->count() > 0
                                 ? $record->attachments->count().' file'.($record->attachments->count() > 1 ? 's' : '')
                                 : 'None'
                     ),
@@ -295,7 +293,7 @@ class SubmissionsRelationManager extends RelationManager
                         fn (AssignmentSubmission $record): array => [
                             Section::make('Student Submission')
                                 ->schema([
-                                    \Filament\Infolists\Components\TextEntry::make('student_answer')
+                                    TextEntry::make('student_answer')
                                         ->label('Submitted Answer')
                                         ->html()
                                         ->state(
@@ -305,7 +303,7 @@ class SubmissionsRelationManager extends RelationManager
                                         )
                                         ->columnSpanFull(),
 
-                                    \Filament\Infolists\Components\TextEntry::make('student_files')
+                                    TextEntry::make('student_files')
                                         ->label('Attached Files')
                                         ->html()
                                         ->state(fn (): HtmlString => $this->submissionAttachmentsHtml($record))

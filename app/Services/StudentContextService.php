@@ -23,11 +23,11 @@ class StudentContextService
             ->where('status', 'active')
             ->get()
             ->map(fn (StudentEnrollment $enrollment) => [
-                'key'        => $enrollment->school_id . '_' . $enrollment->grade_id,
+                'key' => $enrollment->school_id.'_'.$enrollment->grade_id,
                 'enrollment' => $enrollment,
-                'school'     => $enrollment->school,
-                'grade'      => $enrollment->grade,
-                'classes'    => $enrollment->classes,
+                'school' => $enrollment->school,
+                'grade' => $enrollment->grade,
+                'classes' => $enrollment->classes,
             ])
             ->values();
     }
@@ -44,7 +44,7 @@ class StudentContextService
             return null;
         }
 
-        $storedKey = Session::get(self::SESSION_KEY . '_' . $student->id);
+        $storedKey = Session::get(self::SESSION_KEY.'_'.$student->id);
 
         if ($storedKey) {
             $found = $contexts->firstWhere('key', $storedKey);
@@ -65,7 +65,7 @@ class StudentContextService
      */
     public function setActiveContext(Student $student, string $contextKey): void
     {
-        Session::put(self::SESSION_KEY . '_' . $student->id, $contextKey);
+        Session::put(self::SESSION_KEY.'_'.$student->id, $contextKey);
     }
 
     /**
@@ -76,7 +76,7 @@ class StudentContextService
         return $this->getContextsFor($student)
             ->groupBy(fn ($ctx) => $ctx['school']->id)
             ->map(fn ($schoolContexts) => [
-                'school'   => $schoolContexts->first()['school'],
+                'school' => $schoolContexts->first()['school'],
                 'contexts' => $schoolContexts->values(),
             ])
             ->values();

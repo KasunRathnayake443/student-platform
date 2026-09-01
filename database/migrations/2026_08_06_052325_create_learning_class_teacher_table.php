@@ -14,17 +14,17 @@ return new class extends Migration
         Schema::create('learning_class_teacher', function (Blueprint $table) {
 
             $table->id();
-        
+
             $table->foreignId('learning_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
+
             $table->foreignId('teacher_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
+
             $table->timestamps();
-        
+
             $table->unique([
                 'learning_class_id',
                 'teacher_id',

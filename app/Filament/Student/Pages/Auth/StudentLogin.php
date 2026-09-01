@@ -9,7 +9,7 @@ class StudentLogin extends BaseLogin
 {
     protected string $view = 'filament.student.pages.auth.login';
 
-    public function getMaxWidth(): Width | string | null
+    public function getMaxWidth(): Width|string|null
     {
         return Width::SevenExtraLarge;
     }

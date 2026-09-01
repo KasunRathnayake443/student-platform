@@ -25,7 +25,6 @@ return new class extends Migration
                 ->constrained('learning_classes')
                 ->cascadeOnDelete();
 
-
             /*
             |--------------------------------------------------------------------------
             | Responsible Teacher
@@ -39,7 +38,6 @@ return new class extends Migration
                 ->constrained('teachers')
                 ->cascadeOnDelete();
 
-
             /*
             |--------------------------------------------------------------------------
             | Assignment Information
@@ -51,7 +49,6 @@ return new class extends Migration
             $table->text('description')
                 ->nullable();
 
-
             /*
             |--------------------------------------------------------------------------
             | Maximum Score
@@ -60,7 +57,6 @@ return new class extends Migration
 
             $table->unsignedInteger('max_score')
                 ->default(100);
-
 
             /*
             |--------------------------------------------------------------------------
@@ -77,7 +73,6 @@ return new class extends Migration
                 'scheduled',
             ])->default('immediate');
 
-
             /*
             |--------------------------------------------------------------------------
             | Start Date / Time
@@ -86,7 +81,6 @@ return new class extends Migration
 
             $table->dateTime('start_at')
                 ->nullable();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -97,7 +91,6 @@ return new class extends Migration
             $table->dateTime('end_at')
                 ->nullable();
 
-
             /*
             |--------------------------------------------------------------------------
             | Late Submissions
@@ -107,17 +100,14 @@ return new class extends Migration
             $table->boolean('allow_late_submissions')
                 ->default(false);
 
-
             $table->unsignedInteger('late_submission_value')
                 ->nullable();
-
 
             $table->enum('late_submission_unit', [
                 'minutes',
                 'hours',
                 'days',
             ])->nullable();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -138,7 +128,6 @@ return new class extends Migration
             $table->json('allowed_submission_types')
                 ->nullable();
 
-
             /*
             |--------------------------------------------------------------------------
             | Published
@@ -152,9 +141,7 @@ return new class extends Migration
             $table->boolean('is_published')
                 ->default(true);
 
-
             $table->timestamps();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -173,7 +160,6 @@ return new class extends Migration
             ]);
         });
     }
-
 
     public function down(): void
     {

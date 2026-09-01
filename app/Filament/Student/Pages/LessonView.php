@@ -37,6 +37,7 @@ class LessonView extends Page
 
         if (! $student) {
             $this->redirect('/student');
+
             return;
         }
 

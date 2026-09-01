@@ -503,7 +503,7 @@
             @if($quiz->instructions)
                 <div class="qa-card">
                     <h2>📜 Instructions</h2>
-                    <p class="qa-text">{!! nl2br(e($quiz->instructions)) !!}</p>
+                    <div class="qa-text qa-rich" style="font-size: 1rem; line-height: 1.8; color: #475569;">{!! $quiz->instructions !!}</div>
                 </div>
             @endif
         </div>

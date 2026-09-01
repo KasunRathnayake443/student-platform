@@ -2,8 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Student\Pages\Auth\StudentLogin;
 use App\Filament\Student\Pages\AssignmentView;
+use App\Filament\Student\Pages\Auth\StudentLogin;
 use App\Filament\Student\Pages\Dashboard;
 use App\Filament\Student\Pages\LessonView;
 use App\Filament\Student\Pages\QuizAttempt;

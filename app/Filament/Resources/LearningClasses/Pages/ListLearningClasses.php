@@ -5,8 +5,8 @@ namespace App\Filament\Resources\LearningClasses\Pages;
 use App\Filament\Resources\LearningClasses\LearningClassResource;
 use App\Models\School;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListLearningClasses extends ListRecords
@@ -29,11 +29,10 @@ class ListLearningClasses extends ListRecords
         $schools = School::orderBy('name')->get();
 
         foreach ($schools as $school) {
-            $tabs['school_' . $school->id] = Tab::make($school->name)
+            $tabs['school_'.$school->id] = Tab::make($school->name)
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('grade', fn ($q) => $q->where('school_id', $school->id)));
         }
 
         return $tabs;
     }
 }
-

@@ -2,10 +2,12 @@
 
 use App\Filament\Teacher\Resources\LearningClasses\Pages\ViewLearningClass;
 use App\Filament\Teacher\Resources\LearningClasses\RelationManagers\QuizzesRelationManager;
+use App\Filament\Teacher\Resources\Quizzes\Pages\CreateQuiz;
 use App\Models\LearningClass;
 use App\Models\Quiz;
 use App\Models\Teacher;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -47,11 +49,11 @@ function quizQuestionData(): array
     ];
 }
 
-function createQuizViaAction($component, array $data): void
+function createQuizViaPage(array $data): void
 {
-    $component
-        ->mountTableAction('createQuiz')
-        ->set('mountedActions.0.data', array_merge([
+    Livewire::test(CreateQuiz::class)
+        ->fillForm(array_merge([
+            'learning_class_id' => sciencePhysicsClassForQuizzes()->getKey(),
             'passing_percentage' => 50,
             'max_attempts' => 1,
             'available_immediately' => true,
@@ -60,7 +62,8 @@ function createQuizViaAction($component, array $data): void
             'questions' => quizQuestionData(),
             'teacher_ids' => [auth()->user()->teacher->getKey()],
         ], $data))
-        ->callMountedTableAction();
+        ->call('create')
+        ->assertHasNoFormErrors();
 }
 
 test('quizzes tab lists existing quizzes and links to the teacher panel', function () {
@@ -82,15 +85,10 @@ test('quizzes tab lists existing quizzes and links to the teacher panel', functi
 test('created quizzes are automatically assigned to the authenticated teacher', function () {
     $this->seed();
     $me = qzTeacherByNo('EMP-T-1001');
+    Filament::setCurrentPanel('teacher');
     $this->actingAs(qzUser('teacher1@example.com'));
 
-    createQuizViaAction(
-        Livewire::test(QuizzesRelationManager::class, [
-            'ownerRecord' => sciencePhysicsClassForQuizzes(),
-            'pageClass' => ViewLearningClass::class,
-        ]),
-        ['title' => 'Kinematics Quick Check'],
-    );
+    createQuizViaPage(['title' => 'Kinematics Quick Check']);
 
     $quiz = Quiz::where('title', 'Kinematics Quick Check')->firstOrFail();
 
@@ -104,29 +102,24 @@ test('a quiz can be co-assigned to other teachers of the same class', function (
     $this->seed();
     $me = qzTeacherByNo('EMP-T-1001');
     $coTeacher = qzTeacherByNo('EMP-T-1002');
+    Filament::setCurrentPanel('teacher');
     $this->actingAs(qzUser('teacher1@example.com'));
 
     $class = sciencePhysicsClassForQuizzes();
     $class->teachers()->syncWithoutDetaching([$coTeacher->getKey()]);
 
-    createQuizViaAction(
-        Livewire::test(QuizzesRelationManager::class, [
-            'ownerRecord' => $class,
-            'pageClass' => ViewLearningClass::class,
-        ]),
-        [
-            'title' => 'Shared Review Quiz',
-            'questions' => [[
-                'question_text' => 'Unit of force?',
-                'points' => 2,
-                'options' => [
-                    ['option_text' => 'Newton', 'is_correct' => true],
-                    ['option_text' => 'Joule', 'is_correct' => false],
-                ],
-            ]],
-            'teacher_ids' => [$me->getKey(), $coTeacher->getKey()],
-        ],
-    );
+    createQuizViaPage([
+        'title' => 'Shared Review Quiz',
+        'questions' => [[
+            'question_text' => 'Unit of force?',
+            'points' => 2,
+            'options' => [
+                ['option_text' => 'Newton', 'is_correct' => true],
+                ['option_text' => 'Joule', 'is_correct' => false],
+            ],
+        ]],
+        'teacher_ids' => [$me->getKey(), $coTeacher->getKey()],
+    ]);
 
     $quiz = Quiz::where('title', 'Shared Review Quiz')->firstOrFail();
     $assignees = $quiz->teachers()->orderBy('teachers.id')->pluck('teachers.id');
@@ -139,15 +132,18 @@ test('teachers outside the class cannot be assigned to a quiz', function () {
     $this->seed();
     $me = qzTeacherByNo('EMP-T-1001');
     $outsider = qzTeacherByNo('EMP-T-1003');
+    Filament::setCurrentPanel('teacher');
     $this->actingAs(qzUser('teacher1@example.com'));
 
-    createQuizViaAction(
-        Livewire::test(QuizzesRelationManager::class, [
-            'ownerRecord' => sciencePhysicsClassForQuizzes(),
-            'pageClass' => ViewLearningClass::class,
-        ]),
-        [
+    Livewire::test(CreateQuiz::class)
+        ->fillForm([
+            'learning_class_id' => sciencePhysicsClassForQuizzes()->getKey(),
             'title' => 'Hijacked Quiz',
+            'passing_percentage' => 50,
+            'max_attempts' => 1,
+            'available_immediately' => true,
+            'availability_type' => 'immediate',
+            'end_at' => now()->addDays(3)->format('Y-m-d H:i:s'),
             'questions' => [[
                 'question_text' => 'Q?',
                 'points' => 1,
@@ -157,8 +153,9 @@ test('teachers outside the class cannot be assigned to a quiz', function () {
                 ],
             ]],
             'teacher_ids' => [$me->getKey(), $outsider->getKey()],
-        ],
-    );
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['teacher_ids']);
 
     expect(Quiz::where('title', 'Hijacked Quiz')->exists())->toBeFalse();
 });
@@ -209,4 +206,21 @@ test('lessons quizzes of other teachers classes are inaccessible', function () {
 
     $this->get("/teacher/quizzes/{$quiz->getKey()}/edit")
         ->assertNotFound();
+});
+
+test('teacher create quiz page pre-assigns the logged in teacher and sets form defaults', function () {
+    $this->seed();
+    $me = qzTeacherByNo('EMP-T-1001');
+    Filament::setCurrentPanel('teacher');
+    $this->actingAs(qzUser('teacher1@example.com'));
+
+    Livewire::test(CreateQuiz::class)
+        ->assertFormSet([
+            'max_attempts' => 1,
+            'passing_percentage' => 50,
+            'show_correct_answers_after_submission' => true,
+            'available_immediately' => true,
+            'is_published' => true,
+            'teacher_ids' => [$me->getKey()],
+        ]);
 });

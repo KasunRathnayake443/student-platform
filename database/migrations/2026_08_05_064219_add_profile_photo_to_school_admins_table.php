@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('profile_photo')
                 ->nullable()
                 ->after('user_id');
-        
+
         });
     }
 

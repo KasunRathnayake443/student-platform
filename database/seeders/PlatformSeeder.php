@@ -1272,4 +1272,3 @@ class PlatformSeeder extends Seeder
         });
     }
 }
-

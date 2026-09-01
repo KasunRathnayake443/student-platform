@@ -14,17 +14,17 @@ return new class extends Migration
         Schema::create('learning_class_user', function (Blueprint $table) {
 
             $table->id();
-        
+
             $table->foreignId('learning_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
+
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
+
             $table->timestamps();
-        
+
         });
     }
 

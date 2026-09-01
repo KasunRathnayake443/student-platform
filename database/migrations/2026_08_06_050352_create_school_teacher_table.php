@@ -12,26 +12,26 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('school_teacher', function (Blueprint $table) {
-    
+
             $table->id();
-    
+
             $table->foreignId('school_id')
                 ->constrained()
                 ->cascadeOnDelete();
-    
+
             $table->foreignId('teacher_id')
                 ->constrained()
                 ->cascadeOnDelete();
-    
+
             $table->timestamps();
-    
+
             $table->unique([
                 'school_id',
                 'teacher_id',
             ]);
         });
     }
-    
+
     public function down(): void
     {
         Schema::dropIfExists('school_teacher');

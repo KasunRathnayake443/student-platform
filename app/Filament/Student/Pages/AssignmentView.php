@@ -5,6 +5,7 @@ namespace App\Filament\Student\Pages;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\AssignmentSubmissionAttachment;
+use Carbon\CarbonInterface;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +55,7 @@ class AssignmentView extends Page
 
         if (! $student) {
             $this->redirect('/student');
+
             return;
         }
 
@@ -485,7 +487,7 @@ class AssignmentView extends Page
     /**
      * Human "time until" label for the schedule countdown, e.g. "1 day 3h" / "42m".
      */
-    public function timeUntil(?\Carbon\CarbonInterface $date): string
+    public function timeUntil(?CarbonInterface $date): string
     {
         if (! $date || ! $date->isFuture()) {
             return '';
@@ -505,6 +507,6 @@ class AssignmentView extends Page
             return "{$hours} h $minutes m";
         }
 
-        return $minutes." m";
+        return $minutes.' m';
     }
 }

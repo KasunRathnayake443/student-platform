@@ -16,7 +16,6 @@ class RoleSeeder extends Seeder
             'student',
         ];
 
-
         foreach ($roles as $role) {
             Role::create([
                 'name' => $role,

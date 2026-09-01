@@ -1,10 +1,14 @@
-﻿<?php
+<?php
 
 use App\Filament\Student\Pages\AssignmentView;
+use App\Filament\Teacher\Resources\Assignments\Pages\ViewAssignment;
+use App\Filament\Teacher\Resources\Assignments\RelationManagers\SubmissionsRelationManager;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\AssignmentSubmissionAttachment;
+use App\Models\LearningClass;
 use App\Models\Student;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -33,8 +37,8 @@ function svFreshTeacherAssignment(): Assignment
     return Assignment::firstOrCreate(
         ['title' => 'Repro: Files Check Assignment'],
         [
-            'learning_class_id' => \App\Models\LearningClass::where('name', '10-A Mathematics')->firstOrFail()->getKey(),
-            'teacher_id' => \App\Models\Teacher::where('employee_no', 'EMP-T-1002')->firstOrFail()->getKey(),
+            'learning_class_id' => LearningClass::where('name', '10-A Mathematics')->firstOrFail()->getKey(),
+            'teacher_id' => Teacher::where('employee_no', 'EMP-T-1002')->firstOrFail()->getKey(),
             'description' => 'Test',
             'max_score' => 10,
             'availability_type' => 'immediate',
@@ -49,8 +53,8 @@ function svOpenTextAssignment(): Assignment
     return Assignment::firstOrCreate(
         ['title' => 'Repro: Open Text Assignment'],
         [
-            'learning_class_id' => \App\Models\LearningClass::where('name', '10-A Mathematics')->firstOrFail()->getKey(),
-            'teacher_id' => \App\Models\Teacher::where('employee_no', 'EMP-T-1002')->firstOrFail()->getKey(),
+            'learning_class_id' => LearningClass::where('name', '10-A Mathematics')->firstOrFail()->getKey(),
+            'teacher_id' => Teacher::where('employee_no', 'EMP-T-1002')->firstOrFail()->getKey(),
             'description' => 'Test',
             'max_score' => 10,
             'availability_type' => 'immediate',
@@ -99,7 +103,7 @@ test('student can submit a file and it is stored as an attachment the teacher se
     $this->seed();
     $this->actingAs(svStudentUser());
 
-$assignment = svFreshTeacherAssignment();
+    $assignment = svFreshTeacherAssignment();
     $pdf = UploadedFile::fake()->create('working.pdf', 100, 'application/pdf');
 
     Livewire::withQueryParams(['assignment' => $assignment->getKey()])
@@ -130,8 +134,8 @@ test('a scheduled assignment that has not started shows the form locked', functi
     $assignment = Assignment::firstOrCreate(
         ['title' => 'Repro: Scheduled Assignment'],
         [
-            'learning_class_id' => \App\Models\LearningClass::where('name', '10-A Mathematics')->firstOrFail()->getKey(),
-            'teacher_id' => \App\Models\Teacher::where('employee_no', 'EMP-T-1002')->firstOrFail()->getKey(),
+            'learning_class_id' => LearningClass::where('name', '10-A Mathematics')->firstOrFail()->getKey(),
+            'teacher_id' => Teacher::where('employee_no', 'EMP-T-1002')->firstOrFail()->getKey(),
             'max_score' => 10,
             'availability_type' => 'scheduled',
             'start_at' => now()->addDays(1),
@@ -153,7 +157,7 @@ test('teacher submissions table shows an attachment count badge', function () {
     Storage::fake('public');
     $this->seed();
 
-Storage::disk('public')->put('submissions/demo.pdf', 'fake');
+    Storage::disk('public')->put('submissions/demo.pdf', 'fake');
     $student = svStudent(svStudentUser());
     $assignment = svFreshTeacherAssignment();
 
@@ -178,10 +182,10 @@ Storage::disk('public')->put('submissions/demo.pdf', 'fake');
     $this->actingAs(User::where('email', 'teacher2@example.com')->firstOrFail());
 
     Livewire::test(
-        \App\Filament\Teacher\Resources\Assignments\RelationManagers\SubmissionsRelationManager::class,
+        SubmissionsRelationManager::class,
         [
             'ownerRecord' => $assignment,
-            'pageClass' => \App\Filament\Teacher\Resources\Assignments\Pages\ViewAssignment::class,
+            'pageClass' => ViewAssignment::class,
         ]
     )
         ->assertSuccessful()
@@ -192,7 +196,7 @@ test('teacher submission attachments render as downloadable links', function () 
     Storage::fake('public');
     $this->seed();
 
-Storage::disk('public')->put('submissions/demo.pdf', 'fake');
+    Storage::disk('public')->put('submissions/demo.pdf', 'fake');
     $student = svStudent(svStudentUser());
     $assignment = svFreshTeacherAssignment();
 
@@ -218,10 +222,10 @@ Storage::disk('public')->put('submissions/demo.pdf', 'fake');
 
     // The share helper renders a working, storage-backed URL for each attachment.
     $rm = Livewire::test(
-        \App\Filament\Teacher\Resources\Assignments\RelationManagers\SubmissionsRelationManager::class,
+        SubmissionsRelationManager::class,
         [
             'ownerRecord' => $assignment,
-            'pageClass' => \App\Filament\Teacher\Resources\Assignments\Pages\ViewAssignment::class,
+            'pageClass' => ViewAssignment::class,
         ]
     )->instance();
 

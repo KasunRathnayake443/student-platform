@@ -14,36 +14,31 @@ return new class extends Migration
         Schema::create('class_teacher', function (Blueprint $table) {
 
             $table->id();
-        
-        
+
             $table->foreignId('teacher_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
-        
-        
+
             $table->foreignId('learning_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
-        
+
             $table->enum('role', [
                 'main',
                 'assistant',
-                'substitute'
+                'substitute',
             ])->default('main');
-        
-        
+
             $table->timestamps();
-        
-        
+
             $table->unique(
                 [
                     'teacher_id',
-                    'learning_class_id'
+                    'learning_class_id',
                 ],
                 'teacher_class_unique'
             );
-        
+
         });
     }
 

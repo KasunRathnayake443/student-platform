@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources\Quizzes\Schemas;
 
+use App\Models\Quiz;
+use App\Models\QuizQuestion;
+use App\Models\Teacher;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class QuizInfolist
 {
@@ -18,27 +22,54 @@ class QuizInfolist
 
                 /*
                 |--------------------------------------------------------------------------
-                | Quiz Information
+                | 1. Quiz Overview & Metrics
                 |--------------------------------------------------------------------------
                 */
 
                 Section::make('Quiz Information')
+                    ->description('Overview of quiz details, assigned class, and responsible educators.')
+                    ->icon('heroicon-o-academic-cap')
                     ->schema([
 
                         TextEntry::make('title')
-                            ->label('Quiz Title'),
+                            ->label('Quiz Title')
+                            ->weight('bold')
+                            ->size('lg'),
 
                         TextEntry::make('total_points')
                             ->label('Total Points')
-                            ->suffix(' points'),
+                            ->badge()
+                            ->color('primary')
+                            ->suffix(' pts'),
+
+                        TextEntry::make('learningClass.name')
+                            ->label('Target Class')
+                            ->badge()
+                            ->color('info')
+                            ->placeholder('Not assigned'),
+
+                        TextEntry::make('assignee_names')
+                            ->label('Assigned Teachers')
+                            ->badge()
+                            ->color('success')
+                            ->state(function (Quiz $record): array {
+                                $names = $record->teachers
+                                    ->map(fn (Teacher $teacher) => $teacher->user->name);
+
+                                if ($names->isEmpty() && $record->teacher) {
+                                    return [$record->teacher->user->name];
+                                }
+
+                                return $names->values()->toArray();
+                            }),
 
                         TextEntry::make('description')
-                            ->label('Description')
+                            ->label('Short Description')
                             ->placeholder('No description provided.')
                             ->columnSpanFull(),
 
                         TextEntry::make('instructions')
-                            ->label('Instructions')
+                            ->label('Instructions & Guidelines')
                             ->html()
                             ->placeholder('No instructions provided.')
                             ->columnSpanFull(),
@@ -49,44 +80,29 @@ class QuizInfolist
 
                 /*
                 |--------------------------------------------------------------------------
-                | Class & Teacher
+                | 2. Rules & Timing
                 |--------------------------------------------------------------------------
                 */
 
-                Section::make('Class & Teacher')
-                    ->schema([
-
-                        TextEntry::make('learningClass.name')
-                            ->label('Learning Class')
-                            ->placeholder('Not specified'),
-
-                        TextEntry::make('teacher.user.name')
-                            ->label('Responsible Teacher')
-                            ->placeholder('Not specified'),
-
-                    ])
-                    ->columns(2)
-                    ->columnSpanFull(),
-
-                /*
-                |--------------------------------------------------------------------------
-                | Rules & Timing
-                |--------------------------------------------------------------------------
-                */
-
-                Section::make('Timing & Rules')
+                Section::make('Timing & Grading Rules')
+                    ->description('Configuration for timing, attempts, scoring, and accessibility.')
+                    ->icon('heroicon-o-adjustments-horizontal')
                     ->schema([
 
                         TextEntry::make('time_limit_minutes')
                             ->label('Time Limit')
+                            ->badge()
                             ->formatStateUsing(fn ($state) => $state ? "{$state} minutes" : 'Unlimited time'),
 
                         TextEntry::make('max_attempts')
                             ->label('Max Attempts')
+                            ->badge()
                             ->formatStateUsing(fn ($state) => $state ? "{$state} attempt(s)" : 'Unlimited attempts'),
 
                         TextEntry::make('passing_percentage')
-                            ->label('Passing Percentage')
+                            ->label('Passing Score')
+                            ->badge()
+                            ->color('success')
                             ->suffix('%'),
 
                         IconEntry::make('show_correct_answers_after_submission')
@@ -107,19 +123,23 @@ class QuizInfolist
 
                 /*
                 |--------------------------------------------------------------------------
-                | Availability
+                | 3. Availability
                 |--------------------------------------------------------------------------
                 */
 
-                Section::make('Availability')
+                Section::make('Availability & Publishing')
+                    ->description('Access window and publication status.')
+                    ->icon('heroicon-o-clock')
                     ->schema([
 
                         TextEntry::make('availability_type')
-                            ->label('Availability')
+                            ->label('Access Mode')
+                            ->badge()
+                            ->color(fn ($state) => $state === 'immediate' ? 'success' : 'warning')
                             ->formatStateUsing(
                                 fn ($state) => match ($state) {
                                     'immediate' => 'Available Immediately',
-                                    'scheduled' => 'Scheduled',
+                                    'scheduled' => 'Scheduled Window',
                                     default => ucfirst((string) $state),
                                 }
                             ),
@@ -131,12 +151,12 @@ class QuizInfolist
                         TextEntry::make('start_at')
                             ->label('Start Date & Time')
                             ->dateTime()
-                            ->placeholder('None (Immediate)'),
+                            ->placeholder('Available immediately'),
 
                         TextEntry::make('end_at')
-                            ->label('End Date & Time')
+                            ->label('End Date & Time (Deadline)')
                             ->dateTime()
-                            ->placeholder('No end date'),
+                            ->placeholder('No end date / open indefinitely'),
 
                     ])
                     ->columns(2)
@@ -144,11 +164,13 @@ class QuizInfolist
 
                 /*
                 |--------------------------------------------------------------------------
-                | Questions List
+                | 4. Questions & Answer Keys
                 |--------------------------------------------------------------------------
                 */
 
                 Section::make('Questions & Answer Keys')
+                    ->description('Complete list of questions, media attachments, and marked answer options.')
+                    ->icon('heroicon-o-list-bullet')
                     ->schema([
 
                         RepeatableEntry::make('questions')
@@ -156,51 +178,68 @@ class QuizInfolist
                             ->schema([
 
                                 TextEntry::make('question_text')
-                                    ->label('Question')
-                                    ->weight('bold'),
+                                    ->label('Question Prompt')
+                                    ->weight('bold')
+                                    ->size('md')
+                                    ->columnSpan(3),
+
+                                TextEntry::make('points')
+                                    ->label('Points')
+                                    ->badge()
+                                    ->color('primary')
+                                    ->suffix(' marks')
+                                    ->columnSpan(1),
 
                                 ImageEntry::make('question_image_url')
                                     ->label('Question Image')
                                     ->hidden(fn ($state): bool => blank($state))
-                                    ->imageHeight(200)
+                                    ->imageHeight(220)
                                     ->checkFileExistence(false)
-                                    ->columnSpanFull(),
+                                    ->columnSpan(2),
 
                                 TextEntry::make('question_video_url')
                                     ->label('Question Video')
-                                    ->url(fn ($state): ?string => $state)
-                                    ->openUrlInNewTab()
-                                    ->placeholder('No video')
-                                    ->icon('heroicon-o-play-circle')
                                     ->hidden(fn ($state): bool => blank($state))
-                                    ->columnSpanFull(),
+                                    ->formatStateUsing(function (?string $state, QuizQuestion $record): HtmlString {
+                                        if (blank($state)) {
+                                            return new HtmlString('');
+                                        }
 
-                                TextEntry::make('points')
-                                    ->label('Points')
-                                    ->suffix(' pts'),
+                                        return new HtmlString(
+                                            '<div class="mt-2">'
+                                            .'<video controls preload="metadata" class="rounded-lg max-h-60 w-auto border border-gray-200 dark:border-gray-700" src="'.e($state).'">'
+                                            .'Your browser does not support the video tag.'
+                                            .'</video>'
+                                            .'</div>'
+                                        );
+                                    })
+                                    ->columnSpan(2),
 
                                 TextEntry::make('explanation')
-                                    ->label('Explanation')
+                                    ->label('Explanation / Solution Feedback')
                                     ->placeholder('No explanation provided.')
+                                    ->helperText('Displayed to students when reviewing results.')
                                     ->columnSpanFull(),
 
                                 RepeatableEntry::make('options')
-                                    ->label('Options')
+                                    ->label('Answer Choices')
                                     ->schema([
 
                                         TextEntry::make('option_text')
-                                            ->label('Option'),
+                                            ->label('Choice')
+                                            ->columnSpan(3),
 
                                         IconEntry::make('is_correct')
-                                            ->label('Correct')
-                                            ->boolean(),
+                                            ->label('Correct Answer')
+                                            ->boolean()
+                                            ->columnSpan(1),
 
                                     ])
-                                    ->columns(2)
+                                    ->columns(4)
                                     ->columnSpanFull(),
 
                             ])
-                            ->columns(2)
+                            ->columns(4)
                             ->columnSpanFull(),
 
                     ])

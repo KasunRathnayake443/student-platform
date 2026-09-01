@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
-        
+
             $table->foreignId('school_id')
                 ->constrained()
                 ->cascadeOnDelete();
-        
+
             $table->string('name');
-        
+
             $table->boolean('is_active')
                 ->default(true);
-        
+
             $table->timestamps();
         });
     }

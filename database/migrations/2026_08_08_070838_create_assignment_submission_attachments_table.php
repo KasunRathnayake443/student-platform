@@ -25,7 +25,6 @@ return new class extends Migration
                 ->on('assignment_submissions')
                 ->cascadeOnDelete();
 
-
             /*
             |--------------------------------------------------------------------------
             | File Information
@@ -42,7 +41,6 @@ return new class extends Migration
             $table->unsignedBigInteger('file_size')
                 ->nullable();
 
-
             /*
             |--------------------------------------------------------------------------
             | Display Order
@@ -52,9 +50,7 @@ return new class extends Migration
             $table->unsignedInteger('sort_order')
                 ->default(0);
 
-
             $table->timestamps();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -69,7 +65,6 @@ return new class extends Migration
             ], 'sub_attach_sub_id_sort_idx');
         });
     }
-
 
     public function down(): void
     {

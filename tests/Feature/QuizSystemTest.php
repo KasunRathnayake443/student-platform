@@ -2,7 +2,6 @@
 
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
-use App\Models\QuizQuestion;
 use App\Models\Student;
 use Database\Seeders\PlatformSeeder;
 

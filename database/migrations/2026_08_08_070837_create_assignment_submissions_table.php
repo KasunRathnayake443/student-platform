@@ -12,7 +12,6 @@ return new class extends Migration
 
             $table->id();
 
-
             /*
             |--------------------------------------------------------------------------
             | Assignment
@@ -22,7 +21,6 @@ return new class extends Migration
             $table->foreignId('assignment_id')
                 ->constrained('assignments')
                 ->cascadeOnDelete();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -34,7 +32,6 @@ return new class extends Migration
                 ->constrained('students')
                 ->cascadeOnDelete();
 
-
             /*
             |--------------------------------------------------------------------------
             | Submission Information
@@ -44,10 +41,8 @@ return new class extends Migration
             $table->longText('content')
                 ->nullable();
 
-
             $table->dateTime('submitted_at')
                 ->nullable();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -58,7 +53,6 @@ return new class extends Migration
             $table->boolean('is_late')
                 ->default(false);
 
-
             /*
             |--------------------------------------------------------------------------
             | Grading
@@ -68,10 +62,8 @@ return new class extends Migration
             $table->decimal('score', 8, 2)
                 ->nullable();
 
-
             $table->longText('feedback')
                 ->nullable();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -88,10 +80,8 @@ return new class extends Migration
                 ->constrained('teachers')
                 ->nullOnDelete();
 
-
             $table->dateTime('graded_at')
                 ->nullable();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -106,9 +96,7 @@ return new class extends Migration
                 'returned',
             ])->default('draft');
 
-
             $table->timestamps();
-
 
             /*
             |--------------------------------------------------------------------------
@@ -120,7 +108,6 @@ return new class extends Migration
                 'assignment_id',
                 'student_id',
             ], 'assignment_student_unique');
-
 
             /*
             |--------------------------------------------------------------------------
@@ -139,7 +126,6 @@ return new class extends Migration
             ]);
         });
     }
-
 
     public function down(): void
     {

@@ -84,6 +84,7 @@ class QuizAttempt extends Page
 
         if (! $student) {
             $this->redirect('/student');
+
             return;
         }
 
@@ -305,11 +306,13 @@ class QuizAttempt extends Page
 
         if (! $quiz->isAvailable() || $quiz->isExpired()) {
             $this->notice = 'This quiz is not available to take right now.';
+
             return;
         }
 
         if (! $quiz->canStudentAttempt($student)) {
             $this->notice = 'You have used up your attempts for this quiz.';
+
             return;
         }
 
@@ -394,6 +397,7 @@ class QuizAttempt extends Page
 
         if (! $this->isLastQuestion()) {
             $this->currentIndex++;
+
             return;
         }
 
@@ -417,6 +421,7 @@ class QuizAttempt extends Page
     {
         if ($this->finished || ! $this->attempt) {
             $this->notice = 'No active attempt to submit.';
+
             return;
         }
 

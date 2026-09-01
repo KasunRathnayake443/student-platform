@@ -124,6 +124,7 @@ class StudentForm
 
                     ->options(function () {
                         $teacher = auth()->user()->teacher;
+
                         return School::where('is_active', true)
                             ->whereHas('learningClasses', function ($q) use ($teacher) {
                                 $q->whereHas('teachers', function ($t) use ($teacher) {
@@ -177,7 +178,7 @@ class StudentForm
                             })
                             ->get()
                             ->mapWithKeys(fn ($grade) => [
-                                $grade->id => $grade->school->name . ' → Grade ' . $grade->name,
+                                $grade->id => $grade->school->name.' → Grade '.$grade->name,
                             ]);
                     })
 
@@ -201,7 +202,7 @@ class StudentForm
                         if (! $get('grades')) {
                             return [];
                         }
-                        
+
                         $teacher = auth()->user()->teacher;
 
                         return LearningClass::whereIn('grade_id', $get('grades'))
@@ -212,7 +213,7 @@ class StudentForm
                             ->with(['grade.school'])
                             ->get()
                             ->mapWithKeys(fn ($class) => [
-                                $class->id => $class->grade->school->name . ' → Grade ' . $class->grade->name . ' → ' . $class->name,
+                                $class->id => $class->grade->school->name.' → Grade '.$class->grade->name.' → '.$class->name,
                             ]);
                     })
 

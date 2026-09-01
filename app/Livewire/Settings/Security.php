@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use Exception;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -109,7 +110,7 @@ class Security extends Component
         }
 
         Auth::user()->update([
-            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+            'password' => Hash::make($validated['password']),
         ]);
 
         $this->reset('current_password', 'password', 'password_confirmation');

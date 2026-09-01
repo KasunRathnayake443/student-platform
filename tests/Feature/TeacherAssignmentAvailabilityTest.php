@@ -54,7 +54,7 @@ test('teacher edit page hydrates the Available Immediately toggle from the store
 
     $assignment = taScheduledAssignment();
 
-Livewire::test(EditAssignment::class, ['record' => $assignment->getKey()])
+    Livewire::test(EditAssignment::class, ['record' => $assignment->getKey()])
         ->assertSuccessful()
         ->assertFormSet(['available_immediately' => false]);
 });

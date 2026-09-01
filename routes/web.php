@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\QuizImportTemplateController;
 use App\Http\Controllers\QuizQuestionMediaController;
 use App\Http\Controllers\SchoolLogoController;
 use App\Http\Controllers\StudentProfilePhotoController;
@@ -7,6 +8,8 @@ use App\Http\Controllers\TeacherProfilePhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+
+Route::view('school-admin/login', 'school-admin.login-placeholder')->name('school-admin.login');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/teachers/{teacher}/profile-photo', TeacherProfilePhotoController::class)
@@ -21,6 +24,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/quiz-questions/{quizQuestion}/{type}', QuizQuestionMediaController::class)
         ->name('quiz-questions.media')
         ->whereIn('type', ['image', 'video']);
+
+    Route::get('/quiz-questions/import/template', QuizImportTemplateController::class)
+        ->name('quiz-questions.import.template');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
