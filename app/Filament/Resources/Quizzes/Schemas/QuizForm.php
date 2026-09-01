@@ -46,12 +46,12 @@ class QuizForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | 1. Quiz Information
+                | 1. Quiz Details & Assignment
                 |--------------------------------------------------------------------------
                 */
 
                 Section::make('Quiz Information')
-                    ->description('Set the title, overview, and instructions displayed to students.')
+                    ->description('Set quiz title, target learning class, and responsible teachers.')
                     ->icon('heroicon-o-academic-cap')
                     ->schema([
 
@@ -61,33 +61,6 @@ class QuizForm
                             ->required()
                             ->maxLength(255)
                             ->columnSpanFull(),
-
-                        Textarea::make('description')
-                            ->label('Short Description')
-                            ->placeholder('Brief overview of what this quiz covers...')
-                            ->rows(2)
-                            ->maxLength(1000)
-                            ->columnSpanFull(),
-
-                        RichEditor::make('instructions')
-                            ->label('Quiz Instructions & Guidelines')
-                            ->helperText('Clear instructions and rules shown to students before they begin their attempt.')
-                            ->columnSpanFull(),
-
-                    ])
-                    ->columns(2)
-                    ->columnSpanFull(),
-
-                /*
-                |--------------------------------------------------------------------------
-                | 2. Class & Teachers
-                |--------------------------------------------------------------------------
-                */
-
-                Section::make('Class & Assigned Teachers')
-                    ->description('Select the target learning class and responsible teachers.')
-                    ->icon('heroicon-o-user-group')
-                    ->schema([
 
                         Select::make('learning_class_id')
                             ->label('Learning Class')
@@ -121,7 +94,7 @@ class QuizForm
 
                                 return null;
                             })
-                            ->afterStateUpdated(function (Set $set, mixed $state) use ($isTeacher): void {
+                            ->afterStateUpdated(function (Set $set) use ($isTeacher): void {
                                 if ($isTeacher && auth()->user()?->teacher) {
                                     $set('teacher_ids', [auth()->user()->teacher->getKey()]);
                                 } else {
@@ -194,7 +167,18 @@ class QuizForm
                                 $isTeacher
                                     ? 'You are assigned as the responsible teacher by default.'
                                     : 'All selected teachers can manage this quiz and review student attempts.'
-                            )
+                            ),
+
+                        Textarea::make('description')
+                            ->label('Short Description (Optional)')
+                            ->placeholder('Brief summary of topics covered in this quiz...')
+                            ->rows(2)
+                            ->maxLength(1000)
+                            ->columnSpanFull(),
+
+                        RichEditor::make('instructions')
+                            ->label('Instructions & Rules for Students (Optional)')
+                            ->helperText('Shown to students before starting the quiz.')
                             ->columnSpanFull(),
 
                     ])
@@ -203,23 +187,23 @@ class QuizForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | 3. Rules & Timing
+                | 2. Timing, Scoring & Availability
                 |--------------------------------------------------------------------------
                 */
 
-                Section::make('Quiz Rules & Scoring')
-                    ->description('Set time limits, allowed attempts, passing criteria, and feedback display.')
+                Section::make('Quiz Rules & Timing')
+                    ->description('Configure attempts, passing score, time limits, and availability.')
                     ->icon('heroicon-o-adjustments-horizontal')
                     ->schema([
 
                         TextInput::make('time_limit_minutes')
                             ->label('Time Limit (Minutes)')
-                            ->placeholder('e.g. 30 (Leave empty for untimed)')
+                            ->placeholder('Untimed (Leave blank)')
                             ->numeric()
                             ->integer()
                             ->minValue(1)
                             ->suffix('min')
-                            ->helperText('Leave blank if students have unlimited time to complete the quiz.'),
+                            ->helperText('Leave empty for no time limit.'),
 
                         TextInput::make('max_attempts')
                             ->label('Max Attempts')
@@ -228,7 +212,7 @@ class QuizForm
                             ->minValue(1)
                             ->default(1)
                             ->required()
-                            ->helperText('Maximum number of attempts allowed per student (default is 1).'),
+                            ->helperText('Allowed attempts per student (default: 1).'),
 
                         TextInput::make('passing_percentage')
                             ->label('Passing Percentage')
@@ -239,37 +223,15 @@ class QuizForm
                             ->default(50)
                             ->suffix('%')
                             ->required()
-                            ->helperText('Minimum score percentage required to pass this quiz.'),
+                            ->helperText('Minimum score to pass (default: 50%).'),
 
-                        Toggle::make('show_correct_answers_after_submission')
-                            ->label('Show Correct Answers')
-                            ->default(true)
-                            ->helperText('Reveal correct answers, question explanations, and feedback after submission.'),
-
-                        Toggle::make('shuffle_questions')
-                            ->label('Shuffle Questions')
-                            ->default(false)
-                            ->helperText('Randomize question order for every student attempt.'),
-
-                        Toggle::make('shuffle_options')
-                            ->label('Shuffle Choices')
-                            ->default(false)
-                            ->helperText('Randomize multiple-choice option order for each question.'),
-
-                    ])
-                    ->columns(3)
-                    ->columnSpanFull(),
-
-                /*
-                |--------------------------------------------------------------------------
-                | 4. Availability & Publishing
-                |--------------------------------------------------------------------------
-                */
-
-                Section::make('Quiz Availability')
-                    ->description('Control when students can access and attempt this quiz.')
-                    ->icon('heroicon-o-clock')
-                    ->schema([
+                        DateTimePicker::make('end_at')
+                            ->label('End Date & Time (Deadline)')
+                            ->seconds(false)
+                            ->native(false)
+                            ->required()
+                            ->after('start_at')
+                            ->helperText('Quiz closes after this deadline.'),
 
                         Toggle::make('available_immediately')
                             ->label('Available Immediately')
@@ -281,12 +243,27 @@ class QuizForm
                                     $set('start_at', null);
                                 }
                             })
-                            ->helperText('Enable to allow students to take this quiz immediately once published.'),
+                            ->helperText('Students can start taking quiz right away.'),
 
                         Toggle::make('is_published')
-                            ->label('Published Status')
+                            ->label('Published to Students')
                             ->default(true)
-                            ->helperText('Students can only see and attempt published quizzes.'),
+                            ->helperText('Visible to enrolled students when published.'),
+
+                        Toggle::make('show_correct_answers_after_submission')
+                            ->label('Show Correct Answers')
+                            ->default(true)
+                            ->helperText('Show answer key & feedback upon completion.'),
+
+                        Toggle::make('shuffle_questions')
+                            ->label('Shuffle Questions')
+                            ->default(false)
+                            ->helperText('Randomize question sequence per attempt.'),
+
+                        Toggle::make('shuffle_options')
+                            ->label('Shuffle Choices')
+                            ->default(false)
+                            ->helperText('Randomize answer options for each question.'),
 
                         TextInput::make('availability_type')
                             ->hidden()
@@ -294,53 +271,53 @@ class QuizForm
                             ->default('immediate'),
 
                         DateTimePicker::make('start_at')
-                            ->label('Start Date & Time')
+                            ->label('Scheduled Start Date & Time')
                             ->seconds(false)
                             ->native(false)
                             ->required(fn (Get $get): bool => ! (bool) $get('available_immediately'))
-                            ->hidden(fn (Get $get): bool => (bool) $get('available_immediately')),
-
-                        DateTimePicker::make('end_at')
-                            ->label('End Date & Time (Deadline)')
-                            ->seconds(false)
-                            ->native(false)
-                            ->required()
-                            ->after('start_at')
-                            ->helperText('Students can no longer start new attempts after this date and time.')
-                            ->columnSpan(fn (Get $get): int => (bool) $get('available_immediately') ? 2 : 1),
+                            ->hidden(fn (Get $get): bool => (bool) $get('available_immediately'))
+                            ->columnSpanFull(),
 
                     ])
-                    ->columns(2)
+                    ->columns(4)
                     ->columnSpanFull(),
 
                 /*
                 |--------------------------------------------------------------------------
-                | 5. Quick CSV Import
+                | 3. Quick CSV Import Banner (Prominent & Apparent)
                 |--------------------------------------------------------------------------
                 */
 
-                Section::make('Quick Import Questions from CSV')
-                    ->description('Save time by uploading a CSV file. Questions will automatically load into the editor below for review and editing.')
+                Section::make('⚡ Quick Import Questions from CSV')
+                    ->description('Save time by uploading a questions CSV file. Questions will automatically load below for editing.')
                     ->icon('heroicon-o-arrow-up-tray')
-                    ->collapsible()
-                    ->collapsed(false)
                     ->schema([
 
-                        Placeholder::make('import_hint')
-                            ->label('CSV Format Guide')
+                        Placeholder::make('csv_import_banner')
+                            ->hiddenLabel()
                             ->content(
                                 fn () => new HtmlString(
-                                    '<div class="text-sm text-gray-600 dark:text-gray-400">'
-                                    .'Required headers: <code>question</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code> (A-F), <code>points</code>, <code>explanation</code>.<br>'
-                                    .'Supports up to 6 choices (<code>option_a</code> to <code>option_f</code>). '
-                                    .'<a class="text-primary-600 dark:text-primary-400 font-medium underline" href="'.e(route('quiz-questions.import.template')).'" target="_blank">📥 Download Sample CSV Template</a>'
+                                    '<div class="rounded-xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 p-4 dark:border-indigo-800 dark:from-indigo-950/60 dark:to-blue-950/60 shadow-sm">'
+                                    .'<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">'
+                                    .'<div>'
+                                    .'<h4 class="text-base font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">'
+                                    .'<span>⚡ Fast Bulk Import from CSV (Optional & Instant)</span>'
+                                    .'</h4>'
+                                    .'<p class="text-xs text-indigo-700 dark:text-indigo-300 mt-1">'
+                                    .'Upload a CSV file and questions will automatically load into the Question Builder below where you can review, edit text, attach images/videos, and adjust choices.'
+                                    .'</p>'
+                                    .'</div>'
+                                    .'<a href="'.e(route('quiz-questions.import.template')).'" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition whitespace-nowrap">'
+                                    .'📥 Download CSV Template'
+                                    .'</a>'
+                                    .'</div>'
                                     .'</div>'
                                 )
                             )
                             ->columnSpanFull(),
 
                         FileUpload::make('import_file')
-                            ->label('Drop or Select Questions CSV File')
+                            ->label('Upload Questions CSV File (Auto-Populates Questions Below)')
                             ->acceptedFileTypes([
                                 'text/csv',
                                 'text/plain',
@@ -379,7 +356,7 @@ class QuizForm
 
                                         Notification::make()
                                             ->title('Loaded '.count($imported).' question(s) from CSV')
-                                            ->body('All questions have been populated below. You can review, edit text, attach images or videos, and adjust choices before saving.')
+                                            ->body('All questions have been populated into the Question Builder below. You can review, edit text, attach images or videos, and adjust choices before saving.')
                                             ->success()
                                             ->send();
                                     }
@@ -399,12 +376,12 @@ class QuizForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | 6. Questions & Options Builder
+                | 4. Questions & Options Builder (Distinct Separation Between Questions)
                 |--------------------------------------------------------------------------
                 */
 
                 Section::make('Questions & Multiple-Choice Answers')
-                    ->description('Build questions, attach optional images or videos, and configure multiple-choice answer options.')
+                    ->description('Add questions, attach optional images or videos, and configure choices with 1 correct answer.')
                     ->icon('heroicon-o-list-bullet')
                     ->schema([
 
@@ -412,14 +389,23 @@ class QuizForm
                             ->label('')
                             ->schema([
 
+                                Placeholder::make('q_title_bar')
+                                    ->hiddenLabel()
+                                    ->content(fn (Get $get) => new HtmlString(
+                                        '<div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800 border-l-4 border-primary-600 rounded-r-lg px-4 py-2.5 shadow-xs -mt-1 -mx-1">'
+                                        .'<span class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">📝 Question Details & Media</span>'
+                                        .'</div>'
+                                    ))
+                                    ->columnSpanFull(),
+
                                 TextInput::make('question_text')
                                     ->label('Question Prompt')
-                                    ->placeholder('Enter the question prompt or problem statement...')
+                                    ->placeholder('Type the question or problem statement here...')
                                     ->required()
                                     ->columnSpan(3),
 
                                 TextInput::make('points')
-                                    ->label('Points / Marks')
+                                    ->label('Marks / Points')
                                     ->numeric()
                                     ->integer()
                                     ->default(1)
@@ -429,17 +415,17 @@ class QuizForm
                                     ->columnSpan(1),
 
                                 FileUpload::make('question_image')
-                                    ->label('Question Image (Optional)')
+                                    ->label('🖼️ Question Image (Optional)')
                                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
                                     ->image()
                                     ->disk((string) config('filament.default_filesystem_disk', 'local'))
                                     ->directory('quiz_questions/images')
                                     ->maxSize(5120)
-                                    ->helperText('Attach an illustration or diagram (JPEG, PNG, WebP - max 5 MB).')
+                                    ->helperText('Attach a diagram or picture (JPEG, PNG, WebP - max 5 MB).')
                                     ->columnSpan(2),
 
                                 FileUpload::make('question_video')
-                                    ->label('Question Video (Optional)')
+                                    ->label('🎥 Question Video (Optional)')
                                     ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/*'])
                                     ->disk((string) config('filament.default_filesystem_disk', 'local'))
                                     ->directory('quiz_questions/videos')
@@ -448,14 +434,22 @@ class QuizForm
                                     ->columnSpan(2),
 
                                 Textarea::make('explanation')
-                                    ->label('Explanation / Solution Feedback (Optional)')
-                                    ->placeholder('Provide step-by-step reasoning or feedback displayed when reviewing answers...')
+                                    ->label('💡 Explanation / Solution Feedback (Optional)')
+                                    ->placeholder('Explain why the correct answer is right (shown to students when reviewing results)...')
                                     ->rows(2)
-                                    ->helperText('Shown to students after completing the quiz when "Show Correct Answers" is enabled.')
+                                    ->columnSpanFull(),
+
+                                Placeholder::make('choices_bar')
+                                    ->hiddenLabel()
+                                    ->content(fn () => new HtmlString(
+                                        '<div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/60 border-l-4 border-emerald-500 rounded-r-lg px-4 py-2 mt-2 -mx-1">'
+                                        .'<span class="font-bold text-xs text-emerald-800 dark:text-emerald-200">Multiple-Choice Answer Options (Check the single correct answer)</span>'
+                                        .'</div>'
+                                    ))
                                     ->columnSpanFull(),
 
                                 Repeater::make('options')
-                                    ->label('Multiple Choice Options (Select the single correct answer)')
+                                    ->label('')
                                     ->schema([
 
                                         TextInput::make('option_text')
@@ -487,6 +481,11 @@ class QuizForm
                                     })
                                     ->columnSpanFull(),
 
+                                Placeholder::make('q_bottom_divider')
+                                    ->hiddenLabel()
+                                    ->content(fn () => new HtmlString('<div class="w-full border-b-2 border-dashed border-gray-300 dark:border-gray-700 my-2"></div>'))
+                                    ->columnSpanFull(),
+
                             ])
                             ->columns(4)
                             ->collapsible()
@@ -500,8 +499,8 @@ class QuizForm
                                 $ptsLabel = $pts === 1 ? '1 mark' : "{$pts} marks";
 
                                 return filled($txt)
-                                    ? Str::limit($txt, 70)." ({$ptsLabel})"
-                                    : 'New Question';
+                                    ? '❓ '.Str::limit($txt, 65)." ({$ptsLabel})"
+                                    : '❓ New Question';
                             })
                             ->minItems(1)
                             ->live()

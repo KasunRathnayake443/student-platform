@@ -12,13 +12,6 @@ class CreateQuiz extends BaseCreateQuiz
     public function mount(): void
     {
         parent::mount();
-
-        if ($teacher = auth()->user()?->teacher) {
-            $existing = $this->data['teacher_ids'] ?? [];
-            if (empty($existing)) {
-                $this->data['teacher_ids'] = [$teacher->getKey()];
-            }
-        }
     }
 
     public function getLayout(): string
