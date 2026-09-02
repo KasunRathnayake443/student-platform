@@ -2,7 +2,7 @@ name: Deploy Laravel to cPanel
 
 on:
   push:
-    branches: [ main ] # Change to 'master' if your main branch is master
+    branches: [ main ]
 
 jobs:
   web-deploy:
@@ -15,7 +15,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2' # Match your cPanel PHP version
+        php-version: '8.3' # Matches your project's PHP requirement for building
 
     - name: Install Composer Dependencies
       run: composer install --no-dev --optimize-autoloader --no-interaction
