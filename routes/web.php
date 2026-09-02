@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
-Route::view('school-admin/login', 'school-admin.login-placeholder')->name('school-admin.login');
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/teachers/{teacher}/profile-photo', TeacherProfilePhotoController::class)
         ->name('teachers.profile-photo');

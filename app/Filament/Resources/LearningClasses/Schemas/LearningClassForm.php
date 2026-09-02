@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\LearningClasses\Schemas;
 
+use App\Filament\Rules\InScope;
 use App\Models\Grade;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -10,8 +11,20 @@ use Filament\Schemas\Schema;
 
 class LearningClassForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array{schoolIds?: array<int, int>|null}  $options
+     */
+    public static function configure(Schema $schema, array $options = []): Schema
     {
+        $schoolIds = $options['schoolIds'] ?? null;
+
+        $gradeIds = $schoolIds === null
+            ? null
+            : Grade::query()
+                ->whereIn('school_id', $schoolIds)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
 
         return $schema
 
@@ -29,9 +42,17 @@ class LearningClassForm
 
                     ->label('Grade')
 
-                    ->options(function () {
+                    ->options(function () use ($schoolIds) {
 
-                        return Grade::with('school')
+                        return Grade::query()
+
+                            ->when($schoolIds, fn ($query) => $query->whereIn('school_id', $schoolIds))
+
+                            ->with('school')
+
+                            ->orderBy('school_id')
+
+                            ->orderBy('name')
 
                             ->get()
 
@@ -52,6 +73,10 @@ class LearningClassForm
                     ->searchable()
 
                     ->preload()
+
+                    ->rules([
+                        new InScope($gradeIds, 'The selected grade is outside your assigned schools.'),
+                    ])
 
                     ->required(),
 

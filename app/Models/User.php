@@ -20,13 +20,16 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Determine which Filament panels this user can access.
-     * - admin panel: super_admin, school_admin roles
+     * - admin panel: super_admin only
+     * - school-admin panel: school_admin role
      * - student panel: student role (has a linked Student record)
+     * - teacher panel: teacher role (has a linked Teacher record)
      */
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {
-            'admin' => $this->hasAnyRole(['super_admin', 'school_admin']),
+            'admin' => $this->hasRole('super_admin'),
+            'school-admin' => $this->hasRole('school_admin'),
             'student' => $this->hasRole('student') || $this->student()->exists(),
             'teacher' => $this->hasRole('teacher') || $this->teacher()->exists(),
             default => false,
@@ -37,6 +40,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'must_change_password',
     ];
 
     protected $hidden = [

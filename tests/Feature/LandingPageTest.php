@@ -24,8 +24,7 @@ test('the landing page does not expose the super admin login', function () {
 });
 
 test('the school admin login URL is reserved and reachable', function () {
-    $this->get(route('school-admin.login'))
+    $this->get('/school-admin/login')
         ->assertOk()
-        ->assertSee('School Admin portal')
-        ->assertSee('coming soon');
+        ->assertSee('School Admin Portal');
 });

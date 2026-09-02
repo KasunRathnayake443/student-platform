@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Lessons\Schemas;
 
+use App\Filament\Rules\InScope;
+use App\Models\LearningClass;
 use App\Models\Teacher;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -18,8 +20,29 @@ use Illuminate\Support\HtmlString;
 
 class LessonForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array{schoolIds?: array<int, int>|null}  $options
+     */
+    public static function configure(Schema $schema, array $options = []): Schema
     {
+        $schoolIds = $options['schoolIds'] ?? null;
+
+        $classIds = $schoolIds === null
+            ? null
+            : LearningClass::query()
+                ->whereHas('grade', fn ($query) => $query->whereIn('school_id', $schoolIds))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+        $teacherIds = $schoolIds === null
+            ? null
+            : Teacher::query()
+                ->whereHas('classes', fn ($query) => $query->whereHas('grade', fn ($grade) => $grade->whereIn('school_id', $schoolIds)))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
         return $schema
             ->components([
 
@@ -37,19 +60,47 @@ class LessonForm
 
                 Select::make('learning_class_id')
                     ->label('Learning Class')
-                    ->relationship(
-                        'learningClass',
-                        'name'
-                    )
+                    ->options(function () use ($schoolIds) {
+                        return LearningClass::query()
+                            ->when($schoolIds, function ($query) use ($schoolIds) {
+                                $query->whereHas('grade', fn ($grade) => $grade->whereIn('school_id', $schoolIds));
+                            })
+                            ->with('grade.school')
+                            ->orderBy('name')
+                            ->get()
+                            ->mapWithKeys(function (LearningClass $class) use ($schoolIds) {
+                                if ($schoolIds === null) {
+                                    return [$class->id => $class->name];
+                                }
+
+                                $grade = $class->grade;
+
+                                return [
+                                    $class->id => $grade?->school?->name
+                                        .' → Grade '
+                                        .$grade?->name
+                                        .' → '
+                                        .$class->name,
+                                ];
+                            });
+                    })
                     ->searchable()
                     ->preload()
+                    ->rules([
+                        new InScope($classIds, 'The selected learning class is outside your assigned schools.'),
+                    ])
                     ->required(),
 
                 Select::make('teacher_id')
                     ->label('Teacher')
-                    ->options(function () {
+                    ->options(function () use ($schoolIds) {
 
                         return Teacher::query()
+                            ->when($schoolIds, function ($query) use ($schoolIds) {
+                                $query->whereHas('classes', function ($classes) use ($schoolIds) {
+                                    $classes->whereHas('grade', fn ($grade) => $grade->whereIn('school_id', $schoolIds));
+                                });
+                            })
                             ->with('user')
                             ->get()
                             ->mapWithKeys(
@@ -65,6 +116,9 @@ class LessonForm
                     })
                     ->searchable()
                     ->preload()
+                    ->rules([
+                        new InScope($teacherIds, 'The selected teacher is outside your assigned schools.'),
+                    ])
                     ->required(),
 
                 Textarea::make('description')

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Teachers\Schemas;
 
+use App\Filament\Rules\InScope;
 use App\Models\LearningClass;
 use App\Models\School;
 use Filament\Forms\Components\CheckboxList;
@@ -13,8 +14,21 @@ use Filament\Schemas\Schema;
 
 class TeacherForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array{schoolIds?: array<int, int>|null, passwordRequired?: bool}  $options
+     */
+    public static function configure(Schema $schema, array $options = []): Schema
     {
+        $schoolIds = $options['schoolIds'] ?? null;
+        $passwordRequired = (bool) ($options['passwordRequired'] ?? true);
+
+        $classIds = $schoolIds === null
+            ? null
+            : LearningClass::query()
+                ->whereHas('grade', fn ($query) => $query->whereIn('school_id', $schoolIds))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
 
         return $schema
 
@@ -60,7 +74,11 @@ class TeacherForm
 
                     ->password()
 
-                    ->required(fn ($record) => ! $record),
+                    ->helperText(
+                        $passwordRequired ? null : 'Leave blank to auto-generate a secure password.'
+                    )
+
+                    ->required(fn ($record) => ! $record && $passwordRequired),
 
                 /*
                 |--------------------------------------------------------------------------
@@ -101,23 +119,33 @@ class TeacherForm
                     ->multiple()
                     ->options(
                         School::where('is_active', true)
+                            ->when($schoolIds, fn ($query) => $query->whereIn('id', $schoolIds))
                             ->pluck('name', 'id')
                     )
-                    ->default(fn () => request()->has('school_id')
+                    ->default(function () use ($schoolIds) {
 
-                            ? [
-                                request()->get('school_id'),
-                            ]
+                        $requested = request()->get('school_id');
 
-                            : []
+                        if ($requested && ($schoolIds === null || in_array((int) $requested, $schoolIds, true))) {
 
-                    )
+                            return [
+                                $requested,
+                            ];
+
+                        }
+
+                        return [];
+
+                    })
                     ->disabled(fn () => request()->has('school_id')
 
                     )
                     ->dehydrated()
                     ->searchable()
                     ->preload()
+                    ->rules([
+                        new InScope($schoolIds, 'One or more selected schools are outside your assigned schools.'),
+                    ])
                     ->live(),
 
                 /*
@@ -179,6 +207,10 @@ class TeacherForm
                     ->columns(1)
 
                     ->searchable()
+
+                    ->rules([
+                        new InScope($classIds, 'One or more selected classes are outside your assigned schools.'),
+                    ])
 
                     ->visible(fn ($get) => filled($get('schools'))
 

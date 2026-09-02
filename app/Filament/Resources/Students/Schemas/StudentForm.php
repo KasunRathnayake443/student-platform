@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\Schemas;
 
+use App\Filament\Rules\InScope;
 use App\Models\Grade;
 use App\Models\LearningClass;
 use App\Models\School;
@@ -15,8 +16,29 @@ use Filament\Schemas\Schema;
 
 class StudentForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array{schoolIds?: array<int, int>|null, passwordRequired?: bool}  $options
+     */
+    public static function configure(Schema $schema, array $options = []): Schema
     {
+        $schoolIds = $options['schoolIds'] ?? null;
+        $passwordRequired = (bool) ($options['passwordRequired'] ?? true);
+
+        $gradeIds = $schoolIds === null
+            ? null
+            : Grade::query()
+                ->whereIn('school_id', $schoolIds)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+        $classIds = $schoolIds === null
+            ? null
+            : LearningClass::query()
+                ->whereHas('grade', fn ($query) => $query->whereIn('school_id', $schoolIds))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
 
         return $schema
 
@@ -56,7 +78,11 @@ class StudentForm
 
                     ->password()
 
-                    ->required(fn ($context) => $context === 'create'),
+                    ->helperText(
+                        $passwordRequired ? null : 'Leave blank to auto-generate a secure password.'
+                    )
+
+                    ->required(fn ($context) => $context === 'create' && $passwordRequired),
 
                 TextInput::make('admission_no')
 
@@ -128,6 +154,7 @@ class StudentForm
                             'is_active',
                             true
                         )
+                            ->when($schoolIds, fn ($query) => $query->whereIn('id', $schoolIds))
                             ->pluck(
                                 'name',
                                 'id'
@@ -135,21 +162,29 @@ class StudentForm
 
                     )
 
-                    ->default(
+                    ->default(function () use ($schoolIds) {
 
-                        fn () => request()->has('school_id')
+                        $requested = request()->get('school_id');
 
-                            ? [
-                                request()->get('school_id'),
-                            ]
+                        if ($requested && ($schoolIds === null || in_array((int) $requested, $schoolIds, true))) {
 
-                            : []
+                            return [
+                                $requested,
+                            ];
 
-                    )
+                        }
+
+                        return [];
+
+                    })
 
                     ->searchable()
 
                     ->preload()
+
+                    ->rules([
+                        new InScope($schoolIds, 'One or more selected schools are outside your assigned schools.'),
+                    ])
 
                     ->live()
 
@@ -196,6 +231,10 @@ class StudentForm
                     ->searchable()
 
                     ->preload()
+
+                    ->rules([
+                        new InScope($gradeIds, 'One or more selected grades are outside your assigned schools.'),
+                    ])
 
                     ->live()
 
@@ -247,6 +286,10 @@ class StudentForm
                     ->searchable()
 
                     ->preload()
+
+                    ->rules([
+                        new InScope($classIds, 'One or more selected classes are outside your assigned schools.'),
+                    ])
 
                     ->visible(
                         fn ($get) => $get('assign_school')

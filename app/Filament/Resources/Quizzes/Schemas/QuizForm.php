@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Schemas;
 
+use App\Filament\Rules\InScope;
 use App\Models\LearningClass;
 use App\Models\Teacher;
 use App\Services\QuizImportService;
@@ -33,13 +34,24 @@ class QuizForm
      *  - 'teacher' (bool): when true the current teacher is pre-assigned and
      *    the class selector is limited to the classes the teacher teaches.
      *  - 'learningClassId' (int|null): a learning class to pre-select.
+     *  - 'schoolIds' (array<int, int>|null): when provided the class selector
+     *    is limited to classes belonging to those schools.
      *
-     * @param  array{teacher?: bool, learningClassId?: int|null}  $options
+     * @param  array{teacher?: bool, learningClassId?: int|null, schoolIds?: array<int, int>|null}  $options
      */
     public static function configure(Schema $schema, array $options = []): Schema
     {
         $isTeacher = (bool) ($options['teacher'] ?? false);
         $contextClassId = $options['learningClassId'] ?? null;
+        $schoolIds = $options['schoolIds'] ?? null;
+
+        $classIds = $schoolIds === null
+            ? null
+            : LearningClass::query()
+                ->whereHas('grade', fn ($query) => $query->whereIn('school_id', $schoolIds))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
 
         return $schema
             ->components([
@@ -64,8 +76,14 @@ class QuizForm
 
                         Select::make('learning_class_id')
                             ->label('Learning Class')
-                            ->options(function () use ($isTeacher): array {
+                            ->options(function () use ($isTeacher, $schoolIds): array {
                                 $query = LearningClass::query()->orderBy('name');
+
+                                if ($schoolIds) {
+                                    $query->whereHas('grade', function ($q) use ($schoolIds): void {
+                                        $q->whereIn('school_id', $schoolIds);
+                                    });
+                                }
 
                                 if ($isTeacher && auth()->user()?->teacher) {
                                     $teacher = auth()->user()->teacher;
@@ -80,8 +98,21 @@ class QuizForm
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->default(function () use ($isTeacher, $contextClassId) {
+                            ->default(function () use ($isTeacher, $contextClassId, $schoolIds) {
                                 if ($contextClassId) {
+                                    if ($schoolIds) {
+                                        $belongs = LearningClass::query()
+                                            ->whereKey($contextClassId)
+                                            ->whereHas('grade', function ($q) use ($schoolIds): void {
+                                                $q->whereIn('school_id', $schoolIds);
+                                            })
+                                            ->exists();
+
+                                        if (! $belongs) {
+                                            return null;
+                                        }
+                                    }
+
                                     return $contextClassId;
                                 }
 
@@ -101,6 +132,9 @@ class QuizForm
                                     $set('teacher_ids', []);
                                 }
                             })
+                            ->rules([
+                                new InScope($classIds, 'The selected learning class is outside your assigned schools.'),
+                            ])
                             ->required(),
 
                         Select::make('teacher_ids')

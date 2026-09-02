@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Assignments\Schemas;
 
+use App\Filament\Rules\InScope;
 use App\Models\LearningClass;
 use App\Models\Teacher;
 use Filament\Forms\Components\DateTimePicker;
@@ -19,8 +20,29 @@ use Filament\Schemas\Schema;
 
 class AssignmentForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array{schoolIds?: array<int, int>|null}  $options
+     */
+    public static function configure(Schema $schema, array $options = []): Schema
     {
+        $schoolIds = $options['schoolIds'] ?? null;
+
+        $classIds = $schoolIds === null
+            ? null
+            : LearningClass::query()
+                ->whereHas('grade', fn ($query) => $query->whereIn('school_id', $schoolIds))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+        $teacherIds = $schoolIds === null
+            ? null
+            : Teacher::query()
+                ->whereHas('classes', fn ($query) => $query->whereHas('grade', fn ($grade) => $grade->whereIn('school_id', $schoolIds)))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
         return $schema
             ->components([
 
@@ -74,30 +96,48 @@ class AssignmentForm
                         Select::make('learning_class_id')
                             ->label('Learning Class')
                             ->options(
-                                fn () => LearningClass::query()
-                                    ->orderBy('name')
-                                    ->pluck('name', 'id')
+                                function () use ($schoolIds) {
+                                    return LearningClass::query()
+                                        ->when($schoolIds, function ($query) use ($schoolIds) {
+                                            $query->whereHas('grade', fn ($grade) => $grade->whereIn('school_id', $schoolIds));
+                                        })
+                                        ->orderBy('name')
+                                        ->pluck('name', 'id');
+                                }
                             )
                             ->searchable()
                             ->preload()
+                            ->rules([
+                                new InScope($classIds, 'The selected learning class is outside your assigned schools.'),
+                            ])
                             ->required(),
 
                         Select::make('teacher_id')
                             ->label('Responsible Teacher')
                             ->options(
-                                fn () => Teacher::query()
-                                    ->with('user')
-                                    ->get()
-                                    ->mapWithKeys(
-                                        fn (Teacher $teacher) => [
-                                            $teacher->id => $teacher->user->name
-                                                .' - '
-                                                .$teacher->employee_no,
-                                        ]
-                                    )
+                                function () use ($schoolIds) {
+                                    return Teacher::query()
+                                        ->when($schoolIds, function ($query) use ($schoolIds) {
+                                            $query->whereHas('classes', function ($classes) use ($schoolIds) {
+                                                $classes->whereHas('grade', fn ($grade) => $grade->whereIn('school_id', $schoolIds));
+                                            });
+                                        })
+                                        ->with('user')
+                                        ->get()
+                                        ->mapWithKeys(
+                                            fn (Teacher $teacher) => [
+                                                $teacher->id => $teacher->user->name
+                                                    .' - '
+                                                    .$teacher->employee_no,
+                                            ]
+                                        );
+                                }
                             )
                             ->searchable()
                             ->preload()
+                            ->rules([
+                                new InScope($teacherIds, 'The selected teacher is outside your assigned schools.'),
+                            ])
                             ->required()
                             ->helperText(
                                 'Only the assigned teacher for this class can grade submissions.'
