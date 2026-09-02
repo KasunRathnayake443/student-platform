@@ -31,4 +31,9 @@ class ViewSchool extends ViewRecord
             'record' => $this->record,
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

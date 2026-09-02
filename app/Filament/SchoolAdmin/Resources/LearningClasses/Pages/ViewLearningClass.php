@@ -34,4 +34,9 @@ class ViewLearningClass extends ViewRecord
             QuizzesRelationManager::class,
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

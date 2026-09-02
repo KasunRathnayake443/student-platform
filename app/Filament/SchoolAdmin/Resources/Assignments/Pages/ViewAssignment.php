@@ -8,4 +8,9 @@ use App\Filament\SchoolAdmin\Resources\Assignments\AssignmentResource;
 class ViewAssignment extends BaseViewAssignment
 {
     protected static string $resource = AssignmentResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

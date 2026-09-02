@@ -8,4 +8,9 @@ use App\Filament\SchoolAdmin\Resources\Teachers\TeacherResource;
 class ListTeachers extends BaseListTeachers
 {
     protected static string $resource = TeacherResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

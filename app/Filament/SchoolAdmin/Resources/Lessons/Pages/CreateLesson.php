@@ -66,4 +66,9 @@ class CreateLesson extends CreateRecord
 
         return $lesson;
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

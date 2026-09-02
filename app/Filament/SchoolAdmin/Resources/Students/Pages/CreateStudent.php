@@ -84,4 +84,9 @@ class CreateStudent extends CreateRecord
     {
         StudentResource::syncEnrollments($student, $data);
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

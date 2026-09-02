@@ -24,4 +24,9 @@ class ViewGrade extends ViewRecord
             LearningClassesRelationManager::class,
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

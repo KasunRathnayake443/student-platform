@@ -39,4 +39,9 @@ class ListLearningClasses extends ListRecords
 
         return $tabs;
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

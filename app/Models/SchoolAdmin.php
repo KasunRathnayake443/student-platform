@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
 class SchoolAdmin extends Model
 {
@@ -14,6 +15,19 @@ class SchoolAdmin extends Model
         'phone',
         'address',
     ];
+
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if (blank($this->profile_photo)) {
+            return null;
+        }
+
+        if ((string) config('filament.default_filesystem_disk', 'local') === 'public') {
+            return Storage::disk('public')->url($this->profile_photo);
+        }
+
+        return route('school-admins.profile-photo', ['schoolAdmin' => $this]);
+    }
 
     public function user(): BelongsTo
     {

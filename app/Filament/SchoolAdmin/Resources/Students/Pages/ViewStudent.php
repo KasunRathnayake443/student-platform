@@ -8,4 +8,9 @@ use App\Filament\SchoolAdmin\Resources\Students\StudentResource;
 class ViewStudent extends BaseViewStudent
 {
     protected static string $resource = StudentResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

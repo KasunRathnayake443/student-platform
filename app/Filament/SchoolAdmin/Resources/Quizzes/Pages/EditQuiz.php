@@ -8,4 +8,9 @@ use App\Filament\SchoolAdmin\Resources\Quizzes\QuizResource;
 class EditQuiz extends BaseEditQuiz
 {
     protected static string $resource = QuizResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

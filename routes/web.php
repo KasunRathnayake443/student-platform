@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\QuizImportTemplateController;
 use App\Http\Controllers\QuizQuestionMediaController;
+use App\Http\Controllers\SchoolAdminProfilePhotoController;
 use App\Http\Controllers\SchoolLogoController;
 use App\Http\Controllers\StudentProfilePhotoController;
 use App\Http\Controllers\TeacherProfilePhotoController;
@@ -15,6 +16,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/students/{student}/profile-photo', StudentProfilePhotoController::class)
         ->name('students.profile-photo');
+
+    Route::get('/school-admins/{schoolAdmin}/profile-photo', SchoolAdminProfilePhotoController::class)
+        ->name('school-admins.profile-photo');
 
     Route::get('/schools/{school}/logo', SchoolLogoController::class)
         ->name('schools.logo');

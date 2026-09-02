@@ -16,4 +16,9 @@ class EditSchool extends EditRecord
             ViewAction::make(),
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

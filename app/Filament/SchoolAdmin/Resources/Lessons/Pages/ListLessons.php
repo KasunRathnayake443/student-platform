@@ -16,4 +16,9 @@ class ListLessons extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

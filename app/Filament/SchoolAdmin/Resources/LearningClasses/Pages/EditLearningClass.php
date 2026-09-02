@@ -18,4 +18,9 @@ class EditLearningClass extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

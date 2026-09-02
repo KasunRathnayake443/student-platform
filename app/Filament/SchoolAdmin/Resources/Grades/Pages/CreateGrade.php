@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateGrade extends CreateRecord
 {
     protected static string $resource = GradeResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

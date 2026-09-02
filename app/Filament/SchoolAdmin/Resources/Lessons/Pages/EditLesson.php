@@ -8,4 +8,9 @@ use App\Filament\SchoolAdmin\Resources\Lessons\LessonResource;
 class EditLesson extends BaseEditLesson
 {
     protected static string $resource = LessonResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

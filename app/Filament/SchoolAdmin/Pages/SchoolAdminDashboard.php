@@ -40,4 +40,9 @@ class SchoolAdminDashboard extends Page
             'totalClasses' => $schools->sum('classes_count'),
         ];
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

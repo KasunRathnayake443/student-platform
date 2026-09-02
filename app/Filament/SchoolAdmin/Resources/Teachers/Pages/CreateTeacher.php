@@ -75,4 +75,9 @@ class CreateTeacher extends CreateRecord
 
         return $data;
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

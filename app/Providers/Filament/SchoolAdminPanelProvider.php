@@ -27,7 +27,6 @@ class SchoolAdminPanelProvider extends PanelProvider
             ->path('school-admin')
             ->brandName('Student Platform')
             ->login(Login::class)
-            ->profile(isSimple: false)
             ->colors([
                 'primary' => Color::Fuchsia,
                 'gray' => Color::Slate,

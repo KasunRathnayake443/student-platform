@@ -122,4 +122,9 @@ class EditStudent extends BaseEditStudent
             return $record;
         });
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

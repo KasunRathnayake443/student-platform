@@ -8,4 +8,9 @@ use App\Filament\SchoolAdmin\Resources\Quizzes\QuizResource;
 class ViewQuiz extends BaseViewQuiz
 {
     protected static string $resource = QuizResource::class;
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }

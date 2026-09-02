@@ -29,4 +29,9 @@ class CreateQuiz extends BaseCreateQuiz
             ->whereHas('grade', fn ($query) => $query->whereIn('school_id', SchoolAdminScopes::schoolIds()))
             ->exists();
     }
+
+    public function getLayout(): string
+    {
+        return 'filament.school-admin.layouts.app';
+    }
 }
