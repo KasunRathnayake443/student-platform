@@ -1574,7 +1574,8 @@
     }
     .quiz-open-btn:hover {
         transform: translateY(-3px) scale(1.03);
-        color: #ffffff;
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%) !important;
     }
     .quiz-open-disabled {
         background: #cbd5e1 !important;
@@ -1593,70 +1594,150 @@
     .qc-retry_passed { border-color: #a7f3d0; }
     .qc-retry_passed .quiz-open-btn,
     .qc-retry_passed .quiz-open-btn:hover {
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        color: #ffffff;
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+        color: #ffffff !important;
     }
     .qc-complete { border-color: #a7f3d0; }
     .qc-complete .quiz-open-btn,
     .qc-complete .quiz-open-btn:hover {
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        color: #ffffff;
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+        color: #ffffff !important;
     }
     .qc-retry .quiz-open-btn,
     .qc-retry .quiz-open-btn:hover {
-        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-        color: #ffffff;
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+        color: #ffffff !important;
     }
     .qc-locked { border-color: #e2e8f0; }
     .qc-closed { border-color: #fecaca; }
 
-    /* Kids quiz tab: flatten school/grade levels */
+    /* Kids quiz tab: flatten school/grade levels, bold friendly colors */
     .kids-quizzes-panel .school-class-header,
     .kids-quizzes-panel .grade-class-header,
     .kids-quizzes-panel .quiz-class-meta { display: none; }
     .kids-quizzes-panel .school-class-block,
     .kids-quizzes-panel .grade-class-block { gap: 1.5rem; }
 
-    /* Teens/Adults quiz tab: more compact, professional-looking cards */
-    .teens-quizzes-panel .quiz-class-group {
+    /* Junior / Teens quiz tab: Modern Bento Grid styling with indigo/violet accents */
+    .junior-quizzes-panel .quiz-class-group {
         border: 1px solid #e2e8f0;
-        border-left: 5px solid #7c3aed;
-        border-radius: 1.1rem;
-        background: #fbfaff;
-        padding: 1.1rem 1.25rem;
-        box-shadow: 0 3px 12px rgba(124, 58, 237, 0.08);
-        margin-bottom: 1.4rem;
-    }
-    .teens-quizzes-panel .quiz-class-title {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: #3730a3;
-    }
-    .teens-quizzes-panel .quiz-item {
+        border-left: 5px solid #4f46e5;
+        border-radius: 1.25rem;
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.9rem;
-        padding: 1rem 1.1rem;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        padding: 1.25rem 1.4rem;
+        box-shadow: 0 4px 20px -6px rgba(79, 70, 229, 0.08);
+        margin-bottom: 1.5rem;
     }
-    .teens-quizzes-panel .quiz-item h3 {
-        font-size: 1.08rem;
-        font-weight: 700;
+    .junior-quizzes-panel .quiz-class-title {
+        font-size: 1.2rem;
+        font-weight: 800;
         color: #1e1b4b;
     }
-    .teens-quizzes-panel .quiz-open-btn {
-        font-size: 0.9rem;
-        padding: 0.6rem 1.4rem;
+    .junior-quizzes-panel .quiz-class-meta {
+        background: #eef2ff;
+        color: #4f46e5;
+        font-weight: 800;
+        font-size: 0.78rem;
+    }
+    .junior-quizzes-panel .quiz-item {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.15rem 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .junior-quizzes-panel .quiz-item:hover {
+        transform: translateY(-2px);
+        border-color: #c7d2fe;
+        box-shadow: 0 8px 24px -6px rgba(79, 70, 229, 0.15);
+    }
+    .junior-quizzes-panel .quiz-item h3 {
+        font-size: 1.12rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .junior-quizzes-panel .quiz-open-btn {
+        font-size: 0.92rem;
+        padding: 0.65rem 1.5rem;
         background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-        box-shadow: 0 6px 14px -6px rgba(79, 70, 229, 0.6);
+        color: #ffffff !important;
+        box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.5);
     }
-    .teens-quizzes-panel .quiz-meta-chip,
-    .teens-quizzes-panel .quiz-state-pill,
-    .teens-quizzes-panel .quiz-score-pill {
-        font-size: 0.76rem;
-        padding: 0.3rem 0.75rem;
+    .junior-quizzes-panel .quiz-open-btn:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%) !important;
+        color: #ffffff !important;
     }
-    .teens-quizzes-panel .quiz-desc { font-size: 0.85rem; }
+    .junior-quizzes-panel .quiz-meta-chip,
+    .junior-quizzes-panel .quiz-state-pill,
+    .junior-quizzes-panel .quiz-score-pill {
+        font-size: 0.78rem;
+        padding: 0.32rem 0.8rem;
+    }
+    .junior-quizzes-panel .quiz-desc { font-size: 0.86rem; color: #64748b; }
+
+    /* Senior quiz tab: Clean, modern academic / executive assessment layout */
+    .senior-quizzes-panel .quiz-class-group {
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #3b82f6;
+        border-radius: 0.9rem;
+        background: #ffffff;
+        padding: 1.2rem 1.4rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1.4rem;
+    }
+    .senior-quizzes-panel .quiz-class-title {
+        font-size: 1.12rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .senior-quizzes-panel .quiz-class-meta {
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 700;
+        font-size: 0.75rem;
+        border-radius: 0.4rem;
+    }
+    .senior-quizzes-panel .quiz-item {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 1.1rem 1.25rem;
+        box-shadow: none;
+        transition: all 0.15s ease;
+    }
+    .senior-quizzes-panel .quiz-item:hover {
+        transform: translateY(-1px);
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .senior-quizzes-panel .quiz-item h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .senior-quizzes-panel .quiz-open-btn {
+        font-size: 0.88rem;
+        padding: 0.55rem 1.3rem;
+        border-radius: 0.5rem;
+        background: #1e293b;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .senior-quizzes-panel .quiz-open-btn:hover {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }
+    .senior-quizzes-panel .quiz-meta-chip,
+    .senior-quizzes-panel .quiz-state-pill,
+    .senior-quizzes-panel .quiz-score-pill {
+        font-size: 0.75rem;
+        padding: 0.28rem 0.7rem;
+        border-radius: 0.4rem;
+    }
+    .senior-quizzes-panel .quiz-desc { font-size: 0.84rem; color: #64748b; }
+
 
     /* ═══ GRADES TAB ═══ */
     .kids-grades-panel .school-class-header,
@@ -3115,15 +3196,33 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
 
                 {{-- ── TAB 5: QUIZZES ── --}}
                 @elseif($activeTab === 'quizzes')
-                        <div class="glass-card {{ $tier === 'kids' ? 'kids-quizzes-panel' : 'teens-quizzes-panel' }}">
+                    <div class="glass-card {{ $tier === 'kids' ? 'kids-quizzes-panel' : ($tier === 'junior' ? 'junior-quizzes-panel' : 'senior-quizzes-panel') }}">
                         <div class="glass-card-title">
-                            <span>🧠 My Quizzes</span>
-                            <span style="font-size: 0.85rem; color: #4f46e5; font-weight: 700;">
-                                {{ $allQuizzes->count() }} quiz(es)
-                                @if($quizAttempts->count() > 0)
-                                    · Avg {{ $quizAvgPct }}%
-                                @endif
-                            </span>
+                            @if($tier === 'kids')
+                                <span>🧠 Fun Quizzes 🌟</span>
+                                <span style="font-size: 0.88rem; color: #db2777; font-weight: 800;">
+                                    {{ $allQuizzes->count() }} Quiz Games
+                                    @if($quizAttempts->count() > 0)
+                                        · {{ $quizPassed }} Passed 🏆
+                                    @endif
+                                </span>
+                            @elseif($tier === 'junior')
+                                <span>🧠 Quizzes & Challenges</span>
+                                <span style="font-size: 0.85rem; color: #4f46e5; font-weight: 700;">
+                                    {{ $allQuizzes->count() }} Available
+                                    @if($quizAttempts->count() > 0)
+                                        · Avg {{ $quizAvgPct }}% · {{ $quizPassed }} Passed
+                                    @endif
+                                </span>
+                            @else
+                                <span>🎓 Academic Assessments & Quizzes</span>
+                                <span style="font-size: 0.85rem; color: #3b82f6; font-weight: 700;">
+                                    {{ $allQuizzes->count() }} Assessment(s)
+                                    @if($quizAttempts->count() > 0)
+                                        · Average: {{ $quizAvgPct }}%
+                                    @endif
+                                </span>
+                            @endif
                         </div>
 
                         @php
@@ -3171,114 +3270,152 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                 @endif
                             </div>
                         @else
-                                @foreach($allClassGroups as $schoolGroup)
-                                    @php
-                                        $schoolQuizTotal = 0;
-                                        foreach ($schoolGroup['groups'] as $sg) {
-                                            foreach ($sg['classes'] as $sc) {
-                                                if ($classHasQuizzes[$sc->id] ?? false) {
-                                                    $schoolQuizTotal += ($quizzesByClassId[$sc->id] ?? collect())->count();
-                                                }
+                            @foreach($allClassGroups as $schoolGroup)
+                                @php
+                                    $schoolQuizTotal = 0;
+                                    foreach ($schoolGroup['groups'] as $sg) {
+                                        foreach ($sg['classes'] as $sc) {
+                                            if ($classHasQuizzes[$sc->id] ?? false) {
+                                                $schoolQuizTotal += ($quizzesByClassId[$sc->id] ?? collect())->count();
                                             }
                                         }
-                                    @endphp
-                                    @if($schoolQuizTotal > 0)
-                                        <div class="school-class-block">
-                                            <div class="school-class-header">
-                                                🏫 {{ $schoolGroup['school']->name ?? 'School' }}
-                                                <span class="school-class-count">{{ $schoolQuizTotal }} quiz(es)</span>
-                                            </div>
-                                            @foreach($schoolGroup['groups'] as $gradeGroup)
-                                                @php
-                                                    $gradeQuizTotal = 0;
-                                                    foreach ($gradeGroup['classes'] as $gc) {
-                                                        if ($classHasQuizzes[$gc->id] ?? false) {
-                                                            $gradeQuizTotal += ($quizzesByClassId[$gc->id] ?? collect())->count();
-                                                        }
+                                    }
+                                @endphp
+                                @if($schoolQuizTotal > 0)
+                                    <div class="school-class-block">
+                                        <div class="school-class-header">
+                                            🏫 {{ $schoolGroup['school']->name ?? 'School' }}
+                                            <span class="school-class-count">{{ $schoolQuizTotal }} quiz(es)</span>
+                                        </div>
+                                        @foreach($schoolGroup['groups'] as $gradeGroup)
+                                            @php
+                                                $gradeQuizTotal = 0;
+                                                foreach ($gradeGroup['classes'] as $gc) {
+                                                    if ($classHasQuizzes[$gc->id] ?? false) {
+                                                        $gradeQuizTotal += ($quizzesByClassId[$gc->id] ?? collect())->count();
                                                     }
-                                                @endphp
-                                                @if($gradeQuizTotal > 0)
-                                                    <div class="grade-class-block">
-                                                        <div class="grade-class-header">📗 {{ $gradeGroup['grade']->name ?? 'Class Group' }}</div>
-                                                        @foreach($gradeGroup['classes'] as $class)
-                                                            @if($classHasQuizzes[$class->id] ?? false)
-                                                                @php $kidsQuizIdx++; @endphp
-                                                                <div class="quiz-class-group {{ 'kidc-' . ['red','blue','purple','green','orange','pink'][($kidsQuizIdx - 1) % 6] }}">
-                                                                    <div class="quiz-class-head">
-                                                                        <span class="quiz-class-title">🧩 {{ $class->name }}</span>
-                                                                        <span class="quiz-class-meta">{{ $quizzesByClassId[$class->id]->count() }} quiz(es)</span>
-                                                                    </div>
-                                                                    <div class="quiz-list">
-                                                                        @foreach($quizzesByClassId[$class->id] as $quiz)
-                                                                            @php
-                                                                                $qStatus = $quizStatusById[$quiz->id] ?? ['attempts' => collect(), 'finished_count' => 0, 'latest' => null, 'best' => null, 'can_attempt' => false, 'remaining' => null];
-                                                                                $qState = $quizStateById[$quiz->id] ?? 'closed';
+                                                }
+                                            @endphp
+                                            @if($gradeQuizTotal > 0)
+                                                <div class="grade-class-block">
+                                                    <div class="grade-class-header">📗 {{ $gradeGroup['grade']->name ?? 'Class Group' }}</div>
+                                                    @foreach($gradeGroup['classes'] as $class)
+                                                        @if($classHasQuizzes[$class->id] ?? false)
+                                                            @php $kidsQuizIdx++; @endphp
+                                                            <div class="quiz-class-group {{ 'kidc-' . ['red','blue','purple','green','orange','pink'][($kidsQuizIdx - 1) % 6] }}">
+                                                                <div class="quiz-class-head">
+                                                                    <span class="quiz-class-title">{{ $tier === 'kids' ? '🧩' : ($tier === 'junior' ? '⚡' : '📚') }} {{ $class->name }}</span>
+                                                                    <span class="quiz-class-meta">{{ $quizzesByClassId[$class->id]->count() }} {{ $tier === 'senior' ? 'assessment(s)' : 'quiz(es)' }}</span>
+                                                                </div>
+                                                                <div class="quiz-list">
+                                                                    @foreach($quizzesByClassId[$class->id] as $quiz)
+                                                                        @php
+                                                                            $qStatus = $quizStatusById[$quiz->id] ?? ['attempts' => collect(), 'finished_count' => 0, 'latest' => null, 'best' => null, 'can_attempt' => false, 'remaining' => null];
+                                                                            $qState = $quizStateById[$quiz->id] ?? 'closed';
+                                                                            
+                                                                            if ($tier === 'kids') {
                                                                                 $qBtnLabel = match ($qState) {
-                                                                                    'available' => '▶️ Start Quiz!',
+                                                                                    'available' => '▶️ Play Quiz!',
                                                                                     'retry' => '🔁 Try Again!',
-                                                                                    'retry_passed' => '🔁 Take It Again',
-                                                                                    'complete' => '👀 View My Result',
-                                                                                    'locked' => '🔒 Not Open Yet',
+                                                                                    'retry_passed' => '🌟 Play Again!',
+                                                                                    'complete' => '👀 View Score',
+                                                                                    'locked' => '🔒 Opens Soon',
                                                                                     default => '⛔ Quiz Ended',
                                                                                 };
                                                                                 $qPillLabel = match ($qState) {
                                                                                     'available' => '▶️ Ready to Play',
                                                                                     'retry' => '💪 Almost There!',
-                                                                                    'retry_passed' => '✅ You Passed!',
-                                                                                    'complete' => '🏁 Quiz Complete',
+                                                                                    'retry_passed' => '🌟 Super Star! Passed!',
+                                                                                    'complete' => '🏆 Finished!',
                                                                                     'locked' => '🔒 Opens ' . ($quiz->start_at?->format('M j') ?? 'Soon'),
                                                                                     default => '⛔ This Quiz Ended',
                                                                                 };
-                                                                                $qOpenable = in_array($qState, ['available', 'retry', 'retry_passed', 'complete'], true);
-                                                                                $qTeacher = $quiz->teacher?->user?->name ?? $class->teachers->first()?->user?->name ?? 'Your Teacher';
-                                                                                $qRemaining = $qStatus['remaining'] ?? null;
-                                                                            @endphp
-                                                                            <div class="quiz-item qc-{{ $qState }}">
-                                                                                <div class="quiz-item-top">
-                                                                                    <span class="quiz-state-pill qsp-{{ $qState }}">{{ $qPillLabel }}</span>
-                                                                                    @if($qStatus['best'] !== null)
-                                                                                        <span class="quiz-score-pill {{ $qState === 'complete' || $qState === 'retry_passed' ? 'quiz-score-pass' : 'quiz-score-fail' }}">
-                                                                                            🎯 {{ $qStatus['best'] }}%
-                                                                                        </span>
-                                                                                    @endif
-                                                                                </div>
-
-                                                                                <h3>{{ $quiz->title }}</h3>
-
-                                                                                <div class="quiz-meta-row">
-                                                                                    <span class="quiz-meta-chip">🧩 {{ $quiz->questions_count ?? 0 }} questions</span>
-                                                                                    @if($quiz->time_limit_minutes)
-                                                                                        <span class="quiz-meta-chip">⏱️ {{ $quiz->time_limit_minutes }} min</span>
-                                                                                    @endif
-                                                                                    <span class="quiz-meta-chip">🎯 Pass {{ $quiz->passing_percentage }}%</span>
-                                                                                </div>
-
-                                                                                @if($qStatus['attempts']->isNotEmpty())
-                                                                                    <p class="quiz-desc">📅 {{ $qStatus['finished_count'] }} attempt(s) · Last {{ $qStatus['latest']?->completed_at?->format('M j') }}</p>
-                                                                                @else
-                                                                                    <p class="quiz-desc">👨‍🏫 {{ $qTeacher }}</p>
-                                                                                @endif
-
-                                                                                @if($qOpenable)
-                                                                                    <a href="{{ \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz->id]) }}" class="quiz-open-btn">
-                                                                                        {{ $qBtnLabel }}
-                                                                                    </a>
-                                                                                @else
-                                                                                    <span class="quiz-open-btn quiz-open-disabled">{{ $qBtnLabel }}</span>
+                                                                            } elseif ($tier === 'junior') {
+                                                                                $qBtnLabel = match ($qState) {
+                                                                                    'available' => '▶ Start Quiz',
+                                                                                    'retry' => '↻ Try Again',
+                                                                                    'retry_passed' => '↻ Retake Quiz',
+                                                                                    'complete' => '✓ View Results',
+                                                                                    'locked' => '🔒 Locked',
+                                                                                    default => '⛔ Closed',
+                                                                                };
+                                                                                $qPillLabel = match ($qState) {
+                                                                                    'available' => '▶ Ready to Take',
+                                                                                    'retry' => '💪 Try Again',
+                                                                                    'retry_passed' => '✅ Passed',
+                                                                                    'complete' => '🏁 Completed',
+                                                                                    'locked' => '🔒 Opens ' . ($quiz->start_at?->format('M j') ?? 'Soon'),
+                                                                                    default => '⛔ Ended',
+                                                                                };
+                                                                            } else {
+                                                                                $qBtnLabel = match ($qState) {
+                                                                                    'available' => 'Begin Assessment',
+                                                                                    'retry' => 'Retake Assessment',
+                                                                                    'retry_passed' => 'Retake Assessment',
+                                                                                    'complete' => 'Review Results',
+                                                                                    'locked' => 'Assessment Locked',
+                                                                                    default => 'Assessment Closed',
+                                                                                };
+                                                                                $qPillLabel = match ($qState) {
+                                                                                    'available' => 'Available',
+                                                                                    'retry' => 'Review Recommended',
+                                                                                    'retry_passed' => 'Passed',
+                                                                                    'complete' => 'Completed',
+                                                                                    'locked' => 'Opens ' . ($quiz->start_at?->format('M j, Y') ?? 'Soon'),
+                                                                                    default => 'Closed',
+                                                                                };
+                                                                            }
+                                                                            
+                                                                            $qOpenable = in_array($qState, ['available', 'retry', 'retry_passed', 'complete'], true);
+                                                                            $qTeacher = $quiz->teacher?->user?->name ?? $class->teachers->first()?->user?->name ?? 'Your Teacher';
+                                                                            $qRemaining = $qStatus['remaining'] ?? null;
+                                                                        @endphp
+                                                                        <div class="quiz-item qc-{{ $qState }}">
+                                                                            <div class="quiz-item-top">
+                                                                                <span class="quiz-state-pill qsp-{{ $qState }}">{{ $qPillLabel }}</span>
+                                                                                @if($qStatus['best'] !== null)
+                                                                                    <span class="quiz-score-pill {{ $qState === 'complete' || $qState === 'retry_passed' ? 'quiz-score-pass' : 'quiz-score-fail' }}">
+                                                                                        🎯 {{ $qStatus['best'] }}%
+                                                                                    </span>
                                                                                 @endif
                                                                             </div>
-                                                                        @endforeach
-                                                                    </div>
+
+                                                                            <h3>{{ $quiz->title }}</h3>
+
+                                                                            <div class="quiz-meta-row">
+                                                                                <span class="quiz-meta-chip">🧩 {{ $quiz->questions_count ?? 0 }} questions</span>
+                                                                                @if($quiz->time_limit_minutes)
+                                                                                    <span class="quiz-meta-chip">⏱️ {{ $quiz->time_limit_minutes }} min</span>
+                                                                                @endif
+                                                                                <span class="quiz-meta-chip">🎯 Pass {{ $quiz->passing_percentage }}%</span>
+                                                                            </div>
+
+                                                                            @if($qStatus['attempts']->isNotEmpty())
+                                                                                <p class="quiz-desc">📅 {{ $qStatus['finished_count'] }} attempt(s) · Last {{ $qStatus['latest']?->completed_at?->format('M j') }}</p>
+                                                                            @else
+                                                                                <p class="quiz-desc">👨‍🏫 {{ $qTeacher }}</p>
+                                                                            @endif
+
+                                                                            @if($qOpenable)
+                                                                                <a href="{{ \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz->id]) }}" class="quiz-open-btn">
+                                                                                    {{ $qBtnLabel }}
+                                                                                </a>
+                                                                            @else
+                                                                                <span class="quiz-open-btn quiz-open-disabled">{{ $qBtnLabel }}</span>
+                                                                            @endif
+                                                                        </div>
+                                                                    @endforeach
                                                                 </div>
-                                                            @endif
-                                                        @endforeach
-                                                    </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                @endforeach
-                            @endif
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+                            @endforeach
+                        @endif
                     </div>
 
                 {{-- ── TAB 6: GRADES ── --}}

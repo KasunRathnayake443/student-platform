@@ -363,14 +363,6 @@ class QuizAttempt extends Page
     public function pickAnswer(int $questionId, int $optionId): void
     {
         $this->selectAnswer($questionId, $optionId);
-
-        if ($this->finished || ! $this->attempt) {
-            return;
-        }
-
-        if (! $this->isLastQuestion()) {
-            $this->currentIndex++;
-        }
     }
 
     public function goToQuestion(int $index): void

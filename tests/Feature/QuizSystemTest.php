@@ -103,3 +103,55 @@ test('expired quiz attempt auto-submits and prevents further answer modification
     expect($result)->toBeNull()
         ->and($attempt->fresh()->status)->toBe('time_expired');
 });
+
+test('quiz attempt component saves answer without advancing to next question', function () {
+    $quiz = Quiz::with('questions.options', 'learningClass.grade')->where('is_published', true)->first();
+    
+    $student = Student::whereHas('enrollments', function ($q) use ($quiz) {
+        $q->where('status', 'active')->whereHas('classes', function ($cq) use ($quiz) {
+            $cq->where('learning_classes.id', $quiz->learning_class_id);
+        });
+    })->first();
+
+    if (! $student) {
+        $student = Student::first();
+        $enrollment = $student->enrollments()->create([
+            'school_id' => $quiz->learningClass->grade->school_id,
+            'grade_id' => $quiz->learningClass->grade_id,
+            'status' => 'active',
+            'academic_year' => '2026',
+            'enrolled_at' => now(),
+        ]);
+        $enrollment->classes()->attach($quiz->learning_class_id);
+    }
+
+    $user = $student->user;
+
+    \Livewire\Livewire::actingAs($user)
+        ->withQueryParams(['quiz' => $quiz->id])
+        ->test(\App\Filament\Student\Pages\QuizAttempt::class)
+        ->call('startAttempt')
+        ->assertSet('currentIndex', 0)
+        ->tap(function ($component) use ($quiz) {
+            $firstQuestion = $quiz->questions->first();
+            $option = $firstQuestion->options->first();
+
+            $component->call('selectAnswer', $firstQuestion->id, $option->id);
+            // Verify currentIndex did NOT change
+            $component->assertSet('currentIndex', 0);
+            $component->assertSet("answers.{$firstQuestion->id}", $option->id);
+
+            // Also test pickAnswer does not auto-advance
+            $component->call('pickAnswer', $firstQuestion->id, $option->id);
+            $component->assertSet('currentIndex', 0);
+
+            // Next button navigates to question 2
+            $component->call('nextOrSubmit');
+            $component->assertSet('currentIndex', 1);
+
+            // Prev button goes back to question 1
+            $component->call('previousQuestion');
+            $component->assertSet('currentIndex', 0);
+        });
+});
+
