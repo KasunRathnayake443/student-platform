@@ -441,6 +441,7 @@
                 <span class="bento-streak-pill">🔥 {{ $streak }}-day streak</span>
                 @endif
                 <span class="bento-context-badge">📍 {{ $activeSchoolName }} › {{ $activeGradeName }}</span>
+                <livewire:notification-panel :tier="'junior'" />
             </div>
         </div>
     </div>

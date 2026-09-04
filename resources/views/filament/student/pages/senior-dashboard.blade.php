@@ -372,6 +372,7 @@
                 <div class="sd-context-pill">
                     📍 {{ $activeSchoolName }} › {{ $activeGradeName }}
                 </div>
+                <livewire:notification-panel :tier="'senior'" />
             </div>
         </div>
 

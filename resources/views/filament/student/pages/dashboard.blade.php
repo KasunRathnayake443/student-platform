@@ -2518,6 +2518,8 @@
         .kids-mode .workspace-content.kids-tab-space { padding: 1.5rem 1.25rem 2.5rem; }
         .topbar-title h1 { font-size: 1.3rem; }
     }
+
+    /* ── Notifications are styled in Livewire NotificationPanel and NotificationsView components ── */
     </style>
 
     <div class="custom-app-container {{ $tier === 'kids' ? 'kids-mode' : '' }}">
@@ -2564,6 +2566,10 @@
                     <button wire:click="setTab('calendar')" type="button" class="nav-link {{ $activeTab === 'calendar' ? 'active' : '' }}">
                         <span class="nav-icon">📅</span>
                         <span>Calendar</span>
+                    </button>
+                    <button wire:click="setTab('notifications')" type="button" class="nav-link {{ $activeTab === 'notifications' ? 'active' : '' }}">
+                        <span class="nav-icon">🔔</span>
+                        <span>Notifications</span>
                     </button>
                     <button wire:click="setTab('profile')" type="button" class="nav-link {{ $activeTab === 'profile' ? 'active' : '' }}">
                         <span class="nav-icon">👤</span>
@@ -2637,6 +2643,9 @@
                     @elseif($activeTab === 'calendar')
                         <h1>Calendar 📅</h1>
                         <p>Track your assignments, quizzes, and deadlines at a glance.</p>
+                    @elseif($activeTab === 'notifications')
+                        <h1>Notifications 🔔</h1>
+                        <p>Stay up to date with your classes, assignments, and quizzes.</p>
                     @else
                         <h1>Welcome back, {{ $firstName }}! 👋</h1>
                         <p>{{ now()->format('l, F j, Y') }} · Have a great study session today!</p>
@@ -2647,6 +2656,7 @@
                     <div class="active-context-badge">
                         📍 {{ $activeSchoolName }} › {{ $activeGradeName }}
                     </div>
+                    <livewire:notification-panel :tier="$tier" />
                 </div>
             </header>
 
@@ -3913,7 +3923,18 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                         </div>
                     @endif
 
-                {{-- ── TAB 8: PROFILE ── --}}
+                {{-- ── TAB 8: NOTIFICATIONS ── --}}
+                @elseif($activeTab === 'notifications')
+                    @include('filament.student.pages.components.notifications-view', [
+                        'tier' => $tier,
+                        'notifications' => $notifications,
+                        'notifStats' => $notifStats ?? [],
+                        'notificationFilter' => $notificationFilter ?? 'all',
+                        'notificationSearch' => $notificationSearch ?? '',
+                    ])
+
+
+                {{-- ── TAB 9: PROFILE ── --}}
                 @elseif($activeTab === 'profile')
                     <div class="profile-wrap">
                         @if($profileMessage)

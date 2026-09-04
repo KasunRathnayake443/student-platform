@@ -83,6 +83,23 @@ class User extends Authenticatable implements FilamentUser
         );
     }
 
+    public function receivedNotifications(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Notification::class,
+            'notification_recipients',
+            'recipient_id',
+            'notification_id'
+        )
+            ->withPivot(['id', 'is_read', 'read_at'])
+            ->withTimestamps();
+    }
+
+    public function sentNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'sender_id');
+    }
+
     /**
      * @return HasOne<Teacher, $this>
      */

@@ -4,7 +4,9 @@ namespace App\Filament\Student\Pages;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\Notification;
 use App\Models\Student;
+use App\Services\NotificationService;
 use App\Services\StudentContextService;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Carbon;
@@ -12,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class Dashboard extends BaseDashboard
@@ -102,7 +105,7 @@ class Dashboard extends BaseDashboard
         $this->profileParentPhone = $this->student->parent_phone ?? '';
 
         $tab = request()->query('tab');
-        if (is_string($tab) && in_array($tab, ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'calendar', 'profile'], true)) {
+        if (is_string($tab) && in_array($tab, ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'calendar', 'notifications', 'profile'], true)) {
             $this->activeTab = $tab;
         }
         $classFilter = request()->query('class_filter');
@@ -274,6 +277,38 @@ class Dashboard extends BaseDashboard
         $this->allContexts = $service->getContextsGroupedBySchool($this->student);
     }
 
+    public string $notificationFilter = 'all'; // 'all', 'unread', 'assignment', 'quiz', 'lesson', 'announcement'
+
+    public string $notificationSearch = '';
+
+    public function setNotificationFilter(string $filter): void
+    {
+        $this->notificationFilter = in_array($filter, ['all', 'unread', 'assignment', 'quiz', 'lesson', 'announcement'], true)
+            ? $filter
+            : 'all';
+    }
+
+    public function markNotificationAsRead(int $notificationId): void
+    {
+        $user = Auth::user();
+        $notification = Notification::find($notificationId);
+
+        if ($user && $notification) {
+            app(NotificationService::class)->markAsRead($user, $notification);
+            $this->dispatch('notification-updated');
+        }
+    }
+
+    public function markAllNotificationsAsRead(): void
+    {
+        $user = Auth::user();
+
+        if ($user) {
+            app(NotificationService::class)->markAllAsRead($user);
+            $this->dispatch('notification-updated');
+        }
+    }
+
     public function refreshContext(): void
     {
         $service = app(StudentContextService::class);
@@ -290,14 +325,98 @@ class Dashboard extends BaseDashboard
         $this->redirect('/student/login');
     }
 
+    #[On('open-tab')]
+    public function openTabFromEvent($tab = 'dashboard'): void
+    {
+        if (is_array($tab)) {
+            $tab = $tab['tab'] ?? $tab[0] ?? 'dashboard';
+        }
+
+        $this->setTab((string) $tab);
+    }
+
     protected function getViewData(): array
     {
+        $user = auth()->user();
+        $service = app(NotificationService::class);
+
+        $query = Notification::query()->with(['sender', 'recipients']);
+        $rawNotifications = $service->scopeQueryFor($user, $query)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        $readIds = $service->readRecipientIdsFor($user);
+
+        $allFormatted = $rawNotifications->map(function (Notification $n) use ($service, $user, $readIds) {
+            $isRead = $readIds->contains($n->getKey());
+            $mentionType = $n->mention_type?->value;
+
+            return [
+                'id' => $n->getKey(),
+                'title' => $n->title,
+                'body' => $n->body,
+                'icon' => $n->icon,
+                'color' => $n->color ?: 'primary',
+                'mention_type' => $mentionType,
+                'created_at' => $n->created_at,
+                'sender' => $n->sender?->name ?? 'System',
+                'is_read' => $isRead,
+                'mention_label' => $service->mentionLabel($n),
+                'mention_url' => $service->mentionUrl($user, $n),
+            ];
+        });
+
+        // Compute counts
+        $unreadCount = $allFormatted->where('is_read', false)->count();
+        $assignmentCount = $allFormatted->where('mention_type', 'assignment')->count();
+        $quizCount = $allFormatted->where('mention_type', 'quiz')->count();
+        $lessonCount = $allFormatted->where('mention_type', 'lesson')->count();
+        $announcementCount = $allFormatted->whereNull('mention_type')->count();
+
+        // Apply search and filter
+        $filtered = $allFormatted;
+
+        if ($this->notificationFilter === 'unread') {
+            $filtered = $filtered->where('is_read', false);
+        } elseif ($this->notificationFilter === 'assignment') {
+            $filtered = $filtered->where('mention_type', 'assignment');
+        } elseif ($this->notificationFilter === 'quiz') {
+            $filtered = $filtered->where('mention_type', 'quiz');
+        } elseif ($this->notificationFilter === 'lesson') {
+            $filtered = $filtered->where('mention_type', 'lesson');
+        } elseif ($this->notificationFilter === 'announcement') {
+            $filtered = $filtered->whereNull('mention_type');
+        }
+
+        if (filled($this->notificationSearch)) {
+            $term = mb_strtolower(trim($this->notificationSearch));
+            $filtered = $filtered->filter(function ($item) use ($term) {
+                return str_contains(mb_strtolower($item['title'] ?? ''), $term)
+                    || str_contains(mb_strtolower($item['body'] ?? ''), $term)
+                    || str_contains(mb_strtolower($item['sender'] ?? ''), $term)
+                    || str_contains(mb_strtolower($item['mention_label'] ?? ''), $term);
+            });
+        }
+
         return [
             'tier' => $this->tier,
             'student' => $this->student,
             'activeContext' => $this->activeContext,
             'allContexts' => $this->allContexts,
             'firstName' => explode(' ', $this->student?->user->name ?? 'Student')[0],
+            'notifications' => $filtered->values(),
+            'allNotificationsCount' => $allFormatted->count(),
+            'notifStats' => [
+                'total' => $allFormatted->count(),
+                'unread' => $unreadCount,
+                'assignments' => $assignmentCount,
+                'quizzes' => $quizCount,
+                'lessons' => $lessonCount,
+                'announcements' => $announcementCount,
+            ],
+            'notificationFilter' => $this->notificationFilter,
+            'notificationSearch' => $this->notificationSearch,
         ];
     }
 }

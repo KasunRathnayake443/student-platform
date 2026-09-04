@@ -6,6 +6,7 @@ use App\Filament\Student\Pages\AssignmentView;
 use App\Filament\Student\Pages\Auth\StudentLogin;
 use App\Filament\Student\Pages\Dashboard;
 use App\Filament\Student\Pages\LessonView;
+use App\Filament\Student\Pages\Notifications;
 use App\Filament\Student\Pages\QuizAttempt;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -39,6 +40,7 @@ class StudentPanelProvider extends PanelProvider
                 LessonView::class,
                 AssignmentView::class,
                 QuizAttempt::class,
+                Notifications::class,
             ])
             ->middleware([
                 EncryptCookies::class,

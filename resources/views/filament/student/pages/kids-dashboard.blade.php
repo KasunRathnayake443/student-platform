@@ -417,6 +417,7 @@
                 <div class="kids-date-badge">
                     📅 {{ now()->format('D, M j') }}
                 </div>
+                <livewire:notification-panel :tier="'kids'" />
             </div>
         </div>
     </div>
