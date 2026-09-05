@@ -2722,8 +2722,16 @@
                         <h1>Grades & Report Card 🏆</h1>
                         <p>Comprehensive summary of your academic progress and subject performance.</p>
                     @elseif($activeTab === 'calendar')
-                        <h1>Calendar 📅</h1>
-                        <p>Track your assignments, quizzes, and deadlines at a glance.</p>
+                        @if($tier === 'junior')
+                            <h1>Academic Calendar & Planner 📅</h1>
+                            <p>Track assignments, test deadlines, and organize your study schedule.</p>
+                        @elseif($tier === 'senior')
+                            <h1>Academic Schedule & Deadlines 📅</h1>
+                            <p>Comprehensive agenda, course evaluations, and milestone timeline.</p>
+                        @else
+                            <h1>Calendar & Homework 📅</h1>
+                            <p>Track your assignments, quizzes, and deadlines at a glance.</p>
+                        @endif
                     @elseif($activeTab === 'notifications')
                         <h1>Notifications 🔔</h1>
                         <p>Stay up to date with your classes, assignments, and quizzes.</p>
@@ -3664,7 +3672,7 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                         @endif
                     </div>
 
-                {{-- ── TAB 7: CALENDAR ── --}}
+                {{-- ── TAB 7: CALENDAR (BY TIER) ── --}}
                 @elseif($activeTab === 'calendar')
                     @php
                         $calYear = ($calendarYear ?? 0) ?: (int) now()->year;
@@ -3689,30 +3697,82 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                     }
                                 }
                             }
+                            $allClasses = $allClasses->keyBy('id')->values();
                         }
 
                         $calEvents = [];
+                        $asgnCount = 0;
+                        $quizCount = 0;
+                        $urgentCount = 0;
+                        $now48h = now()->addHours(48);
+
                         foreach ($allClasses as $cls) {
                             $clsAssignments = $cls->assignments()->with('learningClass')->where('is_published', true)->get();
                             foreach ($clsAssignments as $asgn) {
                                 if ($asgn->start_at) {
                                     $d = \Carbon\Carbon::parse($asgn->start_at)->format('Y-m-d');
-                                    $calEvents[$d][] = ['type' => 'assignment_start', 'title' => $asgn->title, 'class' => $cls->name, 'icon' => '📋', 'color' => '#3b82f6', 'meta' => 'Assignment starts', 'url' => '/student/assignment?assignment='.$asgn->id];
+                                    $calEvents[$d][] = [
+                                        'type' => 'assignment_start',
+                                        'title' => $asgn->title,
+                                        'class' => $cls->name,
+                                        'class_id' => $cls->id,
+                                        'icon' => '📋',
+                                        'color' => '#3b82f6',
+                                        'meta' => 'Assignment opens',
+                                        'url' => \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $asgn->id]),
+                                    ];
                                 }
                                 if ($asgn->end_at) {
-                                    $d = \Carbon\Carbon::parse($asgn->end_at)->format('Y-m-d');
-                                    $calEvents[$d][] = ['type' => 'assignment_due', 'title' => $asgn->title, 'class' => $cls->name, 'icon' => '📋', 'color' => '#f97316', 'meta' => 'Assignment due', 'url' => '/student/assignment?assignment='.$asgn->id];
+                                    $endCarbon = \Carbon\Carbon::parse($asgn->end_at);
+                                    $d = $endCarbon->format('Y-m-d');
+                                    $asgnCount++;
+                                    if ($endCarbon->isFuture() && $endCarbon->lte($now48h)) {
+                                        $urgentCount++;
+                                    }
+                                    $calEvents[$d][] = [
+                                        'type' => 'assignment_due',
+                                        'title' => $asgn->title,
+                                        'class' => $cls->name,
+                                        'class_id' => $cls->id,
+                                        'icon' => '📋',
+                                        'color' => '#f97316',
+                                        'meta' => 'Assignment due at ' . $endCarbon->format('g:i A'),
+                                        'url' => \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $asgn->id]),
+                                    ];
                                 }
                             }
                             $clsQuizzes = $cls->quizzes()->with('learningClass')->where('is_published', true)->get();
                             foreach ($clsQuizzes as $quiz) {
                                 if ($quiz->start_at) {
                                     $d = \Carbon\Carbon::parse($quiz->start_at)->format('Y-m-d');
-                                    $calEvents[$d][] = ['type' => 'quiz_start', 'title' => $quiz->title, 'class' => $cls->name, 'icon' => '🧠', 'color' => '#8b5cf6', 'meta' => 'Quiz opens', 'url' => '/student/quiz-attempt?quiz='.$quiz->id];
+                                    $calEvents[$d][] = [
+                                        'type' => 'quiz_start',
+                                        'title' => $quiz->title,
+                                        'class' => $cls->name,
+                                        'class_id' => $cls->id,
+                                        'icon' => '🧠',
+                                        'color' => '#8b5cf6',
+                                        'meta' => 'Quiz opens',
+                                        'url' => \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz->id]),
+                                    ];
                                 }
                                 if ($quiz->end_at) {
-                                    $d = \Carbon\Carbon::parse($quiz->end_at)->format('Y-m-d');
-                                    $calEvents[$d][] = ['type' => 'quiz_due', 'title' => $quiz->title, 'class' => $cls->name, 'icon' => '🧠', 'color' => '#e11d48', 'meta' => 'Quiz deadline', 'url' => '/student/quiz-attempt?quiz='.$quiz->id];
+                                    $endCarbon = \Carbon\Carbon::parse($quiz->end_at);
+                                    $d = $endCarbon->format('Y-m-d');
+                                    $quizCount++;
+                                    if ($endCarbon->isFuture() && $endCarbon->lte($now48h)) {
+                                        $urgentCount++;
+                                    }
+                                    $calEvents[$d][] = [
+                                        'type' => 'quiz_due',
+                                        'title' => $quiz->title,
+                                        'class' => $cls->name,
+                                        'class_id' => $cls->id,
+                                        'icon' => '🧠',
+                                        'color' => '#e11d48',
+                                        'meta' => 'Quiz deadline ' . $endCarbon->format('g:i A'),
+                                        'url' => \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz->id]),
+                                    ];
                                 }
                             }
                         }
@@ -3723,341 +3783,93 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                         if ($student) {
                             $monthStart = $calMonthObj->copy()->startOfMonth()->toDateString();
                             $monthEnd = $calMonthObj->copy()->endOfMonth()->toDateString();
-                            foreach ($student->calendarNotes()->whereBetween('note_date', [$monthStart, $monthEnd])->get() as $cn) {
-                                $calNotes[$cn->note_date->format('Y-m-d')] = ['id' => $cn->id, 'content' => $cn->content];
+                            foreach ($student->calendarNotes()->whereBetween('note_date', [$monthStart, $monthEnd])->orderBy('id')->get() as $cn) {
+                                $calNotes[$cn->note_date->format('Y-m-d')][] = ['id' => $cn->id, 'content' => $cn->content];
                             }
                         }
+                        $notesCount = array_sum(array_map('count', $calNotes));
                     @endphp
-
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-                        .cal-wrap{font-family:'Inter',system-ui,sans-serif;width:100%;display:grid;grid-template-columns:1fr 340px;gap:1.5rem;min-height:520px}
-                        @media(max-width:900px){.cal-wrap{grid-template-columns:1fr}.cal-panel-wrap{position:fixed;top:0;right:0;width:340px;height:100vh;z-index:100;box-shadow:-4px 0 20px rgba(0,0,0,0.15)}}
-                        .cal-grid-wrap{background:#fff;border:1px solid #eeeeee;border-radius:1rem;padding:1.4rem 1.4rem 1rem;box-shadow:0 6px 24px rgba(0,0,0,0.06)}
-                        .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
-                        .cal-nav-left{display:flex;align-items:center;gap:0.85rem;min-width:0}
-                        .cal-nav-left .cal-month{font-size:1.4rem;font-weight:900;color:#222222;margin:0;letter-spacing:0.02em;text-transform:uppercase;line-height:1}
-                        .cal-nav-right{display:flex;align-items:center;gap:0.55rem}
-                        .cal-dot-accent{font-size:0.75rem;color:#222222;line-height:1;font-weight:700}
-                        .cal-year{font-size:1.05rem;font-weight:700;color:#222222;line-height:1;letter-spacing:0.02em}
-                        .cal-nav-btn{width:2.1rem;height:2.1rem;border-radius:0.55rem;border:1px solid #e5e5e5;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#222222;transition:all .15s;line-height:1}
-                        .cal-nav-btn:hover{background:#f5f5f5;border-color:#cccccc}
-                        .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:0;background:#f5f5f5;border:1px solid #e5e5e5;border-radius:0.6rem;overflow:hidden;margin-bottom:0.6rem}
-                        .cal-wd{font-size:0.68rem;font-weight:800;color:#222222;text-align:center;text-transform:uppercase;letter-spacing:0.06em;padding:0.55rem 0;background:#f5f5f5;font-family:'Inter',sans-serif}
-                        .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border:1px solid #e5e5e5;border-top:none;border-bottom:none;border-radius:0 0 0.6rem 0.6rem;overflow:hidden}
-                        .cal-day{min-height:3.7rem;border:1px solid #e5e5e5;border-top:none;border-left:none;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:0.35rem 0.45rem;cursor:pointer;transition:background .15s;position:relative;vertical-align:top}
-                        .cal-days .cal-day:nth-child(7n+1){border-left:1px solid #e5e5e5}
-                        .cal-day:hover{background:#fafafa}
-                        .cal-day-num{font-size:0.8rem;font-weight:600;color:#222222;line-height:1;align-self:flex-start}
-                        .cal-day.empty{cursor:default}.cal-day.empty:hover{background:transparent}
-                        .cal-day.empty .cal-day-num{color:transparent}
-                        .cal-day.today{background:#eef2ff}.cal-day.today .cal-day-num{color:#4f46e5;font-weight:700}
-                        .cal-day.selected{background:#4f46e5;border-color:#4f46e5}.cal-day.selected .cal-day-num{color:#fff}
-                        .cal-day.has-events .cal-day-num{font-weight:700}
-                        .cal-dots{display:flex;gap:3px;margin-top:auto;margin-left:0.15rem;flex-wrap:wrap}
-                        .cal-dot{width:6px;height:6px;border-radius:50%}
-                        .cal-dot-assignment_start,.cal-dot-assignment_due{background:#3b82f6}
-                        .cal-dot-quiz_start{background:#8b5cf6}
-                        .cal-dot-quiz_due{background:#e11d48}
-                        .cal-dot-note{background:#10b981}
-                        .cal-panel-wrap{background:#fff;border:1px solid #eeeeee;border-radius:1rem;padding:1.4rem;box-shadow:0 6px 24px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:1rem;overflow-y:auto;max-height:calc(100vh - 120px)}
-                        .cal-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem}
-                        .cal-panel-head h3{font-size:1rem;font-weight:800;color:#222222;margin:0}
-                        .cal-panel-close{width:1.8rem;height:1.8rem;border-radius:0.5rem;border:1px solid #e5e5e5;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#94a3b8;transition:all .15s}
-                        .cal-panel-close:hover{background:#fef2f2;border-color:#fecaca;color:#e11d48}
-                        .cal-panel-empty{color:#94a3b8;font-size:0.88rem;text-align:center;padding:2rem 0.5rem;font-weight:500}
-                        .cal-event-item{display:flex;align-items:flex-start;gap:0.7rem;padding:0.65rem 0.75rem;border-radius:0.75rem;border:1px solid #f1f5f9;transition:all .15s;text-decoration:none}
-                        .cal-event-link{cursor:pointer}
-                        .cal-event-link:hover{background:#f8fafc;border-color:#dbe3ee}
-                        .cal-event-icon{width:2rem;height:2rem;border-radius:0.55rem;display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0}
-                        .cal-event-title{font-size:0.85rem;font-weight:700;color:#222222}
-                        .cal-event-meta{font-size:0.72rem;color:#94a3b8;font-weight:500;margin-top:0.1rem}
-                        .cal-event-class{font-size:0.7rem;color:#64748b;font-weight:600}
-                        .cal-event-go{font-size:0.72rem;color:#4f46e5;font-weight:700;margin-top:0.2rem}
-                        .cal-section-label{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;margin-top:0.5rem}
-                        .cal-note-card{display:flex;align-items:flex-start;gap:0.6rem;padding:0.7rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0.75rem}
-                        .cal-note-card p{margin:0;font-size:0.82rem;color:#166534;font-weight:500;flex:1;word-break:break-word}
-                        .cal-note-del{width:1.5rem;height:1.5rem;border-radius:0.4rem;border:1px solid #fecaca;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.8rem;color:#e11d48;flex-shrink:0;transition:all .15s}
-                        .cal-note-del:hover{background:#fef2f2}
-                        .cal-note-form{display:flex;gap:0.5rem;align-items:flex-end}
-                        .cal-note-form textarea{flex:1;border:1px solid #e5e5e5;border-radius:0.65rem;padding:0.55rem 0.75rem;font-size:0.82rem;font-family:inherit;resize:none;outline:none;transition:border-color .15s;min-height:2.2rem;max-height:5rem;color:#222222}
-                        .cal-note-form textarea:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.08)}
-                        .cal-note-save{padding:0.55rem 1rem;border-radius:0.65rem;background:#4f46e5;color:#fff;border:none;font-weight:700;font-size:0.8rem;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit}
-                        .cal-note-save:hover{background:#4338ca}
-                        .cal-legend{display:flex;flex-wrap:wrap;gap:0.75rem;padding:0.75rem 0 0;border-top:1px solid #eeeeee;margin-top:1rem}
-                        .cal-legend-item{display:flex;align-items:center;gap:0.35rem;font-size:0.72rem;color:#64748b;font-weight:600}
-                        .cal-legend-dot{width:8px;height:8px;border-radius:50%}
-                        .cal-greeting{text-align:center;padding:0.2rem 0 1rem}
-                        .cal-greeting h2{font-size:1.5rem;font-weight:900;color:#222222;margin:0}
-                        .cal-greeting p{color:#64748b;font-size:0.85rem;margin:0.2rem 0 0;font-weight:500}
-                    </style>
 
                     <script type="application/json" id="cal-events-json">{!! json_encode($calEvents) !!}</script>
                     <script type="application/json" id="cal-notes-json">{!! json_encode($calNotes) !!}</script>
 
                     @if($tier === 'kids')
-                        {{-- ══════ KIDS CALENDAR LAYOUT ══════ --}}
-                        <div style="background:#fff;border:1px solid #f1f5f9;border-radius:1.25rem;padding:1.75rem;box-shadow:0 1px 3px rgba(15,23,42,0.06)">
-                            <div class="cal-greeting">
-                                <h2>🗓️ Your Calendar, {{ $firstName }}!</h2>
-                                <p>See all your homework and quiz dates here. Click any day to see what's happening!</p>
-                            </div>
-
-                            <div class="cal-wrap" x-data="{
-                                events: JSON.parse(document.getElementById('cal-events-json').textContent || '{}'),
-                                notes: JSON.parse(document.getElementById('cal-notes-json').textContent || '{}'),
-                                panel: {{ $calendarSelectedDate ? 'true' : 'false' }},
-                                selDate: @js($calendarSelectedDate),
-                                openDay(d) { this.selDate = d; this.panel = true; @this.set('calendarSelectedDate', d); },
-                                closePanel() { this.panel = false; this.selDate = null; @this.set('calendarSelectedDate', null); },
-                                dayEvents(d) { return this.events[d] || []; },
-                                dayNote(d) { return this.notes[d] || null; },
-                                hasAny(d) { return (this.events[d] && this.events[d].length > 0) || this.notes[d]; },
-                                evColor(e) { return e.color || '#6366f1'; }
-                            }">
-                                <div class="cal-grid-wrap">
-                                    <div class="cal-nav">
-                                        <div class="cal-nav-left">
-                                            <button wire:click="prevCalendarMonth" class="cal-nav-btn" aria-label="Previous month">‹</button>
-                                            <h2 class="cal-month">🌈 {{ $calMonthLabel }}</h2>
-                                        </div>
-                                        <div class="cal-nav-right">
-                                            <span class="cal-dot-accent">•</span>
-                                            <span class="cal-year">{{ $calYearLabel }}</span>
-                                            <span class="cal-dot-accent">•</span>
-                                            <button wire:click="nextCalendarMonth" class="cal-nav-btn" aria-label="Next month">›</button>
-                                        </div>
-                                    </div>
-                                    <div class="cal-weekdays">
-                                        @foreach($calWeekdays as $wd)
-                                            <div class="cal-wd">{{ $wd }}</div>
-                                        @endforeach
-                                    </div>
-                                    <div class="cal-days">
-                                        @for($i = 0; $i < $calFirstDayOfWeek; $i++)
-                                            <div class="cal-day empty"></div>
-                                        @endfor
-                                        @for($d = 1; $d <= $calDaysInMonth; $d++)
-                                            @php $ds = $calMonthObj->copy()->day($d)->format('Y-m-d'); @endphp
-                                            <div class="cal-day {{ $ds === $calToday ? 'today' : '' }} {{ $calendarSelectedDate === $ds ? 'selected' : '' }}"
-                                                 @click="openDay('{{ $ds }}')" :class="{ 'has-events': hasAny('{{ $ds }}') }">
-                                                <span class="cal-day-num">{{ $d }}</span>
-                                                <div class="cal-dots">
-                                                    @if(isset($calEvents[$ds]))
-                                                        @foreach(array_slice($calEvents[$ds], 0, 3) as $ev)
-                                                            <span class="cal-dot cal-dot-{{ $ev['type'] }}"></span>
-                                                        @endforeach
-                                                    @endif
-                                                    @if(isset($calNotes[$ds]))
-                                                        <span class="cal-dot cal-dot-note"></span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endfor
-                                    </div>
-                                    <div class="cal-legend">
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#3b82f6"></span> Assignment</div>
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#8b5cf6"></span> Quiz opens</div>
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#e11d48"></span> Quiz deadline</div>
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#10b981"></span> Your note</div>
-                                    </div>
-                                </div>
-
-                                <div class="cal-panel-wrap" x-show="panel" x-cloak x-transition>
-                                    <template x-if="panel && selDate">
-                                        <div>
-                                            <div class="cal-panel-head">
-                                                <h3 x-text="new Date(selDate + 'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'})"></h3>
-                                                <button @click="closePanel()" class="cal-panel-close">✕</button>
-                                            </div>
-
-                                            <template x-if="dayEvents(selDate).length > 0">
-                                                <div>
-                                                    <div class="cal-section-label">📌 Events</div>
-                                                    <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.4rem">
-                                                        <template x-for="(ev, i) in dayEvents(selDate)" :key="i">
-                                                            <a class="cal-event-item cal-event-link" :href="ev.url" target="_self">
-                                                                <div class="cal-event-icon" :style="'background:'+ev.color+'20;color:'+ev.color">
-                                                                    <span x-text="ev.icon"></span>
-                                                                </div>
-                                                                <div>
-                                                                    <div class="cal-event-title" x-text="ev.title"></div>
-                                                                    <div class="cal-event-class" x-text="ev.class"></div>
-                                                                    <div class="cal-event-meta" x-text="ev.meta"></div>
-                                                                    <div class="cal-event-go">Open {{ '' }}<span x-text="ev.type.startsWith('quiz') ? 'Quiz' : 'Assignment'"></span> →</div>
-                                                                </div>
-                                                            </a>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                            <template x-if="dayEvents(selDate).length === 0 && !dayNote(selDate)">
-                                                <div class="cal-panel-empty">🎉 No events — enjoy your day!</div>
-                                            </template>
-
-                                            <div style="margin-top:0.75rem">
-                                                <div class="cal-section-label">📝 Your Notes</div>
-                                                <div style="margin-top:0.4rem">
-                                                    <template x-if="dayNote(selDate)">
-                                                        <div class="cal-note-card">
-                                                            <p x-text="dayNote(selDate).content"></p>
-                                                            <button class="cal-note-del" @click="
-                                                                const nid = dayNote(selDate).id;
-                                                                const nd = {};
-                                                                Object.assign(nd, notes); delete nd[selDate]; notes = nd;
-                                                                @this.call('deleteCalendarNote', nid);
-                                                            ">✕</button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="!dayNote(selDate)">
-                                                        <div class="cal-note-form">
-                                                            <textarea x-model="$wire.calendarNoteText" placeholder="Write a note... 🖊️" rows="2"></textarea>
-                                                            <button class="cal-note-save" @click="
-                                                                const txt = $wire.calendarNoteText;
-                                                                if(!txt || !txt.trim()) return;
-                                                                const newNotes = {}; Object.assign(newNotes, notes);
-                                                                newNotes[selDate] = {id:0, content:txt.trim()};
-                                                                notes = newNotes;
-                                                                @this.call('saveCalendarNote');
-                                                            ">Save ✨</button>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-
+                        @include('filament.student.pages.calendar.kids-calendar', [
+                            'student'              => $student,
+                            'firstName'            => $firstName,
+                            'calYear'              => $calYear,
+                            'calMonth'             => $calMonth,
+                            'calMonthObj'          => $calMonthObj,
+                            'calDaysInMonth'       => $calDaysInMonth,
+                            'calFirstDayOfWeek'    => $calFirstDayOfWeek,
+                            'calToday'             => $calToday,
+                            'calPrevMonth'         => $calPrevMonth,
+                            'calNextMonth'         => $calNextMonth,
+                            'calMonthName'         => $calMonthName,
+                            'calMonthLabel'        => $calMonthLabel,
+                            'calYearLabel'         => $calYearLabel,
+                            'calWeekdays'          => $calWeekdays,
+                            'allClasses'           => $allClasses,
+                            'calEvents'            => $calEvents,
+                            'calNotes'             => $calNotes,
+                            'calendarSelectedDate' => $calendarSelectedDate,
+                            'asgnCount'            => $asgnCount,
+                            'quizCount'            => $quizCount,
+                            'notesCount'           => $notesCount,
+                            'urgentCount'          => $urgentCount,
+                        ])
+                    @elseif($tier === 'junior')
+                        @include('filament.student.pages.calendar.junior-calendar', [
+                            'student'              => $student,
+                            'firstName'            => $firstName,
+                            'activeGradeName'      => $activeGradeName,
+                            'calYear'              => $calYear,
+                            'calMonth'             => $calMonth,
+                            'calMonthObj'          => $calMonthObj,
+                            'calDaysInMonth'       => $calDaysInMonth,
+                            'calFirstDayOfWeek'    => $calFirstDayOfWeek,
+                            'calToday'             => $calToday,
+                            'calPrevMonth'         => $calPrevMonth,
+                            'calNextMonth'         => $calNextMonth,
+                            'calMonthName'         => $calMonthName,
+                            'calMonthLabel'        => $calMonthLabel,
+                            'calYearLabel'         => $calYearLabel,
+                            'calWeekdays'          => $calWeekdays,
+                            'allClasses'           => $allClasses,
+                            'calEvents'            => $calEvents,
+                            'calNotes'             => $calNotes,
+                            'calendarSelectedDate' => $calendarSelectedDate,
+                            'asgnCount'            => $asgnCount,
+                            'quizCount'            => $quizCount,
+                            'notesCount'           => $notesCount,
+                            'urgentCount'          => $urgentCount,
+                        ])
                     @else
-                        {{-- ══════ JUNIOR/SENIOR CALENDAR LAYOUT ══════ --}}
-                        <div style="background:#fff;border:1px solid #f1f5f9;border-radius:1.25rem;padding:1.75rem;box-shadow:0 1px 3px rgba(15,23,42,0.06)">
-                            <div class="cal-wrap" x-data="{
-                                events: JSON.parse(document.getElementById('cal-events-json').textContent || '{}'),
-                                notes: JSON.parse(document.getElementById('cal-notes-json').textContent || '{}'),
-                                panel: {{ $calendarSelectedDate ? 'true' : 'false' }},
-                                selDate: @js($calendarSelectedDate),
-                                openDay(d) { this.selDate = d; this.panel = true; @this.set('calendarSelectedDate', d); },
-                                closePanel() { this.panel = false; this.selDate = null; @this.set('calendarSelectedDate', null); },
-                                dayEvents(d) { return this.events[d] || []; },
-                                dayNote(d) { return this.notes[d] || null; },
-                                hasAny(d) { return (this.events[d] && this.events[d].length > 0) || this.notes[d]; }
-                            }">
-                                <div class="cal-grid-wrap">
-                                    <div class="cal-nav">
-                                        <div class="cal-nav-left">
-                                            <button wire:click="prevCalendarMonth" class="cal-nav-btn" aria-label="Previous month">‹</button>
-                                            <h2 class="cal-month">{{ $calMonthLabel }}</h2>
-                                        </div>
-                                        <div class="cal-nav-right">
-                                            <span class="cal-dot-accent">•</span>
-                                            <span class="cal-year">{{ $calYearLabel }}</span>
-                                            <span class="cal-dot-accent">•</span>
-                                            <button wire:click="nextCalendarMonth" class="cal-nav-btn" aria-label="Next month">›</button>
-                                        </div>
-                                    </div>
-                                    <div class="cal-weekdays">
-                                        @foreach($calWeekdays as $wd)
-                                            <div class="cal-wd">{{ $wd }}</div>
-                                        @endforeach
-                                    </div>
-                                    <div class="cal-days">
-                                        @for($i = 0; $i < $calFirstDayOfWeek; $i++)
-                                            <div class="cal-day empty"></div>
-                                        @endfor
-                                        @for($d = 1; $d <= $calDaysInMonth; $d++)
-                                            @php $ds = $calMonthObj->copy()->day($d)->format('Y-m-d'); @endphp
-                                            <div class="cal-day {{ $ds === $calToday ? 'today' : '' }} {{ $calendarSelectedDate === $ds ? 'selected' : '' }}"
-                                                 @click="openDay('{{ $ds }}')" :class="{ 'has-events': hasAny('{{ $ds }}') }">
-                                                <span class="cal-day-num">{{ $d }}</span>
-                                                <div class="cal-dots">
-                                                    @if(isset($calEvents[$ds]))
-                                                        @foreach(array_slice($calEvents[$ds], 0, 3) as $ev)
-                                                            <span class="cal-dot cal-dot-{{ $ev['type'] }}"></span>
-                                                        @endforeach
-                                                    @endif
-                                                    @if(isset($calNotes[$ds]))
-                                                        <span class="cal-dot cal-dot-note"></span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endfor
-                                    </div>
-                                    <div class="cal-legend">
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#3b82f6"></span> Assignment</div>
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#8b5cf6"></span> Quiz opens</div>
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#e11d48"></span> Quiz deadline</div>
-                                        <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#10b981"></span> Your note</div>
-                                    </div>
-                                </div>
-
-                                <div class="cal-panel-wrap" x-show="panel" x-cloak x-transition>
-                                    <template x-if="panel && selDate">
-                                        <div>
-                                            <div class="cal-panel-head">
-                                                <h3 x-text="new Date(selDate + 'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'})"></h3>
-                                                <button @click="closePanel()" class="cal-panel-close">✕</button>
-                                            </div>
-
-                                            <template x-if="dayEvents(selDate).length > 0">
-                                                <div>
-                                                    <div class="cal-section-label">Events</div>
-                                                    <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.4rem">
-                                                        <template x-for="(ev, i) in dayEvents(selDate)" :key="i">
-                                                            <a class="cal-event-item cal-event-link" :href="ev.url" target="_self">
-                                                                <div class="cal-event-icon" :style="'background:'+ev.color+'20;color:'+ev.color">
-                                                                    <span x-text="ev.icon"></span>
-                                                                </div>
-                                                                <div>
-                                                                    <div class="cal-event-title" x-text="ev.title"></div>
-                                                                    <div class="cal-event-class" x-text="ev.class"></div>
-                                                                    <div class="cal-event-meta" x-text="ev.meta"></div>
-                                                                    <div class="cal-event-go">Open {{ '' }}<span x-text="ev.type.startsWith('quiz') ? 'Quiz' : 'Assignment'"></span> →</div>
-                                                                </div>
-                                                            </a>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                            <template x-if="dayEvents(selDate).length === 0 && !dayNote(selDate)">
-                                                <div class="cal-panel-empty">No events for this day.</div>
-                                            </template>
-
-                                            <div style="margin-top:0.75rem">
-                                                <div class="cal-section-label">Notes</div>
-                                                <div style="margin-top:0.4rem">
-                                                    <template x-if="dayNote(selDate)">
-                                                        <div class="cal-note-card">
-                                                            <p x-text="dayNote(selDate).content"></p>
-                                                            <button class="cal-note-del" @click="
-                                                                const nid = dayNote(selDate).id;
-                                                                const nd = {};
-                                                                Object.assign(nd, notes); delete nd[selDate]; notes = nd;
-                                                                @this.call('deleteCalendarNote', nid);
-                                                            ">✕</button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="!dayNote(selDate)">
-                                                        <div class="cal-note-form">
-                                                            <textarea x-model="$wire.calendarNoteText" placeholder="Add a note..." rows="2"></textarea>
-                                                            <button class="cal-note-save" @click="
-                                                                const txt = $wire.calendarNoteText;
-                                                                if(!txt || !txt.trim()) return;
-                                                                const newNotes = {}; Object.assign(newNotes, notes);
-                                                                newNotes[selDate] = {id:0, content:txt.trim()};
-                                                                notes = newNotes;
-                                                                @this.call('saveCalendarNote');
-                                                            ">Save</button>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
+                        @include('filament.student.pages.calendar.senior-calendar', [
+                            'student'              => $student,
+                            'firstName'            => $firstName,
+                            'activeGradeName'      => $activeGradeName,
+                            'calYear'              => $calYear,
+                            'calMonth'             => $calMonth,
+                            'calMonthObj'          => $calMonthObj,
+                            'calDaysInMonth'       => $calDaysInMonth,
+                            'calFirstDayOfWeek'    => $calFirstDayOfWeek,
+                            'calToday'             => $calToday,
+                            'calPrevMonth'         => $calPrevMonth,
+                            'calNextMonth'         => $calNextMonth,
+                            'calMonthName'         => $calMonthName,
+                            'calMonthLabel'        => $calMonthLabel,
+                            'calYearLabel'         => $calYearLabel,
+                            'calWeekdays'          => $calWeekdays,
+                            'allClasses'           => $allClasses,
+                            'calEvents'            => $calEvents,
+                            'calNotes'             => $calNotes,
+                            'calendarSelectedDate' => $calendarSelectedDate,
+                            'asgnCount'            => $asgnCount,
+                            'quizCount'            => $quizCount,
+                            'notesCount'           => $notesCount,
+                            'urgentCount'          => $urgentCount,
+                        ])
                     @endif
 
                 {{-- ── TAB 8: NOTIFICATIONS ── --}}

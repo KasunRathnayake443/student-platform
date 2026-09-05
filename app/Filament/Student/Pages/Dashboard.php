@@ -236,6 +236,21 @@ class Dashboard extends BaseDashboard
         $this->calendarNoteText = '';
     }
 
+    public function currentCalendarMonth(): void
+    {
+        $now = now();
+        $this->calendarYear = $now->year;
+        $this->calendarMonth = $now->month;
+        $this->calendarSelectedDate = $now->format('Y-m-d');
+        $this->calendarNoteText = '';
+    }
+
+    public function selectCalendarDate(?string $date): void
+    {
+        $this->calendarSelectedDate = $date;
+        $this->calendarNoteText = '';
+    }
+
     public function saveCalendarNote(): void
     {
         $date = $this->calendarSelectedDate;
@@ -248,12 +263,27 @@ class Dashboard extends BaseDashboard
             return;
         }
 
-        $this->student->calendarNotes()->updateOrCreate(
-            ['note_date' => $date],
-            ['content' => $trimmed]
-        );
+        // Always create a new note — multiple notes per day are now supported
+        $this->student->calendarNotes()->create([
+            'note_date' => $date,
+            'content'   => $trimmed,
+        ]);
 
         $this->calendarNoteText = '';
+    }
+
+    public function updateCalendarNote(int $noteId, string $text): void
+    {
+        if (! $this->student) {
+            return;
+        }
+
+        $trimmed = trim($text);
+        if ($trimmed === '') {
+            return;
+        }
+
+        $this->student->calendarNotes()->where('id', $noteId)->update(['content' => $trimmed]);
     }
 
     public function deleteCalendarNote(int $noteId): void
