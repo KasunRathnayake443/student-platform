@@ -49,6 +49,40 @@
             ->whereIn('assignment_id', $allAssignments->pluck('id'))
             ->count();
     }
+
+    // Live-search index for the topbar search bar (e-commerce style dropdown)
+    $searchIndex = [];
+    foreach ($activeClasses->take(6) as $class) {
+        $searchIndex[] = [
+            'type' => 'class',
+            'label' => (string) $class->name,
+            'sub'   => (string) ($class->teachers->first()?->user?->name ?? 'Subject'),
+            'url'   => \App\Filament\Student\Pages\Dashboard::getUrl(['tab' => 'classes']),
+            'hay'   => $class->name . ' ' . ($class->teachers->first()?->user?->name ?? ''),
+        ];
+    }
+    foreach ($pendingAssignments->take(8) as $assignment) {
+        $due = $assignment->end_at ? \Carbon\Carbon::parse($assignment->end_at)->format('M j') : '';
+        $cls = (string) ($assignment->learningClass->name ?? '');
+        $searchIndex[] = [
+            'type' => 'assignment',
+            'label' => (string) $assignment->title,
+            'sub'   => trim($cls . ($due ? ' · Due ' . $due : '')),
+            'url'   => \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $assignment->id]),
+            'hay'   => $assignment->title . ' ' . $cls,
+        ];
+    }
+    foreach ($recentQuizzes as $attempt) {
+        $quiz = $attempt->quiz;
+        $pct = (int) round((float) $attempt->percentage);
+        $searchIndex[] = [
+            'type' => 'quiz',
+            'label' => (string) ($quiz->title ?? 'Quiz'),
+            'sub'   => $pct . '%' . ($attempt->is_passed ? ' · Passed' : ' · Needs review'),
+            'url'   => \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz?->id ?: 0]),
+            'hay'   => (string) ($quiz->title ?? ''),
+        ];
+    }
 @endphp
 
 <style>
@@ -57,11 +91,11 @@
 /* ── Senior Dashboard (Modern Light Theme) ── */
 .sd-wrap {
     font-family: 'Inter', system-ui, sans-serif;
-    min-height: 100vh;
+    min-height: 100%;
     background: #f8fafc;
     color: #334155;
     display: flex;
-    margin: -1.5rem;
+    margin: 0;
 }
 
 /* Sidebar */
@@ -153,10 +187,12 @@
 .sd-topbar {
     background: #ffffff;
     border-bottom: 1px solid #e2e8f0;
-    padding: 1rem 2rem;
+    padding: 1.5rem 2.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 .sd-topbar-left h2 {
     font-size: 1.25rem;
@@ -178,9 +214,51 @@
     font-weight: 600;
 }
 
+/* Search bar */
+.sd-search {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    width: 19rem;
+    max-width: 100%;
+}
+.sd-search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: #334155;
+    width: 100%;
+}
+.sd-search input::placeholder { color: #94a3b8; }
+.sd-search-clear {
+    border: none;
+    background: #e2e8f0;
+    color: #64748b;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+}
+.sd-search-clear:hover { background: #cbd5e1; color: #0f172a; }
+
 /* Main padding */
 .sd-main {
-    padding: 1.5rem 2rem;
+    padding: 1.75rem 2.5rem 3rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -353,9 +431,86 @@
 .sd-badge.fail { background: #fee2e2; color: #b91c1c; }
 
 .sd-empty { color: #94a3b8; font-size: 0.875rem; padding: 1rem 0; text-align: center; }
+
+/* ── Live search dropdown (e-commerce style) ── */
+[x-cloak] { display: none !important; }
+.sd-search-wrap { position: relative; }
+.sd-search-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.875rem;
+    box-shadow: 0 18px 45px -10px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    max-height: 22rem;
+    overflow-y: auto;
+}
+.sd-search-results { padding: 0.35rem; }
+.sd-search-group-head {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.5rem 0.75rem 0.35rem;
+}
+.sd-search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: background 0.12s ease;
+}
+.sd-search-item:hover { background: #f1f5f9; }
+.sd-search-item-icon {
+    flex-shrink: 0;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: #f1f5f9;
+}
+.sd-search-item-body { flex: 1; min-width: 0; }
+.sd-search-item-name {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.sd-search-item-sub {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.05rem;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.sd-search-item-go { color: #cbd5e1; font-size: 0.9rem; flex-shrink: 0; }
+.sd-search-empty {
+    padding: 1rem 0.9rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    text-align: center;
+}
 </style>
 
 <div class="sd-wrap">
+
+    <script type="application/json" id="senior-search-index">{!! json_encode($searchIndex, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
 
 
 
@@ -368,7 +523,55 @@
                 <h2>{{ $firstName }}</h2>
                 <p>{{ now()->format('l, F j, Y') }}</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <div class="sd-search-wrap" x-data="{
+                    search: '',
+                    open: false,
+                    items: JSON.parse((document.getElementById('senior-search-index') || { textContent: '[]' }).textContent || '[]'),
+                    results() {
+                        const q = this.search.trim().toLowerCase();
+                        if (!q) return [];
+                        return this.items.filter((it) => (it.hay || '').toLowerCase().includes(q)).slice(0, 15);
+                    },
+                    total() { return this.results().length; },
+                    grouped() {
+                        return ['class', 'assignment', 'quiz']
+                            .map((t) => ({ t, items: this.results().filter((i) => i.type === t) }))
+                            .filter((g) => g.items.length);
+                    },
+                    groupLabel(t) { return { class: 'Classes', assignment: 'Assignments', quiz: 'Quiz Results' }[t] || t; },
+                    icon(t) { return { class: '📖', assignment: '📋', quiz: '🧠' }[t] || '🔍'; },
+                    pick() { this.open = false; this.search = ''; }
+                }" @click.outside="open = false">
+                    <div class="sd-search">
+                        <span>🔍</span>
+                        <input type="text" x-model="search" @focus="open = true" @keydown.escape="search = ''; open = false" placeholder="Search classes, assignments...">
+                        <button type="button" class="sd-search-clear" x-show="search" @click="search = ''; open = false" title="Clear search">✕</button>
+                    </div>
+
+                    <div class="sd-search-dropdown" x-show="open && search.trim() !== ''" x-cloak>
+                        <template x-if="total() > 0">
+                            <div class="sd-search-results">
+                                <template x-for="group in grouped()" :key="group.t">
+                                    <div class="sd-search-group">
+                                        <div class="sd-search-group-head" x-text="groupLabel(group.t)"></div>
+                                        <template x-for="it in group.items" :key="group.t + '-' + it.url">
+                                            <a :href="it.url" @click="pick()" class="sd-search-item">
+                                                <span class="sd-search-item-icon" x-text="icon(group.t)"></span>
+                                                <span class="sd-search-item-body">
+                                                    <span class="sd-search-item-name" x-text="it.label"></span>
+                                                    <span class="sd-search-item-sub" x-text="it.sub"></span>
+                                                </span>
+                                                <span class="sd-search-item-go">→</span>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        <div class="sd-search-empty" x-show="total() === 0">No results for “<span x-text="search"></span>”</div>
+                    </div>
+                </div>
                 <div class="sd-context-pill">
                     📍 {{ $activeSchoolName }} › {{ $activeGradeName }}
                 </div>

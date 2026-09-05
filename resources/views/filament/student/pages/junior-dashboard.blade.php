@@ -58,6 +58,40 @@
         ->get() ?? collect();
     $bestQuizPct = $quizResultsForGrades->max('percentage');
     $bestQuizPct = $bestQuizPct !== null ? (int) round((float) $bestQuizPct) : null;
+
+    // Live-search index for the header search bar (e-commerce style dropdown)
+    $searchIndex = [];
+    foreach ($activeClasses->take(6) as $class) {
+        $searchIndex[] = [
+            'type' => 'class',
+            'label' => (string) $class->name,
+            'sub'   => (string) ($class->teachers->first()?->user?->name ?? 'Subject'),
+            'url'   => \App\Filament\Student\Pages\Dashboard::getUrl(['tab' => 'classes']),
+            'hay'   => $class->name . ' ' . ($class->teachers->first()?->user?->name ?? ''),
+        ];
+    }
+    foreach ($pendingAssignments->take(8) as $assignment) {
+        $due = $assignment->end_at ? \Carbon\Carbon::parse($assignment->end_at)->format('M j') : '';
+        $cls = (string) ($assignment->learningClass->name ?? '');
+        $searchIndex[] = [
+            'type' => 'assignment',
+            'label' => (string) $assignment->title,
+            'sub'   => trim($cls . ($due ? ' · Due ' . $due : '')),
+            'url'   => \App\Filament\Student\Pages\AssignmentView::getUrl(['assignment' => $assignment->id]),
+            'hay'   => $assignment->title . ' ' . $cls,
+        ];
+    }
+    foreach ($recentQuizzes as $attempt) {
+        $quiz = $attempt->quiz;
+        $pct = (int) round((float) $attempt->percentage);
+        $searchIndex[] = [
+            'type' => 'quiz',
+            'label' => (string) ($quiz->title ?? 'Quiz'),
+            'sub'   => $pct . '%' . ($attempt->is_passed ? ' · Passed' : ' · Needs review'),
+            'url'   => \App\Filament\Student\Pages\QuizAttempt::getUrl(['quiz' => $quiz?->id ?: 0]),
+            'hay'   => (string) ($quiz->title ?? ''),
+        ];
+    }
 @endphp
 
 <style>
@@ -130,6 +164,23 @@
     width: 100%;
 }
 .bento-search input::placeholder { color: #94a3b8; }
+.bento-search-clear {
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+}
+.bento-search-clear:hover { background: #e2e8f0; color: #0f172a; }
 .bento-header-right {
     display: flex;
     align-items: center;
@@ -421,9 +472,86 @@
 .bento-quiz-wave { margin-top: auto; width: 100%; height: 34px; }
 
 .bento-empty { color: #94a3b8; font-size: 0.875rem; font-weight: 500; padding: 1.5rem 0; }
+
+/* ── Live search dropdown (e-commerce style) ── */
+[x-cloak] { display: none !important; }
+.bento-search-wrap { position: relative; }
+.bento-search-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 18px 45px -10px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    max-height: 22rem;
+    overflow-y: auto;
+}
+.bento-search-results { padding: 0.35rem; }
+.bento-search-group-head {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.5rem 0.75rem 0.35rem;
+}
+.bento-search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: background 0.12s ease;
+}
+.bento-search-item:hover { background: #f1f5f9; }
+.bento-search-item-icon {
+    flex-shrink: 0;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: #f1f5f9;
+}
+.bento-search-item-body { flex: 1; min-width: 0; }
+.bento-search-item-name {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.bento-search-item-sub {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.05rem;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.bento-search-item-go { color: #cbd5e1; font-size: 0.9rem; flex-shrink: 0; }
+.bento-search-empty {
+    padding: 1rem 0.9rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    text-align: center;
+}
 </style>
 
 <div class="junior-dash">
+
+    <script type="application/json" id="junior-search-index">{!! json_encode($searchIndex, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
 
     {{-- ── GLOBAL HEADER ROW ── --}}
     <div class="bento-header">
@@ -432,9 +560,53 @@
             <p>{{ now()->format('l, F j') }} - Here's how your week is going</p>
         </div>
         <div class="bento-header-center">
-            <div class="bento-search">
-                <span>🔍</span>
-                <input type="text" placeholder="Search courses, assignments...">
+            <div class="bento-search-wrap" x-data="{
+                search: '',
+                open: false,
+                items: JSON.parse((document.getElementById('junior-search-index') || { textContent: '[]' }).textContent || '[]'),
+                results() {
+                    const q = this.search.trim().toLowerCase();
+                    if (!q) return [];
+                    return this.items.filter((it) => (it.hay || '').toLowerCase().includes(q)).slice(0, 15);
+                },
+                total() { return this.results().length; },
+                grouped() {
+                    return ['class', 'assignment', 'quiz']
+                        .map((t) => ({ t, items: this.results().filter((i) => i.type === t) }))
+                        .filter((g) => g.items.length);
+                },
+                groupLabel(t) { return { class: 'Classes', assignment: 'Assignments', quiz: 'Quiz Results' }[t] || t; },
+                icon(t) { return { class: '📖', assignment: '📋', quiz: '🧠' }[t] || '🔍'; },
+                pick() { this.open = false; this.search = ''; }
+            }" @click.outside="open = false">
+                <div class="bento-search">
+                    <span>🔍</span>
+                    <input type="text" x-model="search" @focus="open = true" @keydown.escape="search = ''; open = false" placeholder="Search courses, assignments...">
+                    <button type="button" class="bento-search-clear" x-show="search" @click="search = ''; open = false" title="Clear search">✕</button>
+                </div>
+
+                <div class="bento-search-dropdown" x-show="open && search.trim() !== ''" x-cloak>
+                    <template x-if="total() > 0">
+                        <div class="bento-search-results">
+                            <template x-for="group in grouped()" :key="group.t">
+                                <div class="bento-search-group">
+                                    <div class="bento-search-group-head" x-text="groupLabel(group.t)"></div>
+                                    <template x-for="it in group.items" :key="group.t + '-' + it.url">
+                                        <a :href="it.url" @click="pick()" class="bento-search-item">
+                                            <span class="bento-search-item-icon" x-text="icon(group.t)"></span>
+                                            <span class="bento-search-item-body">
+                                                <span class="bento-search-item-name" x-text="it.label"></span>
+                                                <span class="bento-search-item-sub" x-text="it.sub"></span>
+                                            </span>
+                                            <span class="bento-search-item-go">→</span>
+                                        </a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <div class="bento-search-empty" x-show="total() === 0">No results for “<span x-text="search"></span>”</div>
+                </div>
             </div>
             <div class="bento-header-right">
                 @if($streak > 0)
