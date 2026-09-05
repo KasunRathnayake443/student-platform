@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+@source '../views';
+
+/* ------------------------------------------------------------------
+   StudentPlatform marketing landing styles
+   (namespaced so they never collide with the Flux app theme)
+------------------------------------------------------------------- */
+
+:root {
+    --lnd-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --lnd-display: 'Fraunces', Georgia, serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background-color: #f8fafc;
+    color: #0f1f3d;
+    font-family: var(--lnd-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, p { margin: 0; }
+
+.font-display { font-family: var(--lnd-display); }
+
+.text-hero-xl { font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.1; }
+.text-section-title { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; }
+
+/* Brand navy */
+.bg-ink { background-color: #0f1f3d; }
+.bg-ink-soft { background-color: #1e3a5f; }
+.text-ink { color: #0f1f3d; }
+.text-ink-soft { color: #1e3a5f; }
+.border-ink { border-color: #0f1f3d; }
+
+/* Decorative helpers */
+.blob-teal { background: radial-gradient(circle, rgba(20, 184, 166, 0.18) 0%, transparent 70%); filter: blur(60px); }
+.blob-navy { background: radial-gradient(circle, rgba(15, 31, 61, 0.12) 0%, transparent 70%); filter: blur(80px); }
+.dot-pattern { background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px); background-size: 24px 24px; }
+.scroll-bounce { animation: scroll-bounce 1.6s ease-in-out infinite; }
+
+/* Card hover lift */
+.card-hover-lift { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+.card-hover-lift:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(15, 31, 61, 0.12); }
+
+/* Intersection-observer reveal */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+@keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0) translateX(-50%); }
+    50% { transform: translateY(8px) translateX(-50%); }
+}
+
+/* Fixed header */
+#landing-header {
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+    border-bottom: 1px solid transparent;
+}
+#landing-header.scrolled {
+    background-color: rgba(15, 31, 61, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(12px);
+}
+
+/* Mobile hamburger */
+#menu-btn span { transition: transform 0.3s ease, opacity 0.3s ease; }
+#menu-btn.active span:nth-child(1) { transform: rotate(45deg) translateY(8px); }
+#menu-btn.active span:nth-child(2) { opacity: 0; }
+#menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
+
+/* Mobile menu overlay */
+#mobile-menu {
+    background-color: rgba(15, 31, 61, 0.97);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+#mobile-menu.open { opacity: 1; pointer-events: auto; }
+
+/* Dashboard showcase dots */
+.dot-on { width: 2rem; background-color: #8b5cf6; }
+.dot-off { width: 0.375rem; background-color: #e2e8f0; }
