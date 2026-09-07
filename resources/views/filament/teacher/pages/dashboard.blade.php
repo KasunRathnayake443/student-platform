@@ -1,4 +1,5 @@
 <div style="padding:24px 28px; max-width: 100%; box-sizing: border-box;">
+@php $activeTab = request('tab') === 'grades' ? 'tab-grades' : 'tab-overview'; @endphp
 <style>
     /* ── Core Typography & Resets ─────────────── */
     .t-dash-wrap { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; }
@@ -489,6 +490,126 @@
     .empty-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
     .empty-text  { font-size: 13px; color: #94a3b8; max-width: 320px; margin: 0 auto; line-height: 1.65; }
 
+    /* ── Dashboard tabs ──────────────────────────── */
+    .t-tabs {
+        display: flex; gap: 8px; margin-bottom: 24px;
+        background: #f8fafc; border: 1px solid #eef1f7; border-radius: 14px;
+        padding: 6px; width: 100%; max-width: 100%; flex-wrap: wrap;
+    }
+    .t-tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 9px 16px; border-radius: 10px;
+        border: 1px solid transparent; background: transparent;
+        font: inherit; font-size: 13px; font-weight: 600; color: #64748b;
+        cursor: pointer; transition: all .15s ease;
+    }
+    .t-tab svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .t-tab:hover { color: #0f172a; background: #ffffff; }
+    .t-tab-active, .t-tab-active:hover {
+        background: #4f46e5; color: #ffffff;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .t-tab-panel { display: block; }
+
+    /* ── Grades tab ──────────────────────────────── */
+    .t-grades-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 14px; flex-wrap: wrap; margin-bottom: 18px;
+    }
+    .t-grades-count {
+        font-size: 12px; font-weight: 700; color: #4f46e5;
+        background: #eef2ff; padding: 6px 14px; border-radius: 999px;
+    }
+    .t-grades-toolbar {
+        display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .t-grade-card {
+        background: #ffffff; border: 1px solid #eef1f7; border-radius: 16px;
+        overflow: hidden; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .t-grade-card:hover { border-color: #cbd5e1; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05); }
+    .t-grade-head-row {
+        display: flex; align-items: center; gap: 16px;
+        padding: 16px 20px; cursor: pointer; flex-wrap: wrap;
+    }
+    .t-grade-head-row:focus-visible { outline: 2px solid #6366f1; outline-offset: -2px; border-radius: 16px; }
+    .t-grade-avatar {
+        width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff; font-weight: 700; font-size: 16px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .t-grade-id { min-width: 0; flex: 1 1 220px; }
+    .t-grade-name { font-size: 14.5px; font-weight: 700; color: #0f172a; }
+    .t-grade-email { font-size: 12.5px; color: #64748b; margin-top: 2px; word-break: break-word; }
+    .t-grade-classes { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .t-class-chip {
+        font-size: 11px; font-weight: 600; color: #6366f1;
+        background: #eef2ff; border: 1px solid #e0e7ff;
+        padding: 2px 9px; border-radius: 999px;
+    }
+    .t-grade-stats {
+        display: grid; grid-template-columns: repeat(4, minmax(110px, 1fr));
+        gap: 10px; flex: 1 1 540px;
+    }
+    .t-gstat { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; padding: 10px 14px; }
+    .t-gstat-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .07em; }
+    .t-gstat-value { font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 3px; }
+    .t-gstat-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; font-weight: 500; }
+    .t-gstat-emerald .t-gstat-value { color: #059669; }
+    .t-gstat-amber  .t-gstat-value { color: #d97706; }
+    .t-gstat-rose   .t-gstat-value { color: #e11d48; }
+    .t-grade-chevron {
+        width: 32px; height: 32px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        background: #f1f5f9; color: #64748b; transition: all .15s ease; flex-shrink: 0;
+    }
+    .t-grade-chevron svg { width: 18px; height: 18px; transition: transform .18s ease; }
+    .t-grade-chevron.open { background: #eef2ff; color: #4f46e5; }
+    .t-grade-chevron.open svg { transform: rotate(180deg); }
+    .t-grade-detail { display: none; border-top: 1px solid #f1f5f9; background: #fbfcfe; padding: 20px 20px 22px; }
+    .t-gd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .t-gd-box { background: #ffffff; border: 1px solid #eef1f7; border-radius: 14px; overflow: hidden; }
+    .t-gd-box-title {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 16px; font-size: 12.5px; font-weight: 700; color: #0f172a;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .t-gd-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .t-gd-table th {
+        text-align: left; padding: 9px 16px;
+        font-size: 10.5px; font-weight: 700; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: .07em;
+        background: #fafbfe; border-bottom: 1px solid #f1f5f9; white-space: nowrap;
+    }
+    .t-gd-table td { padding: 10px 16px; border-bottom: 1px solid #f8fafc; color: #0f172a; vertical-align: middle; }
+    .t-gd-table tr:last-child td { border-bottom: 0; }
+    .t-gd-title { font-weight: 600; color: #0f172a; }
+    .t-gd-muted { color: #64748b; }
+    .t-gd-empty { padding: 14px 16px; color: #94a3b8; font-size: 12.5px; }
+    .t-gp { font-weight: 700; color: #4f46e5; }
+    .t-gd-badge {
+        display: inline-flex; align-items: center;
+        padding: 2px 9px; border-radius: 999px;
+        font-size: 10.5px; font-weight: 700; white-space: nowrap;
+    }
+    .t-gd-pass   { background: #ecfdf5; color: #059669; }
+    .t-gd-fail   { background: #fef2f2; color: #dc2626; }
+    .t-gd-graded { background: #ecfdf5; color: #059669; }
+    .t-gd-submitted { background: #fffbeb; color: #b45309; }
+    .t-gd-pending { background: #f1f5f9; color: #64748b; }
+    @media (max-width: 1080px) {
+        .t-gd-grid { grid-template-columns: 1fr; }
+        .t-grade-stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    }
+    @media (max-width: 640px) {
+        .t-grade-stats { grid-template-columns: repeat(2, 1fr); }
+        .t-grade-head-row { gap: 12px; }
+        .t-gd-box { overflow-x: auto; }
+        .t-gd-table { min-width: 560px; }
+    }
+
     /* ── Responsive rules ────────────────────── */
     @media (max-width: 960px) {
         .t-summary-strip { grid-template-columns: repeat(2, 1fr); }
@@ -501,6 +622,24 @@
 </style>
 
 <div class="t-dash-wrap">
+
+    {{-- ── Dashboard Tabs ───────────────────────────────────── --}}
+    <div class="t-tabs" role="tablist" aria-label="Teacher workspace sections">
+        <button type="button" class="t-tab {{ $activeTab === 'tab-overview' ? 't-tab-active' : '' }}" role="tab" aria-selected="{{ $activeTab === 'tab-overview' ? 'true' : 'false' }}" data-tab-target="tab-overview">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+            </svg>
+            Overview
+        </button>
+        <button type="button" class="t-tab {{ $activeTab === 'tab-grades' ? 't-tab-active' : '' }}" role="tab" aria-selected="{{ $activeTab === 'tab-grades' ? 'true' : 'false' }}" data-tab-target="tab-grades">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+            </svg>
+            Student Grades
+        </button>
+    </div>
+
+    <div class="t-tab-panel" id="tab-overview" style="{{ $activeTab === 'tab-grades' ? 'display:none;' : '' }}">
 
     {{-- ── Hero Welcome Banner ──────────────────────────────── --}}
     <div class="t-hero">
@@ -908,6 +1047,210 @@
         @endforeach
     @endif
 
+    </div>{{-- /tab-overview --}}
+
+    {{-- ── Grades Tab: Student Score Profiles ───────────────────── --}}
+    <div class="t-tab-panel" id="tab-grades" style="{{ $activeTab === 'tab-grades' ? 'display:block;' : 'display:none;' }}">
+
+        <div class="t-grades-head">
+            <div>
+                <h2 style="font-size:16px;font-weight:700;color:#0f172a;">Student Grades</h2>
+                <p style="font-size:12.5px;color:#64748b;margin-top:2px;">Full score profile for every student in your classes. Click a student to expand the details.</p>
+            </div>
+            <span class="t-grades-count">{{ $studentGrades->count() }} {{ Str::plural('student', $studentGrades->count()) }}</span>
+        </div>
+
+        <div class="t-grades-toolbar">
+            <div class="t-search-input-wrap" style="flex:1 1 320px; max-width:380px;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text"
+                       id="grades-search"
+                       class="t-search-input"
+                       placeholder="Search students by name or email..."
+                       oninput="filterGrades(this.value)">
+            </div>
+            <div id="grades-result-count" style="font-size:12px;color:#64748b;font-weight:500;"></div>
+        </div>
+
+        @if($studentGrades->isEmpty())
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                </div>
+                <div class="empty-title">No students assigned yet</div>
+                <p class="empty-text">Students appear here as soon as they are enrolled in one of your classes. Contact your administrator if you believe this is wrong.</p>
+            </div>
+        @else
+            <div style="display:flex;flex-direction:column;gap:12px;" id="grades-list">
+                @foreach($studentGrades as $g)
+                    @php
+                        $student = $g['student'];
+                        $avatarLetter = strtoupper(substr($student->user?->name ?? 'S', 0, 1));
+                        $searchData = strtolower(trim(($student->user?->name ?? '') . ' ' . ($student->user?->email ?? '') . ' ' . $g['classes']->pluck('name')->implode(' ')));
+                    @endphp
+                    <div class="t-grade-card grades-row" data-search="{{ $searchData }}">
+                        <div class="t-grade-head-row" role="button" tabindex="0" data-toggle="grade-detail-{{ $student->id }}"
+                             onclick="toggleGradeDetail(this)"
+                             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleGradeDetail(this);}"
+                             aria-expanded="false" aria-controls="grade-detail-{{ $student->id }}">
+                            <div class="t-grade-avatar">{{ $avatarLetter }}</div>
+                            <div class="t-grade-id">
+                                <div class="t-grade-name">{{ $student->user?->name ?? 'Student' }}</div>
+                                <div class="t-grade-email">{{ $student->user?->email ?? 'No email on file' }}</div>
+                                <div class="t-grade-classes">
+                                    @forelse($g['classes'] as $cls)
+                                        <span class="t-class-chip">{{ $cls->name }}</span>
+                                    @empty
+                                        <span style="font-size:11px;color:#94a3b8;">No classes</span>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            <div class="t-grade-stats">
+                                <div class="t-gstat">
+                                    <div class="t-gstat-label">Quiz Avg</div>
+                                    <div class="t-gstat-value">{{ $g['quizAvg'] !== null ? round($g['quizAvg']) . '%' : '—' }}</div>
+                                    <div class="t-gstat-sub">{{ $g['quizCount'] }} {{ Str::plural('quiz', $g['quizCount']) }}</div>
+                                </div>
+                                <div class="t-gstat t-gstat-emerald">
+                                    <div class="t-gstat-label">Quizzes Passed</div>
+                                    <div class="t-gstat-value">{{ $g['quizPassed'] }}/{{ $g['quizCount'] }}</div>
+                                    <div class="t-gstat-sub">passing rate</div>
+                                </div>
+                                <div class="t-gstat t-gstat-amber">
+                                    <div class="t-gstat-label">Assignment Avg</div>
+                                    <div class="t-gstat-value">{{ $g['assignmentAvg'] !== null ? round($g['assignmentAvg']) . '%' : '—' }}</div>
+                                    <div class="t-gstat-sub">{{ $g['gradedCount'] }} {{ Str::plural('assignment', $g['gradedCount']) }} graded</div>
+                                </div>
+                                <div class="t-gstat t-gstat-rose">
+                                    <div class="t-gstat-label">Pending</div>
+                                    <div class="t-gstat-value">{{ $g['pendingCount'] }}</div>
+                                    <div class="t-gstat-sub">{{ Str::plural('submission', $g['pendingCount']) }} to grade</div>
+                                </div>
+                            </div>
+
+                            <div class="t-grade-chevron">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="t-grade-detail" id="grade-detail-{{ $student->id }}">
+                            <div class="t-gd-grid">
+                                <div class="t-gd-box">
+                                    <div class="t-gd-box-title">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                        Quiz Attempts
+                                    </div>
+                                    @if($g['attempts']->isNotEmpty())
+                                        <table class="t-gd-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Quiz</th>
+                                                    <th>Class</th>
+                                                    <th>Score</th>
+                                                    <th>%</th>
+                                                    <th>Result</th>
+                                                    <th>Completed</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($g['attempts'] as $attempt)
+                                                    <tr>
+                                                        <td><span class="t-gd-title">{{ $attempt->quiz?->title ?? 'Quiz' }}</span></td>
+                                                        <td class="t-gd-muted">{{ $attempt->quiz?->learningClass?->name ?? '—' }}</td>
+                                                        <td class="t-gd-muted">{{ $attempt->score }} / {{ $attempt->quiz?->total_points }}</td>
+                                                        <td><span class="t-gp">{{ round((float) $attempt->percentage) }}%</span></td>
+                                                        <td>
+                                                            @if($attempt->is_passed)
+                                                                <span class="t-gd-badge t-gd-pass">Passed</span>
+                                                            @else
+                                                                <span class="t-gd-badge t-gd-fail">Failed</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="t-gd-muted">{{ $attempt->completed_at?->format('M d, Y') ?? '—' }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    @else
+                                        <div class="t-gd-empty">No quiz attempts yet.</div>
+                                    @endif
+                                </div>
+
+                                <div class="t-gd-box">
+                                    <div class="t-gd-box-title">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        Assignment Submissions
+                                    </div>
+                                    @if($g['submissions']->isNotEmpty())
+                                        <table class="t-gd-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Assignment</th>
+                                                    <th>Class</th>
+                                                    <th>Score</th>
+                                                    <th>%</th>
+                                                    <th>Status</th>
+                                                    <th>Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($g['submissions'] as $submission)
+                                                    @php $subPct = $submission->percentage(); @endphp
+                                                    <tr>
+                                                        <td><span class="t-gd-title">{{ $submission->assignment?->title ?? 'Assignment' }}</span></td>
+                                                        <td class="t-gd-muted">{{ $submission->assignment?->learningClass?->name ?? '—' }}</td>
+                                                        <td class="t-gd-muted">
+                                                            @if($submission->status === 'graded')
+                                                                {{ $submission->score }} / {{ $submission->assignment?->max_score }}
+                                                            @else
+                                                                —
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @if($submission->status === 'graded' && $subPct !== null)
+                                                                <span class="t-gp">{{ $subPct }}%</span>
+                                                            @else
+                                                                <span class="t-gd-muted">—</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @if($submission->status === 'graded')
+                                                                <span class="t-gd-badge t-gd-graded">Graded</span>
+                                                            @elseif(in_array($submission->status, ['submitted'], true))
+                                                                <span class="t-gd-badge t-gd-submitted">Submitted</span>
+                                                            @else
+                                                                <span class="t-gd-badge t-gd-pending">{{ ucfirst($submission->status) }}</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="t-gd-muted">{{ $submission->graded_at?->format('M d, Y') ?? ($submission->submitted_at?->format('M d, Y') ?? '—') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    @else
+                                        <div class="t-gd-empty">No assignment submissions yet.</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+    </div>{{-- /tab-grades --}}
+
 </div><!-- end .t-dash-wrap -->
 
 <script>
@@ -934,6 +1277,53 @@
             const visible = school.querySelectorAll('.class-card-node[style*="display: block"], .class-card-node:not([style*="display: none"])');
             school.style.display = visible.length > 0 ? 'block' : 'none';
         });
+    }
+
+    /* Dashboard tab switching */
+    document.querySelectorAll('.t-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-tab-target');
+            document.querySelectorAll('.t-tab').forEach((b) => {
+                const active = b.getAttribute('data-tab-target') === target;
+                b.classList.toggle('t-tab-active', active);
+                b.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            document.querySelectorAll('.t-tab-panel').forEach((p) => {
+                p.style.display = p.id === target ? 'block' : 'none';
+            });
+        });
+    });
+
+    /* Grades: search by name / email / class */
+    function filterGrades(query) {
+        query = (query || '').toLowerCase().trim();
+        let visible = 0;
+        document.querySelectorAll('.grades-row').forEach((row) => {
+            const on = !query || (row.getAttribute('data-search') || '').includes(query);
+            row.style.display = on ? '' : 'none';
+            if (on) visible++;
+        });
+        const counter = document.getElementById('grades-result-count');
+        if (counter) {
+            counter.textContent = visible + ' ' + (visible === 1 ? 'student' : 'students') + ' shown';
+        }
+    }
+
+    /* Grades: expand / collapse detailed score profile */
+    function toggleGradeDetail(el) {
+        const id = el.getAttribute('data-toggle');
+        const detail = document.getElementById(id);
+        if (!detail) return;
+        const open = detail.style.display !== 'none';
+        detail.style.display = open ? 'none' : 'block';
+        const chevron = el.querySelector('.t-grade-chevron');
+        if (chevron) chevron.classList.toggle('open', !open);
+        el.setAttribute('aria-expanded', String(!open));
+    }
+
+    const gradesCounter = document.getElementById('grades-result-count');
+    if (gradesCounter) {
+        gradesCounter.textContent = document.querySelectorAll('.grades-row').length + ' students shown';
     }
 </script>
 </div>

@@ -8,7 +8,9 @@ use App\Models\Grade;
 use App\Models\Lesson;
 use App\Models\Notification;
 use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\School;
+use App\Models\Student;
 use App\Services\NotificationService;
 use Filament\Pages\Dashboard as BaseDashboard;
 
@@ -58,6 +60,69 @@ class TeacherDashboard extends BaseDashboard
         $totalClasses = $allClasses->count();
         $totalStudents = $allClasses->sum('students_count');
         $classIds = $allClasses->pluck('id')->filter()->all();
+
+        // Students Grades — full score profile for every student in the teacher's classes
+        $studentGrades = collect();
+
+        if (! empty($classIds)) {
+            $classStudents = Student::query()
+                ->whereHas('classes', fn ($q) => $q->whereIn('learning_class_id', $classIds))
+                ->with([
+                    'user',
+                    'classes' => fn ($q) => $q->whereIn('learning_class_id', $classIds)->with('grade'),
+                ])
+                ->orderBy('id')
+                ->get();
+
+            $classStudentIds = $classStudents->pluck('id')->all();
+
+            $attemptsByStudent = QuizAttempt::query()
+                ->whereIn('student_id', $classStudentIds)
+                ->whereIn('status', ['submitted', 'time_expired'])
+                ->whereHas('quiz', fn ($q) => $q->whereIn('learning_class_id', $classIds))
+                ->with(['quiz.learningClass'])
+                ->get()
+                ->groupBy('student_id');
+
+            $submissionsByStudent = AssignmentSubmission::query()
+                ->whereIn('student_id', $classStudentIds)
+                ->whereHas('assignment', fn ($q) => $q->whereIn('learning_class_id', $classIds))
+                ->with(['assignment.learningClass'])
+                ->get()
+                ->groupBy('student_id');
+
+            foreach ($classStudents as $student) {
+                $attempts = $attemptsByStudent->get($student->id, collect())
+                    ->sortByDesc('completed_at')
+                    ->values();
+
+                $submissions = $submissionsByStudent->get($student->id, collect())
+                    ->sortByDesc('graded_at')
+                    ->values();
+
+                $graded = $submissions->where('status', 'graded');
+
+                $quizAvg = $attempts->avg('percentage');
+                $gradedPct = $graded->map(fn ($s) => $s->percentage())->filter()->avg();
+
+                $studentGrades->push([
+                    'student' => $student,
+                    'classes' => $student->classes,
+                    'attempts' => $attempts,
+                    'submissions' => $submissions,
+                    'quizCount' => $attempts->count(),
+                    'quizPassed' => $attempts->where('is_passed', true)->count(),
+                    'quizAvg' => $quizAvg === null ? null : round((float) $quizAvg, 1),
+                    'gradedCount' => $graded->count(),
+                    'pendingCount' => $submissions->where('status', '!=', 'graded')->count(),
+                    'assignmentAvg' => $gradedPct === null ? null : round((float) $gradedPct, 1),
+                ]);
+            }
+
+            $studentGrades = $studentGrades
+                ->sortBy(fn ($g) => strtolower($g['student']->user?->name ?? ''))
+                ->values();
+        }
 
         // Pending Submissions to Grade
         $pendingSubmissions = collect();
@@ -131,6 +196,7 @@ class TeacherDashboard extends BaseDashboard
             'recentLessons' => $recentLessons,
             'recentNotifications' => $recentNotifications,
             'unreadNotificationsCount' => $unreadNotificationsCount,
+            'studentGrades' => $studentGrades,
         ];
     }
 }
