@@ -83,3 +83,20 @@ test('school logo endpoint returns 404 when the school has no logo or file', fun
     $this->get('/schools/'.$school->getKey().'/logo')
         ->assertNotFound();
 });
+
+test('sidebar has notification tab leading to notification page', function () {
+    $this->seed();
+    $teacher = sbTeacherByNo('EMP-T-1001');
+    $this->actingAs($teacher->user);
+
+    $response = $this->get('/teacher');
+    $response->assertOk();
+
+    $html = $response->getContent();
+    expect($html)->toContain('>Notifications<')
+        ->and($html)->toContain(route('filament.teacher.pages.notifications'));
+
+    $notificationsResponse = $this->get(route('filament.teacher.pages.notifications'));
+    $notificationsResponse->assertOk();
+    expect($notificationsResponse->getContent())->toContain('Notifications');
+});
