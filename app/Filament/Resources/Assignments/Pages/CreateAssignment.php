@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Assignments\Pages;
 
 use App\Filament\Resources\Assignments\AssignmentResource;
+use App\Models\Assignment;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,6 +35,13 @@ class CreateAssignment extends CreateRecord
     protected function afterCreate(): void
     {
         $this->saveAttachments();
+
+        $assignment = $this->getRecord();
+
+        if ($assignment instanceof Assignment) {
+            app(SchoolEmailNotificationService::class)
+                ->assignmentCreated($assignment);
+        }
     }
 
     protected function saveAttachments(): void

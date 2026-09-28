@@ -3,14 +3,25 @@
 namespace App\Filament\Resources\Assignments\Pages;
 
 use App\Filament\Resources\Assignments\AssignmentResource;
+use App\Models\Assignment;
+use App\Services\SchoolEmailNotificationService;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class EditAssignment extends EditRecord
 {
     protected static string $resource = AssignmentResource::class;
+
+    protected bool $suppressAssignmentEmail = false;
+
+    protected bool $manualAssignmentSaveCompleted = false;
 
     protected function getHeaderActions(): array
     {
@@ -18,6 +29,75 @@ class EditAssignment extends EditRecord
             ViewAction::make(),
             DeleteAction::make(),
         ];
+    }
+
+    protected function submitAndEmailStudentsAction(): Action
+    {
+        return Action::make('submitAndEmailStudents')
+            ->label('Submit & Email Students')
+            ->icon('heroicon-o-paper-airplane')
+            ->color('primary')
+            ->visible(function (): bool {
+                $assignment = $this->getRecord();
+
+                return $assignment instanceof Assignment && (bool) $assignment->email_sent;
+            })
+            ->action(function (): void {
+                $this->handleSubmitAndEmailStudents();
+            });
+    }
+
+    /** @return array<Action | ActionGroup> */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->submitAndEmailStudentsAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
+    protected function getSaveFormAction(): Action
+    {
+        return parent::getSaveFormAction()
+            ->label('Submit');
+    }
+
+    protected function handleSubmitAndEmailStudents(): void
+    {
+        $this->suppressAssignmentEmail = true;
+        $this->manualAssignmentSaveCompleted = false;
+
+        try {
+            $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
+
+            $assignment = $this->getRecord();
+
+            if (! $this->manualAssignmentSaveCompleted || ! $assignment instanceof Assignment) {
+                return;
+            }
+
+            $service = app(SchoolEmailNotificationService::class);
+            $service->sendAssignmentNotification($assignment);
+            $service->markAssignmentEmailSent($assignment);
+
+            Notification::make()
+                ->title('Assignment saved and students notified.')
+                ->success()
+                ->send();
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            Notification::make()
+                ->title('Assignment saved, but students could not be notified.')
+                ->danger()
+                ->send();
+        } finally {
+            $this->suppressAssignmentEmail = false;
+            $this->manualAssignmentSaveCompleted = false;
+        }
     }
 
     /*
@@ -28,6 +108,8 @@ class EditAssignment extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        unset($data['email_sent']);
+
         $this->record->load('attachments');
 
         $data['available_immediately'] = ($this->record->availability_type ?? 'immediate') !== 'scheduled';
@@ -63,6 +145,7 @@ class EditAssignment extends EditRecord
         unset(
             $data['existing_attachments'],
             $data['new_attachments'],
+            $data['email_sent'],
         );
 
         $isImmediate = (bool) ($data['available_immediately'] ?? false);
@@ -87,6 +170,14 @@ class EditAssignment extends EditRecord
     protected function afterSave(): void
     {
         $this->processAttachments();
+
+        $assignment = $this->getRecord();
+
+        if ($this->suppressAssignmentEmail) {
+            $this->manualAssignmentSaveCompleted = true;
+        } elseif ($assignment instanceof Assignment && ! $assignment->email_sent && $assignment->is_published) {
+            app(SchoolEmailNotificationService::class)->notifyPublishedAssignment($assignment);
+        }
     }
 
     protected function processAttachments(): void
@@ -247,7 +338,7 @@ class EditAssignment extends EditRecord
     {
         try {
             return Storage::disk('public')->mimeType($path);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -256,7 +347,7 @@ class EditAssignment extends EditRecord
     {
         try {
             return Storage::disk('public')->size($path);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }

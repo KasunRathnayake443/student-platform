@@ -5,6 +5,7 @@ namespace App\Filament\SchoolAdmin\Resources\LearningClasses\RelationManagers;
 use App\Filament\SchoolAdmin\Resources\Assignments\AssignmentResource;
 use App\Models\Assignment;
 use App\Models\Teacher;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -518,6 +519,12 @@ class AssignmentsRelationManager extends RelationManager
                                     ]);
                             }
                         }
+
+                        app(
+                            SchoolEmailNotificationService::class
+                        )->assignmentCreated(
+                            $assignment
+                        );
                     }),
 
             ])

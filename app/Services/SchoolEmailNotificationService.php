@@ -59,6 +59,27 @@ class SchoolEmailNotificationService
 
     public function assignmentCreated(Assignment $assignment): void
     {
+        if (! $assignment->is_published) {
+            $this->markAssignmentEmailNotSent($assignment);
+
+            return;
+        }
+
+        $this->notifyPublishedAssignment($assignment);
+    }
+
+    public function notifyPublishedAssignment(Assignment $assignment): void
+    {
+        if (! $assignment->is_published) {
+            return;
+        }
+
+        $this->sendAssignmentNotification($assignment);
+        $this->markAssignmentEmailSent($assignment);
+    }
+
+    public function sendAssignmentNotification(Assignment $assignment): void
+    {
         $assignment->loadMissing([
             'learningClass.grade.school',
             'teacher.user',
@@ -77,7 +98,7 @@ class SchoolEmailNotificationService
         }
 
         $teacherName = $this->teacherName($assignment->teacher);
-        $lines = $this->contentLines($class, $teacherName, $assignment->end_at);
+        $lines = $this->assignmentContentLines($class, $teacherName, $assignment);
 
         $this->sendToClass(
             $class,
@@ -89,6 +110,16 @@ class SchoolEmailNotificationService
                 ? $this->studentUrl('filament.student.pages.assignment', $assignment->getKey(), 'assignment')
                 : null,
         );
+    }
+
+    public function markAssignmentEmailSent(Assignment $assignment): void
+    {
+        $assignment->forceFill(['email_sent' => true])->saveQuietly();
+    }
+
+    protected function markAssignmentEmailNotSent(Assignment $assignment): void
+    {
+        $assignment->forceFill(['email_sent' => false])->saveQuietly();
     }
 
     public function lessonCreated(Lesson $lesson): void
@@ -316,6 +347,36 @@ class SchoolEmailNotificationService
 
         if ($deadline instanceof DateTimeInterface) {
             $lines[] = 'Deadline: '.$deadline->format('j M Y, g:i A');
+        }
+
+        return $lines;
+    }
+
+    /** @return array<int, string> */
+    protected function assignmentContentLines(LearningClass $class, string $teacherName, Assignment $assignment): array
+    {
+        $lines = [
+            'Class: '.$class->name,
+            'Teacher: '.$teacherName,
+        ];
+
+        $lines[] = 'Start date: '.($assignment->start_at instanceof DateTimeInterface
+            ? $assignment->start_at->format('j M Y, g:i A')
+            : 'Available immediately');
+
+        $lines[] = 'End date: '.($assignment->end_at instanceof DateTimeInterface
+            ? $assignment->end_at->format('j M Y, g:i A')
+            : 'No deadline');
+
+        if ($assignment->max_score) {
+            $lines[] = 'Maximum score: '.$assignment->max_score;
+        }
+
+        if ($assignment->allow_late_submissions && $assignment->end_at instanceof DateTimeInterface) {
+            $deadline = $assignment->lateSubmissionDeadline();
+            $lines[] = 'Late submissions accepted until: '.($deadline instanceof DateTimeInterface
+                ? $deadline->format('j M Y, g:i A')
+                : $assignment->end_at->format('j M Y, g:i A'));
         }
 
         return $lines;

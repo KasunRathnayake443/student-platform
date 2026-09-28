@@ -25,6 +25,7 @@ class Assignment extends Model
         'late_submission_unit',
         'allowed_submission_types',
         'is_published',
+        'email_sent',
     ];
 
     protected $casts = [
@@ -36,6 +37,8 @@ class Assignment extends Model
         'allowed_submission_types' => 'array',
 
         'is_published' => 'boolean',
+
+        'email_sent' => 'boolean',
 
         'max_score' => 'integer',
         'late_submission_value' => 'integer',
