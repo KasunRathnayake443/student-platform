@@ -25,6 +25,27 @@ class SchoolEmailNotificationService
 
     public function quizCreated(Quiz $quiz): void
     {
+        if (! $quiz->is_published) {
+            $this->markQuizEmailNotSent($quiz);
+
+            return;
+        }
+
+        $this->notifyPublishedQuiz($quiz);
+    }
+
+    public function notifyPublishedQuiz(Quiz $quiz): void
+    {
+        if (! $quiz->is_published) {
+            return;
+        }
+
+        $this->sendQuizNotification($quiz);
+        $this->markQuizEmailSent($quiz);
+    }
+
+    public function sendQuizNotification(Quiz $quiz): void
+    {
         $quiz->loadMissing([
             'learningClass.grade.school',
             'teacher.user',
@@ -43,7 +64,7 @@ class SchoolEmailNotificationService
         }
 
         $teacherName = $this->teacherName($quiz->teacher);
-        $lines = $this->contentLines($class, $teacherName, $quiz->end_at);
+        $lines = $this->quizContentLines($class, $teacherName, $quiz);
 
         $this->sendToClass(
             $class,
@@ -55,6 +76,16 @@ class SchoolEmailNotificationService
                 ? $this->studentUrl('filament.student.pages.quiz-attempt', $quiz->getKey(), 'quiz')
                 : null,
         );
+    }
+
+    public function markQuizEmailSent(Quiz $quiz): void
+    {
+        $quiz->forceFill(['email_sent' => true])->saveQuietly();
+    }
+
+    protected function markQuizEmailNotSent(Quiz $quiz): void
+    {
+        $quiz->forceFill(['email_sent' => false])->saveQuietly();
     }
 
     public function assignmentCreated(Assignment $assignment): void
@@ -347,6 +378,41 @@ class SchoolEmailNotificationService
 
         if ($deadline instanceof DateTimeInterface) {
             $lines[] = 'Deadline: '.$deadline->format('j M Y, g:i A');
+        }
+
+        return $lines;
+    }
+
+    /** @return array<int, string> */
+    protected function quizContentLines(LearningClass $class, string $teacherName, Quiz $quiz): array
+    {
+        $lines = [
+            'Class: '.$class->name,
+            'Teacher: '.$teacherName,
+        ];
+
+        $lines[] = 'Start date: '.($quiz->start_at instanceof DateTimeInterface
+            ? $quiz->start_at->format('j M Y, g:i A')
+            : 'Available immediately');
+
+        $lines[] = 'End date: '.($quiz->end_at instanceof DateTimeInterface
+            ? $quiz->end_at->format('j M Y, g:i A')
+            : 'No deadline');
+
+        if ($quiz->total_points) {
+            $lines[] = 'Total points: '.$quiz->total_points;
+        }
+
+        if ($quiz->time_limit_minutes) {
+            $lines[] = 'Time limit: '.$quiz->time_limit_minutes.' minutes';
+        }
+
+        if ($quiz->max_attempts) {
+            $lines[] = 'Attempts allowed: '.$quiz->max_attempts;
+        }
+
+        if ($quiz->passing_percentage) {
+            $lines[] = 'Passing score: '.$quiz->passing_percentage.'%';
         }
 
         return $lines;

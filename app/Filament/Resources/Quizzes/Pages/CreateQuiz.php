@@ -6,6 +6,7 @@ use App\Filament\Resources\Quizzes\QuizResource;
 use App\Models\Quiz;
 use App\Services\QuizImportService;
 use App\Services\QuizQuestionsService;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Arr;
@@ -96,6 +97,8 @@ class CreateQuiz extends CreateRecord
         app(QuizQuestionsService::class)->saveQuestions($record, $questionsData);
 
         $this->syncAssignedTeachers($record);
+
+        app(SchoolEmailNotificationService::class)->quizCreated($record);
     }
 
     /**

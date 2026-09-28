@@ -6,12 +6,17 @@ use App\Filament\Resources\Quizzes\QuizResource;
 use App\Models\Quiz;
 use App\Services\QuizImportService;
 use App\Services\QuizQuestionsService;
+use App\Services\SchoolEmailNotificationService;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Throwable;
 
 class EditQuiz extends EditRecord
 {
@@ -25,6 +30,10 @@ class EditQuiz extends EditRecord
     /** @var array<int, int> */
     protected array $deferredTeacherIds = [];
 
+    protected bool $suppressQuizEmail = false;
+
+    protected bool $manualQuizSaveCompleted = false;
+
     protected function getHeaderActions(): array
     {
         return [
@@ -33,8 +42,79 @@ class EditQuiz extends EditRecord
         ];
     }
 
+    protected function submitAndEmailStudentsAction(): Action
+    {
+        return Action::make('submitAndEmailStudents')
+            ->label('Submit & Email Students')
+            ->icon('heroicon-o-paper-airplane')
+            ->color('primary')
+            ->visible(function (): bool {
+                $quiz = $this->getRecord();
+
+                return $quiz instanceof Quiz && (bool) $quiz->email_sent;
+            })
+            ->action(function (): void {
+                $this->handleSubmitAndEmailStudents();
+            });
+    }
+
+    /** @return array<Action | ActionGroup> */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->submitAndEmailStudentsAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
+    protected function getSaveFormAction(): Action
+    {
+        return parent::getSaveFormAction()
+            ->label('Submit');
+    }
+
+    protected function handleSubmitAndEmailStudents(): void
+    {
+        $this->suppressQuizEmail = true;
+        $this->manualQuizSaveCompleted = false;
+
+        try {
+            $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
+
+            $quiz = $this->getRecord();
+
+            if (! $this->manualQuizSaveCompleted || ! $quiz instanceof Quiz) {
+                return;
+            }
+
+            $service = app(SchoolEmailNotificationService::class);
+            $service->sendQuizNotification($quiz);
+            $service->markQuizEmailSent($quiz);
+
+            Notification::make()
+                ->title('Quiz saved and students notified.')
+                ->success()
+                ->send();
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            Notification::make()
+                ->title('Quiz saved, but students could not be notified.')
+                ->danger()
+                ->send();
+        } finally {
+            $this->suppressQuizEmail = false;
+            $this->manualQuizSaveCompleted = false;
+        }
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        unset($data['email_sent']);
+
         /** @var Quiz $record */
         $record = $this->record;
 
@@ -60,6 +140,8 @@ class EditQuiz extends EditRecord
 
         $data['teacher_ids'] = $this->assignedTeacherIds($record);
 
+        $data['available_immediately'] = ($record->availability_type ?? 'immediate') !== 'scheduled';
+
         return $data;
     }
 
@@ -71,7 +153,20 @@ class EditQuiz extends EditRecord
         $this->deferredTeacherIds = $this->normaliseTeacherIds($data['teacher_ids'] ?? []);
         $data['teacher_id'] = Arr::first($this->deferredTeacherIds) ?? $data['teacher_id'] ?? null;
 
-        unset($data['questions'], $data['import_file'], $data['teacher_ids']);
+        $isImmediate = (bool) ($data['available_immediately'] ?? false);
+        $data['availability_type'] = $isImmediate ? 'immediate' : 'scheduled';
+
+        if ($isImmediate) {
+            $data['start_at'] = null;
+        }
+
+        unset(
+            $data['questions'],
+            $data['import_file'],
+            $data['teacher_ids'],
+            $data['available_immediately'],
+            $data['email_sent'],
+        );
 
         return $data;
     }
@@ -112,6 +207,21 @@ class EditQuiz extends EditRecord
         $record->teachers()->sync(
             array_values(array_filter(array_map(intval(...), $teacherIds)))
         );
+
+        $this->handleQuizEmailAfterSave($record);
+    }
+
+    protected function handleQuizEmailAfterSave(Quiz $quiz): void
+    {
+        if ($this->suppressQuizEmail) {
+            $this->manualQuizSaveCompleted = true;
+
+            return;
+        }
+
+        if (! $quiz->email_sent && $quiz->is_published) {
+            app(SchoolEmailNotificationService::class)->notifyPublishedQuiz($quiz);
+        }
     }
 
     /**

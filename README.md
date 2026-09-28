@@ -44,11 +44,11 @@ php artisan queue:failed     # jobs that exhausted their retries
 php artisan tinker --execute="dump(DB::table('jobs')->count());"
 ```
 
-### Lesson and assignment email rules
+### Lesson, assignment, and quiz email rules
 
-Lessons and assignments follow the same rules:
+Lessons, assignments, and quizzes follow the same rules:
 
-- Creating a published lesson or assignment emails the students of that class and sets `email_sent = true`.
+- Creating a published lesson, assignment, or quiz emails the students of that class and sets `email_sent = true`.
 - Creating a draft sends nothing and leaves `email_sent = false`.
 - Standard `Submit` on the edit page sends nothing when `email_sent` is already `true`, so minor
   edits never spam students. When `email_sent` is `false` and the record is published, the first
@@ -70,8 +70,24 @@ Assignments without a scheduled start report `Start date: Available immediately`
 without a deadline report `End date: No deadline`. When late submissions are enabled and an end
 date is set, a `Late submissions accepted until:` line is added.
 
-Recipients are the active enrolments of the lesson or assignment's class, resolved to the student
-user accounts that have an email address.
+Quiz emails include the class, teacher, start date, end date, and the quiz rules:
+
+```
+Class: 10-B Science & Physics
+Teacher: Nimal Perera
+Start date: 5 Oct 2026, 8:00 AM
+End date: 12 Oct 2026, 5:00 PM
+Total points: 20
+Time limit: 30 minutes
+Attempts allowed: 2
+Passing score: 60%
+```
+
+Quizzes without a scheduled start report `Start date: Available immediately`, quizzes without a
+deadline report `End date: No deadline`, and untimed quizzes omit the `Time limit` line.
+
+Recipients are the active enrolments of the lesson, assignment, or quiz class, resolved to the
+student user accounts that have an email address.
 
 ## Checks
 

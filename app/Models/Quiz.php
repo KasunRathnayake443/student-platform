@@ -26,6 +26,7 @@ class Quiz extends Model
         'start_at',
         'end_at',
         'is_published',
+        'email_sent',
     ];
 
     protected $casts = [
@@ -39,6 +40,7 @@ class Quiz extends Model
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'is_published' => 'boolean',
+        'email_sent' => 'boolean',
     ];
 
     /*
