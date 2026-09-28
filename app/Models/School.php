@@ -17,7 +17,20 @@ class School extends Model
         'address',
         'phone',
         'email',
+        'smtp_host',
+        'smtp_password',
+        'smtp_port',
+        'smtp_encryption',
         'is_active',
+    ];
+
+    protected $casts = [
+        'smtp_password' => 'encrypted',
+        'smtp_port' => 'integer',
+    ];
+
+    protected $hidden = [
+        'smtp_password',
     ];
 
     public function getLogoUrlAttribute(): ?string

@@ -3,6 +3,8 @@
 namespace App\Filament\SchoolAdmin\Resources\Lessons\Pages;
 
 use App\Filament\SchoolAdmin\Resources\Lessons\LessonResource;
+use App\Models\Lesson;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +24,10 @@ class CreateLesson extends CreateRecord
         unset($data['new_attachments']);
 
         $lesson = static::getModel()::create($data);
+
+        if (! $lesson instanceof Lesson) {
+            return $lesson;
+        }
 
         $existingPaths = [];
 
@@ -63,6 +69,8 @@ class CreateLesson extends CreateRecord
 
             $existingPaths[] = $path;
         }
+
+        app(SchoolEmailNotificationService::class)->lessonCreated($lesson);
 
         return $lesson;
     }

@@ -18,10 +18,12 @@ class Lesson extends Model
         'video_url',
         'sort_order',
         'is_published',
+        'email_sent',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
+        'email_sent' => 'boolean',
         'sort_order' => 'integer',
     ];
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\LearningClasses\RelationManagers;
 use App\Filament\Resources\Lessons\LessonResource;
 use App\Models\Lesson;
 use App\Models\Teacher;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -342,6 +343,8 @@ class LessonsRelationManager extends RelationManager
                                 ]);
                             }
                         }
+
+                        app(SchoolEmailNotificationService::class)->lessonCreated($lesson);
                     }),
             ])
 

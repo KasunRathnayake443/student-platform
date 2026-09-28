@@ -6,6 +6,7 @@ use App\Filament\Teacher\Resources\Lessons\LessonResource;
 use App\Models\LearningClass;
 use App\Models\Lesson;
 use App\Models\Teacher;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -181,6 +182,8 @@ class LessonsRelationManager extends RelationManager
                                 ]);
                             }
                         }
+
+                        app(SchoolEmailNotificationService::class)->lessonCreated($lesson);
                     }),
             ])
             ->recordActions([

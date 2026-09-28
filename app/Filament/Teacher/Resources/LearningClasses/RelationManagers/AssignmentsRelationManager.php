@@ -6,6 +6,7 @@ use App\Filament\Teacher\Resources\Assignments\AssignmentResource;
 use App\Models\Assignment;
 use App\Models\LearningClass;
 use App\Models\Teacher;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -334,6 +335,8 @@ class AssignmentsRelationManager extends RelationManager
                                 ]);
                             }
                         }
+
+                        app(SchoolEmailNotificationService::class)->assignmentCreated($assignment);
                     }),
             ])
             ->recordActions([

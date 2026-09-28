@@ -3,13 +3,24 @@
 namespace App\Filament\Resources\Lessons\Pages;
 
 use App\Filament\Resources\Lessons\LessonResource;
+use App\Models\Lesson;
+use App\Services\SchoolEmailNotificationService;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class EditLesson extends EditRecord
 {
     protected static string $resource = LessonResource::class;
+
+    protected bool $suppressLessonEmail = false;
+
+    protected bool $manualLessonSaveCompleted = false;
 
     /*
     |--------------------------------------------------------------------------
@@ -19,6 +30,8 @@ class EditLesson extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        unset($data['email_sent']);
+
         $this->record->load('attachments');
 
         $data['existing_attachments'] = $this->record
@@ -51,6 +64,75 @@ class EditLesson extends EditRecord
         return $data;
     }
 
+    protected function submitAndEmailStudentsAction(): Action
+    {
+        return Action::make('submitAndEmailStudents')
+            ->label('Submit & Email Students')
+            ->icon('heroicon-o-paper-airplane')
+            ->color('primary')
+            ->visible(function (): bool {
+                $lesson = $this->getRecord();
+
+                return $lesson instanceof Lesson && (bool) $lesson->email_sent;
+            })
+            ->action(function (): void {
+                $this->handleSubmitAndEmailStudents();
+            });
+    }
+
+    /** @return array<Action | ActionGroup> */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->submitAndEmailStudentsAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
+    protected function getSaveFormAction(): Action
+    {
+        return parent::getSaveFormAction()
+            ->label('Submit');
+    }
+
+    protected function handleSubmitAndEmailStudents(): void
+    {
+        $this->suppressLessonEmail = true;
+        $this->manualLessonSaveCompleted = false;
+
+        try {
+            $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
+
+            $lesson = $this->getRecord();
+
+            if (! $this->manualLessonSaveCompleted || ! $lesson instanceof Lesson) {
+                return;
+            }
+
+            $service = app(SchoolEmailNotificationService::class);
+            $service->sendLessonNotification($lesson);
+            $service->markLessonEmailSent($lesson);
+
+            Notification::make()
+                ->title('Lesson saved and students notified.')
+                ->success()
+                ->send();
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            Notification::make()
+                ->title('Lesson saved, but students could not be notified.')
+                ->danger()
+                ->send();
+        } finally {
+            $this->suppressLessonEmail = false;
+            $this->manualLessonSaveCompleted = false;
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -78,7 +160,8 @@ class EditLesson extends EditRecord
 
         unset(
             $data['existing_attachments'],
-            $data['new_attachments']
+            $data['new_attachments'],
+            $data['email_sent']
         );
 
         return $data;
@@ -95,6 +178,14 @@ class EditLesson extends EditRecord
         $this->processExistingAttachments();
 
         $this->processNewAttachments();
+
+        $lesson = $this->getRecord();
+
+        if ($this->suppressLessonEmail) {
+            $this->manualLessonSaveCompleted = true;
+        } elseif ($lesson instanceof Lesson && ! $lesson->email_sent && $lesson->is_published) {
+            app(SchoolEmailNotificationService::class)->notifyPublishedLesson($lesson);
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -291,7 +382,7 @@ class EditLesson extends EditRecord
                 $mimeType = Storage::disk('public')
                     ->mimeType($path);
 
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
 
                 $mimeType = null;
             }
@@ -301,7 +392,7 @@ class EditLesson extends EditRecord
                 $fileSize = Storage::disk('public')
                     ->size($path);
 
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
 
                 $fileSize = null;
             }

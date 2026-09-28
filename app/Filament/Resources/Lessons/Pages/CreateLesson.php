@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Lessons\Pages;
 
 use App\Filament\Resources\Lessons\LessonResource;
+use App\Models\Lesson;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +20,10 @@ class CreateLesson extends CreateRecord
         unset($data['attachments']);
 
         $lesson = static::getModel()::create($data);
+
+        if (! $lesson instanceof Lesson) {
+            return $lesson;
+        }
 
         foreach ($attachments as $index => $file) {
 
@@ -39,6 +45,8 @@ class CreateLesson extends CreateRecord
                 'sort_order' => $index,
             ]);
         }
+
+        app(SchoolEmailNotificationService::class)->lessonCreated($lesson);
 
         return $lesson;
     }

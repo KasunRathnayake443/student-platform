@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\AssignmentSubmissionAttachment;
 use App\Models\Teacher;
+use App\Services\SchoolEmailNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\RichEditor;
@@ -337,6 +338,8 @@ class SubmissionsRelationManager extends RelationManager
                                 'graded_at' => now(),
                                 'status' => 'graded',
                             ]);
+
+                            app(SchoolEmailNotificationService::class)->assignmentGraded($record);
                         }
                     )
                     ->modalHeading(
