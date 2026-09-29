@@ -32,6 +32,8 @@ class Student extends Model
 
         'parent_phone',
 
+        'parent_email',
+
     ];
 
     /*
@@ -225,6 +227,16 @@ class Student extends Model
             AssignmentSubmission::class,
             'student_id'
         );
+    }
+
+    /**
+     * The parent/guardian email address, if one was recorded.
+     */
+    public function parentEmailAddress(): ?string
+    {
+        $email = trim((string) $this->parent_email);
+
+        return $email === '' ? null : $email;
     }
 
     public function calendarNotes(): HasMany

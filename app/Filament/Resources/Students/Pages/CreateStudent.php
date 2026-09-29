@@ -79,6 +79,8 @@ class CreateStudent extends CreateRecord
 
                 'parent_phone' => $data['parent_phone'] ?? null,
 
+                'parent_email' => $data['parent_email'] ?? null,
+
             ]);
 
             /*

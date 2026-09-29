@@ -47,6 +47,10 @@ class StudentInfolist
                 TextEntry::make('parent_phone')
                     ->label('Parent Phone'),
 
+                TextEntry::make('parent_email')
+                    ->label('Parent Email')
+                    ->placeholder('Not provided'),
+
                 TextEntry::make('currentEnrollment.school.name')
                     ->label('School'),
 

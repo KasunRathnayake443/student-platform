@@ -89,6 +89,38 @@ deadline report `End date: No deadline`, and untimed quizzes omit the `Time limi
 Recipients are the active enrolments of the lesson, assignment, or quiz class, resolved to the
 student user accounts that have an email address.
 
+### Teacher email composer
+
+Teachers can send a custom message to the students of one of their own classes from
+**Email Students** in the teacher panel. The composer asks for:
+
+- the learning class,
+- which students to write to (limited to active enrolments of that class),
+- the message body,
+- optionally an assignment and/or a quiz whose score is attached per student,
+- whether to copy the parent or guardian.
+
+Per-student score lines look like this:
+
+```
+Assignment: Quadratic Problem Set
+Your score: 88.5 / 100
+
+Quiz: Quadratic Functions & Algebra Mastery Quiz
+Your score: 18 / 20 (90%) - Passed
+```
+
+Work that is missing or not yet graded is reported explicitly (`Your submission: Not submitted`,
+`Your submission: Submitted, not graded yet`, `Your attempt: No completed attempt recorded`).
+
+Parent copies require a parent email on the student record, which super admins and school admins can
+set on the student create and edit forms. Parents who have no email on file are skipped. A parent copy
+starts with a `Student: <name>` line and is emailed to the parent address directly, since parents have
+no portal login.
+
+All composer mail is queued and sent through the SMTP settings of the school that owns the selected
+class, the same as the other notifications.
+
 ## Checks
 
 ```bash

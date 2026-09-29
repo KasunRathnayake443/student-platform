@@ -132,6 +132,16 @@ class StudentForm
 
                     ->tel(),
 
+                TextInput::make('parent_email')
+
+                    ->label('Parent Email')
+
+                    ->email()
+
+                    ->maxLength(255)
+
+                    ->helperText('Optional. Used to copy teacher emails to the parent or guardian.'),
+
                 Toggle::make('assign_school')
 
                     ->label('Assign Student To School')

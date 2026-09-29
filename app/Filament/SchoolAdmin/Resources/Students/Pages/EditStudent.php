@@ -77,6 +77,7 @@ class EditStudent extends BaseEditStudent
                 'address' => $data['address'] ?? null,
                 'parent_name' => $data['parent_name'] ?? null,
                 'parent_phone' => $data['parent_phone'] ?? null,
+                'parent_email' => $data['parent_email'] ?? null,
             ]);
 
             $adminSchoolIds = SchoolAdminScopes::schoolIds();

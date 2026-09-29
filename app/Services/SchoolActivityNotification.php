@@ -32,14 +32,14 @@ class SchoolActivityNotification extends Notification implements ShouldBeEncrypt
         return ['mail'];
     }
 
-    public function toMail(User $notifiable): MailMessage
+    public function toMail(object $notifiable): MailMessage
     {
         $school = School::query()->findOrFail($this->schoolId);
         $mailer = app(SchoolMailTransport::class)->configure($school);
 
         $message = (new MailMessage)
             ->subject(Str::limit($this->subject, 150))
-            ->greeting('Hello '.$notifiable->name.',')
+            ->greeting($this->greeting($notifiable))
             ->line($this->message);
 
         foreach ($this->lines as $line) {
@@ -51,9 +51,29 @@ class SchoolActivityNotification extends Notification implements ShouldBeEncrypt
         }
 
         return $message
-            ->line('Sign in to your student account to view more details.')
+            ->line($this->footer($notifiable))
             ->from($school->email, $school->name)
             ->mailer($mailer);
+    }
+
+    /**
+     * Parents are notified through an anonymous on-demand notifiable that
+     * carries no name, so they get a plain salutation.
+     */
+    protected function greeting(object $notifiable): string
+    {
+        $name = $notifiable instanceof User
+            ? trim((string) $notifiable->name)
+            : '';
+
+        return $name === '' ? 'Hello,' : 'Hello '.$name.',';
+    }
+
+    protected function footer(object $notifiable): string
+    {
+        return $notifiable instanceof User
+            ? 'Sign in to your student account to view more details.'
+            : 'You are receiving this message as a parent or guardian contact.';
     }
 
     /** @return array<string, mixed> */

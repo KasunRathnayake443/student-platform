@@ -8,6 +8,7 @@ use App\Models\Grade;
 use App\Models\LearningClass;
 use App\Models\Lesson;
 use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\School;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
@@ -22,6 +23,181 @@ use Illuminate\Support\Str;
 class SchoolEmailNotificationService
 {
     public function __construct(private SchoolMailTransport $mailTransport) {}
+
+    /**
+     * Send a teacher-authored message to the students of one class, and
+     * optionally to each student's parent or guardian email.
+     *
+     * When an assignment or quiz is supplied, the matching submission score
+     * or attempt score is added per student.
+     *
+     * @param  Collection<int, Student>  $students
+     */
+    public function sendCustomStudentMessage(
+        LearningClass $class,
+        Collection $students,
+        string $message,
+        ?Assignment $assignment = null,
+        ?Quiz $quiz = null,
+        bool $includeParents = true,
+        ?string $teacherName = null,
+    ): int {
+        $school = $this->schoolForClass($class);
+
+        if (! $school instanceof School || ! $school->is_active || ! $this->mailTransport->isConfigured($school)) {
+            return 0;
+        }
+
+        $sender = $teacherName !== null && trim($teacherName) !== ''
+            ? trim($teacherName)
+            : $this->teacherName(null);
+
+        $subject = "Message from {$sender}: ".$class->name;
+        $dispatched = 0;
+
+        foreach ($students as $student) {
+            $studentUser = $student->user;
+            $parentEmail = $student->parentEmailAddress();
+
+            $lines = $this->customMessageLines($class, $sender, $message, $student, $assignment, $quiz);
+
+            if ($studentUser instanceof User && filled($studentUser->email)) {
+                Notification::send(
+                    $studentUser,
+                    new SchoolActivityNotification(
+                        $school->getKey(),
+                        $subject,
+                        $this->messageIntro($sender, $class),
+                        $lines,
+                    ),
+                );
+
+                $dispatched++;
+            }
+
+            if ($includeParents && $parentEmail !== null) {
+                Notification::route('mail', $parentEmail)->notify(
+                    new SchoolActivityNotification(
+                        $school->getKey(),
+                        $subject,
+                        $this->messageIntro($sender, $class),
+                        $this->parentMessageLines($student, $lines),
+                    ),
+                );
+
+                $dispatched++;
+            }
+        }
+
+        return $dispatched;
+    }
+
+    protected function messageIntro(string $teacherName, LearningClass $class): string
+    {
+        return "{$teacherName} has sent a message to the students of {$class->name}.";
+    }
+
+    /**
+     * Parents need to know which student the message is about, so the name
+     * is prepended to the lines the student themselves receives.
+     *
+     * @param  array<int, string>  $studentLines
+     * @return array<int, string>
+     */
+    protected function parentMessageLines(Student $student, array $studentLines): array
+    {
+        $name = trim((string) $student->user->name);
+
+        return [
+            'Student: '.($name !== '' ? $name : $student->admission_no),
+            ...$studentLines,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function customMessageLines(
+        LearningClass $class,
+        string $teacherName,
+        string $message,
+        Student $student,
+        ?Assignment $assignment,
+        ?Quiz $quiz,
+    ): array {
+        $lines = [
+            'Class: '.$class->name,
+            'Teacher: '.$teacherName,
+            '',
+            trim($message),
+        ];
+
+        if ($assignment instanceof Assignment) {
+            $lines[] = '';
+            $lines[] = 'Assignment: '.$assignment->title;
+            $lines[] = $this->assignmentScoreLine($assignment, $student);
+        }
+
+        if ($quiz instanceof Quiz) {
+            $lines[] = '';
+            $lines[] = 'Quiz: '.$quiz->title;
+            $lines[] = $this->quizScoreLine($quiz, $student);
+        }
+
+        return $lines;
+    }
+
+    protected function assignmentScoreLine(Assignment $assignment, Student $student): string
+    {
+        $submission = AssignmentSubmission::query()
+            ->where('assignment_id', $assignment->getKey())
+            ->where('student_id', $student->getKey())
+            ->latest('id')
+            ->first();
+
+        if (! $submission instanceof AssignmentSubmission) {
+            return 'Your submission: Not submitted';
+        }
+
+        if ($submission->score === null) {
+            return 'Your submission: Submitted, not graded yet';
+        }
+
+        return 'Your score: '.$this->formatScore((float) $submission->score).' / '.$assignment->max_score;
+    }
+
+    protected function quizScoreLine(Quiz $quiz, Student $student): string
+    {
+        $attempt = QuizAttempt::query()
+            ->where('quiz_id', $quiz->getKey())
+            ->where('student_id', $student->getKey())
+            ->whereNotNull('score')
+            ->latest('id')
+            ->first();
+
+        if (! $attempt instanceof QuizAttempt) {
+            return 'Your attempt: No completed attempt recorded';
+        }
+
+        $line = 'Your score: '.$this->formatScore((float) $attempt->score).' / '.$quiz->total_points;
+
+        $percentage = $attempt->percentage;
+
+        if (filled($percentage)) {
+            $line .= ' ('.$this->formatScore((float) $percentage).'%)';
+        }
+
+        if ($attempt->is_passed) {
+            $line .= ' - Passed';
+        }
+
+        return $line;
+    }
+
+    protected function formatScore(float $score): string
+    {
+        return rtrim(rtrim(number_format($score, 2), '0'), '.');
+    }
 
     public function quizCreated(Quiz $quiz): void
     {

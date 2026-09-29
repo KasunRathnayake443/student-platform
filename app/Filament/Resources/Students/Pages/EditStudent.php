@@ -157,6 +157,8 @@ class EditStudent extends EditRecord
 
                 'parent_phone' => $data['parent_phone'] ?? null,
 
+                'parent_email' => $data['parent_email'] ?? null,
+
             ]);
 
             /*

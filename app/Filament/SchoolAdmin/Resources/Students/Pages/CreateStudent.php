@@ -57,6 +57,7 @@ class CreateStudent extends CreateRecord
                     'address' => $data['address'] ?? null,
                     'parent_name' => $data['parent_name'] ?? null,
                     'parent_phone' => $data['parent_phone'] ?? null,
+                    'parent_email' => $data['parent_email'] ?? null,
                 ]);
             }
 
