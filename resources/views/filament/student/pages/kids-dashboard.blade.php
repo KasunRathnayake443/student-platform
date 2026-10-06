@@ -6,25 +6,20 @@
     $activeSchoolName = $activeContext ? ($activeContext['school']->name ?? 'My School') : 'My School';
     $activeGradeName  = $activeContext ? ($activeContext['grade']->name  ?? 'My Grade')  : 'My Grade';
 
-    // ── Stars: quiz average as a star count out of 10 ────────────────────
-    $quizAvg = 0;
-    if ($student) {
-        $attempts = $student->quizAttempts()->where('status', 'submitted')->get();
-        if ($attempts->count()) {
-            $quizAvg = round($attempts->avg('percentage') / 10); // 0-10 stars
-        }
-    }
+    // ── Stars: quiz average as a star count out of 10 (from the parent's
+    // batched $quizAttempts in the main dashboard block) ───────────────
+    $quizAvg = $quizAttempts->count() ? round($quizAttempts->avg('percentage') / 10) : 0;
 
-    // ── Pending assignments across active classes ─────────────────────────
+    // ── Pending assignments across active classes (from the parent's batched maps) ──
     $pendingAssignments = collect();
     foreach ($activeClasses as $class) {
-        $pending = $class->assignments()
-            ->where('is_published', true)
-            ->whereDoesntHave('submissions', fn ($q) => $q->where('student_id', $student?->id))
-            ->take(3)
-            ->get();
-        $pendingAssignments = $pendingAssignments->merge($pending);
+        $pendingAssignments = $pendingAssignments->merge(
+            ($assignmentsByClassId[$class->id] ?? collect())
+                ->filter(fn ($a) => ! isset($studentSubmissionMap[$a->id]))
+                ->take(3)
+        );
     }
+    $pendingAssignments = $pendingAssignments->values();
 @endphp
 
 <style>
@@ -509,7 +504,7 @@
                 <div class="kids-classes-grid">
                     @foreach($activeClasses as $i => $class)
                         <a
-                            href="?tab=lessons&class_filter={{ (int) $class->id }}"
+                            href="?tab=classes"
                             class="kids-class-tile {{ $tileColors[$i % 6] }}"
                             title="Tap to open {{ $class->name }} 📖"
                         >

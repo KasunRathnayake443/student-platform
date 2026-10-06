@@ -1,6 +1,9 @@
 @php
     use Illuminate\Support\Carbon;
+    use App\Models\Assignment;
     use App\Models\AssignmentSubmission;
+    use App\Models\Lesson;
+    use App\Models\Quiz;
 
     $activeClasses    = $activeContext ? $activeContext['classes'] : collect();
     $activeSchoolName = $activeContext ? ($activeContext['school']->name ?? 'School') : 'School';
@@ -30,72 +33,94 @@
         $allClasses = $allClasses->keyBy('id')->values();
     }
 
-    // Quiz stats
-    $quizAttempts   = $student?->quizAttempts()->where('status', 'submitted')->with('quiz')->get() ?? collect();
-    $quizAvgPct     = $quizAttempts->count() ? round($quizAttempts->avg('percentage'), 1) : 0;
-    $quizPassed     = $quizAttempts->where('is_passed', true)->count();
-    $recentQuizzes  = $quizAttempts->sortByDesc('completed_at')->take(6);
+    // Class tiles / rows / search index read $class->teachers — load once (1 query).
+    // $activeContext/$allContexts hydrate to separate model instances on re-render.
+    if ($allClasses->isNotEmpty()) {
+        \Illuminate\Database\Eloquent\Collection::make($allClasses->all())->loadMissing('teachers.user');
+    }
+    if ($activeClasses->isNotEmpty()) {
+        \Illuminate\Database\Eloquent\Collection::make($activeClasses->all())->loadMissing('teachers.user');
+    }
 
-    // Chart data: quiz scores by week (last 8 weeks)
-    $chartData = [];
-    for ($w = 7; $w >= 0; $w--) {
-        $weekStart = Carbon::now()->startOfWeek()->subWeeks($w);
-        $weekEnd   = $weekStart->copy()->endOfWeek();
-        $weekAttempts = $quizAttempts->filter(
-            fn ($a) => $a->completed_at && $a->completed_at->between($weekStart, $weekEnd)
-        );
-        $chartData[] = [
-            'label' => $weekStart->format('M j'),
-            'value' => $weekAttempts->count() ? round($weekAttempts->avg('percentage'), 1) : 0,
-        ];
+    // Only fetch the heavy data groups the active tab actually renders.
+    $needQuizStats   = in_array($activeTab, ['dashboard', 'quizzes'], true);
+    $needAssignments = in_array($activeTab, ['dashboard', 'assignments', 'classes', 'calendar'], true);
+    $needLessons     = in_array($activeTab, ['lessons', 'classes'], true);
+    $needQuizzes     = in_array($activeTab, ['quizzes', 'classes', 'calendar'], true);
+    $needGrades      = $activeTab === 'grades';
+    $classIds        = $allClasses->pluck('id')->all();
+
+    // Quiz stats
+    $quizAttempts   = collect();
+    $quizAvgPct     = 0;
+    $quizPassed     = 0;
+    $recentQuizzes  = collect();
+    $chartData      = [];
+    if ($needQuizStats && $student) {
+        $quizAttempts  = $student->quizAttempts()->where('status', 'submitted')->with('quiz')->get();
+        $quizAvgPct    = $quizAttempts->count() ? round($quizAttempts->avg('percentage'), 1) : 0;
+        $quizPassed    = $quizAttempts->where('is_passed', true)->count();
+        $recentQuizzes = $quizAttempts->sortByDesc('completed_at')->take(6);
+
+        // Chart data: quiz scores by week (last 8 weeks)
+        for ($w = 7; $w >= 0; $w--) {
+            $weekStart = Carbon::now()->startOfWeek()->subWeeks($w);
+            $weekEnd   = $weekStart->copy()->endOfWeek();
+            $weekAttempts = $quizAttempts->filter(
+                fn ($a) => $a->completed_at && $a->completed_at->between($weekStart, $weekEnd)
+            );
+            $chartData[] = [
+                'label' => $weekStart->format('M j'),
+                'value' => $weekAttempts->count() ? round($weekAttempts->avg('percentage'), 1) : 0,
+            ];
+        }
     }
 
     // Current class filter (set via class-card buttons or the filter dropdown)
     $classFilterId = ! blank($activeClassFilterId) ? (int) $activeClassFilterId : null;
     $filteredClass = $classFilterId ? $allClasses->firstWhere('id', $classFilterId) : null;
 
-    // Assignments (across all schools)
+    // Assignments (one batched query across all enrolled classes)
     $allAssignments = collect();
     $assignmentsByClassId = [];
-    foreach ($allClasses as $class) {
-        $list = $class->assignments()
-            ->with(['learningClass', 'teacher.user', 'attachments'])
+    $pendingAssignments = collect();
+    $studentSubmissions = collect();
+    $studentSubmissionMap = [];
+    $submittedCount = 0;
+    if ($needAssignments && $classIds) {
+        $byClass = Assignment::query()
+            ->whereIn('learning_class_id', $classIds)
             ->where('is_published', true)
+            ->with(['learningClass', 'teacher.user', 'attachments'])
             ->get()
+            ->groupBy('learning_class_id');
+
+        foreach ($allClasses as $class) {
+            $assignmentsByClassId[$class->id] = ($byClass[$class->id] ?? collect())
+                ->sortBy(fn ($a) => $a->end_at ? $a->end_at->timestamp : PHP_INT_MAX)
+                ->values();
+        }
+        $allAssignments = collect($assignmentsByClassId)->flatten(1)
             ->sortBy(fn ($a) => $a->end_at ? $a->end_at->timestamp : PHP_INT_MAX)
             ->values();
-        $assignmentsByClassId[$class->id] = $list;
-        $allAssignments = $allAssignments->merge($list);
-    }
-    $allAssignments = $allAssignments
-        ->sortBy(fn ($a) => $a->end_at ? $a->end_at->timestamp : PHP_INT_MAX)
-        ->values();
 
-    // Pending (not yet submitted) assignments
-    $pendingAssignments = collect();
-    foreach ($allClasses as $class) {
-        $pend = $class->assignments()
-            ->where('is_published', true)
-            ->whereDoesntHave('submissions', fn ($q) => $q->where('student_id', $student?->id))
-            ->orderBy('end_at')
-            ->get();
-        $pendingAssignments = $pendingAssignments->merge($pend);
-    }
-    $pendingAssignments = $pendingAssignments->sortBy('end_at');
-
-    // Submitted count
-    $submittedCount = 0;
-    $studentSubmissionMap = [];
-    if ($student && $allAssignments->count()) {
-        foreach (AssignmentSubmission::where('student_id', $student->id)
-            ->whereIn('assignment_id', $allAssignments->pluck('id'))
-            ->with(['attachments', 'grader.user', 'assignment'])
-            ->get() as $sub) {
+        if ($student && $allAssignments->isNotEmpty()) {
+            $studentSubmissions = AssignmentSubmission::where('student_id', $student->id)
+                ->whereIn('assignment_id', $allAssignments->pluck('id'))
+                ->with(['attachments', 'grader.user', 'assignment'])
+                ->get();
+            foreach ($studentSubmissions as $sub) {
                 $studentSubmissionMap[$sub->assignment_id] = $sub;
             }
-        $submittedCount = count($studentSubmissionMap);
-    }
+            $submittedCount = count($studentSubmissionMap);
+        }
 
+        // Pending = published assignments the student has not submitted (derived in-memory)
+        $pendingAssignments = $allAssignments
+            ->filter(fn ($a) => ! isset($studentSubmissionMap[$a->id]))
+            ->sortBy('end_at')
+            ->values();
+    }
     $classHasAssignments = [];
     foreach ($allClasses as $class) {
         $classHasAssignments[$class->id] = ($classFilterId === null || (int) $class->id === $classFilterId)
@@ -105,19 +130,22 @@
     // Lessons across all enrolled classes (published only), kept per class for grouped render
     $allLessons = collect();
     $lessonsByClassId = [];
-    foreach ($allClasses as $class) {
-        $published = $class->lessons()
-            ->with(['attachments', 'learningClass', 'teacher.user'])
+    if ($needLessons && $classIds) {
+        $byClass = Lesson::query()
+            ->whereIn('learning_class_id', $classIds)
             ->where('is_published', true)
+            ->with(['attachments', 'learningClass', 'teacher.user'])
+            ->orderBy('sort_order')
             ->get()
-            ->sortBy('sort_order')
-            ->values();
-        $lessonsByClassId[$class->id] = $published;
-        $allLessons = $allLessons->merge($published);
-    }
-    $allLessons = $allLessons->sortBy('sort_order')->values();
-    if ($classFilterId) {
-        $allLessons = $allLessons->where('learning_class_id', $classFilterId)->values();
+            ->groupBy('learning_class_id');
+
+        foreach ($allClasses as $class) {
+            $lessonsByClassId[$class->id] = ($byClass[$class->id] ?? collect())->values();
+        }
+        $allLessons = collect($lessonsByClassId)->flatten(1)->sortBy('sort_order')->values();
+        if ($classFilterId) {
+            $allLessons = $allLessons->where('learning_class_id', $classFilterId)->values();
+        }
     }
     $classHasLessons = [];
     foreach ($allClasses as $class) {
@@ -136,25 +164,27 @@
     // Quizzes across all enrolled classes (published only), enriched with the student's attempts
     $allQuizzes = collect();
     $quizzesByClassId = [];
-    foreach ($allClasses as $class) {
-        $list = $class->quizzes()
-            ->withCount('questions')
-            ->with(['learningClass', 'teacher.user'])
-            ->where('is_published', true)
-            ->get()
-            ->sortByDesc('created_at')
-            ->values();
-        $quizzesByClassId[$class->id] = $list;
-        $allQuizzes = $allQuizzes->merge($list);
-    }
-    $allQuizzes = $allQuizzes->values();
-
     $myQuizAttemptsById = collect();
     $quizStatusById = [];
     $quizStateById = [];
     $classHasQuizzes = [];
-    if ($student) {
-        if ($allQuizzes->isNotEmpty()) {
+    if ($needQuizzes && $classIds) {
+        $byClass = Quiz::query()
+            ->whereIn('learning_class_id', $classIds)
+            ->where('is_published', true)
+            ->withCount('questions')
+            ->with(['learningClass', 'teacher.user'])
+            ->get()
+            ->groupBy('learning_class_id');
+
+        foreach ($allClasses as $class) {
+            $quizzesByClassId[$class->id] = ($byClass[$class->id] ?? collect())
+                ->sortByDesc('created_at')
+                ->values();
+        }
+        $allQuizzes = collect($quizzesByClassId)->flatten(1)->values();
+
+        if ($student && $allQuizzes->isNotEmpty()) {
             $myQuizAttemptsById = $student->quizAttempts()
                 ->whereIn('quiz_id', $allQuizzes->pluck('id'))
                 ->with('quiz')
@@ -168,8 +198,13 @@
             $finished = $attempts->filter(fn ($a) => in_array($a->status, ['submitted', 'time_expired'], true));
             $latest = $attempts->first();
             $best = $finished->max('percentage');
-            $canAttempt = $quiz->canStudentAttempt($student);
-            $remaining = $quiz->getRemainingAttempts($student);
+
+            // Same logic as Quiz::canStudentAttempt()/getRemainingAttempts(), in-memory
+            $maxAttempts = (int) ($quiz->max_attempts ?? 0);
+            $finishedCount = $finished->count();
+            $canAttempt = $quiz->isAvailable() && ! $quiz->isExpired()
+                && ($maxAttempts === 0 || $finishedCount < $maxAttempts);
+            $remaining = $maxAttempts === 0 ? null : max(0, $maxAttempts - $finishedCount);
 
             if (! $quiz->isAvailable()) {
                 $state = 'locked';
@@ -185,7 +220,7 @@
 
             $quizStatusById[$quiz->id] = [
                 'attempts' => $attempts,
-                'finished_count' => $finished->count(),
+                'finished_count' => $finishedCount,
                 'latest' => $latest,
                 'best' => $best !== null ? (int) round((float) $best) : null,
                 'can_attempt' => $canAttempt,
@@ -216,17 +251,17 @@
     $pendingGradesCount = 0;
     $allFeedbacks = collect();
 
-    if ($student) {
+    if ($needGrades && $student) {
         // Quiz results (all finished attempts with scores)
         $quizResults = $student->quizAttempts()
-            ->with(['quiz.learningClass', 'quiz.teacher.user'])
+            ->with(['quiz.learningClass.grade.school', 'quiz.teacher.user'])
             ->whereIn('status', ['submitted', 'time_expired'])
             ->orderByDesc('completed_at')
             ->get();
 
         // Assignment results (all submitted or graded)
         $assignmentResults = $student->assignmentSubmissions()
-            ->with(['assignment.learningClass', 'assignment.teacher', 'grader.user'])
+            ->with(['assignment.learningClass.grade.school', 'assignment.teacher.user', 'grader.user'])
             ->whereIn('status', ['submitted', 'graded'])
             ->orderByDesc('submitted_at')
             ->get();
@@ -2379,7 +2414,14 @@
         width: 250px;
         background: linear-gradient(180deg, #faf5ff 0%, #f0e7ff 40%, #fce7f3 100%);
         border-right: 3px solid #e9d5ff;
-        padding: 1.25rem 1rem;
+        padding: 1.25rem 0.5rem;
+    }
+    /* Room inside the scroll clip box so hovered/active tabs can scale
+       and translate without being cropped at the edges (overflow-x: hidden
+       clips at the padding box — padding gives the transforms headroom). */
+    .kids-mode .sidebar-scrollable-content {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
     .kids-mode .brand-header {
         border-bottom: 3px dashed #d8b4fe;
@@ -2690,7 +2732,7 @@
                         </div>
                     @endif
                     <div class="user-info">
-                        <div class="user-name">{{ $student?->user?->name ?? 'Student' }}</div>
+                        <div class="user-name">{{ $profileName ?: 'Student' }}</div>
                         <div class="user-role">{{ $activeGradeName }} Student</div>
                     </div>
                 </div>
@@ -2811,9 +2853,9 @@
                                             <div class="classes-grid">
                                                 @foreach($gradeGroup['classes'] as $class)
                                                     @php
-                                                        $lessonCount  = $class->lessons()->where('is_published', true)->count();
-                                                        $assignCount  = $class->assignments()->where('is_published', true)->count();
-                                                        $quizCount    = $class->quizzes()->where('is_published', true)->count();
+                                                        $lessonCount  = ($lessonsByClassId[$class->id] ?? collect())->count();
+                                                        $assignCount  = ($assignmentsByClassId[$class->id] ?? collect())->count();
+                                                        $quizCount    = ($quizzesByClassId[$class->id] ?? collect())->count();
                                                         $teacherName  = $class->teachers->first()?->user?->name ?? 'Course Instructor';
                                                         $kidsClassIdx++;
                                                         $kidCardColor = $kidsCardColors[($kidsClassIdx - 1) % 6];
@@ -3688,18 +3730,6 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                         $calYearLabel = $calYear;
                         $calWeekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-                        $allClasses = collect();
-                        if ($allContexts) {
-                            foreach ($allContexts as $sg) {
-                                foreach ($sg['contexts'] ?? [] as $gg) {
-                                    foreach ($gg['classes'] ?? [] as $c) {
-                                        $allClasses->push($c);
-                                    }
-                                }
-                            }
-                            $allClasses = $allClasses->keyBy('id')->values();
-                        }
-
                         $calEvents = [];
                         $asgnCount = 0;
                         $quizCount = 0;
@@ -3707,7 +3737,7 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                         $now48h = now()->addHours(48);
 
                         foreach ($allClasses as $cls) {
-                            $clsAssignments = $cls->assignments()->with('learningClass')->where('is_published', true)->get();
+                            $clsAssignments = $assignmentsByClassId[$cls->id] ?? collect();
                             foreach ($clsAssignments as $asgn) {
                                 if ($asgn->start_at) {
                                     $d = \Carbon\Carbon::parse($asgn->start_at)->format('Y-m-d');
@@ -3741,7 +3771,7 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                     ];
                                 }
                             }
-                            $clsQuizzes = $cls->quizzes()->with('learningClass')->where('is_published', true)->get();
+                            $clsQuizzes = $quizzesByClassId[$cls->id] ?? collect();
                             foreach ($clsQuizzes as $quiz) {
                                 if ($quiz->start_at) {
                                     $d = \Carbon\Carbon::parse($quiz->start_at)->format('Y-m-d');

@@ -353,6 +353,33 @@
         font-weight: 600;
         color: #94a3b8;
     }
+
+    .tlogin-back-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 1.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        background: #eef2ff;
+        border: 1.5px solid #e0e7ff;
+        color: #4f46e5;
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .tlogin-back-home:hover {
+        transform: translateY(-1px);
+        background: #e0e7ff;
+        border-color: #a5b4fc;
+        box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.4);
+    }
+
+    .tlogin-back-home svg {
+        flex-shrink: 0;
+    }
     </style>
 
     <div class="tlogin-shell">
@@ -403,6 +430,11 @@
             <span class="tlogin-mobile-brand">📘 Teacher Portal · Student Platform</span>
 
             <div class="tlogin-form-box">
+                <a href="/" class="tlogin-back-home">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    Back to Home
+                </a>
+
                 <h1>Welcome back 👋</h1>
                 <p>Sign in with your teacher credentials to continue.</p>
 

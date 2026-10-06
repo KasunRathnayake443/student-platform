@@ -35,10 +35,12 @@ class StudentContextService
     /**
      * Get the currently active context for a student.
      * Defaults to the first/most-recent enrollment if none stored.
+     *
+     * @param  Collection<int, array<string, mixed>>|null  $contexts  Pre-loaded contexts (avoids a re-query)
      */
-    public function getActiveContext(Student $student): ?array
+    public function getActiveContext(Student $student, ?Collection $contexts = null): ?array
     {
-        $contexts = $this->getContextsFor($student);
+        $contexts ??= $this->getContextsFor($student);
 
         if ($contexts->isEmpty()) {
             return null;
@@ -70,10 +72,12 @@ class StudentContextService
 
     /**
      * Get all contexts grouped by school for rendering the switcher UI.
+     *
+     * @param  Collection<int, array<string, mixed>>|null  $contexts  Pre-loaded contexts (avoids a re-query)
      */
-    public function getContextsGroupedBySchool(Student $student): Collection
+    public function getContextsGroupedBySchool(Student $student, ?Collection $contexts = null): Collection
     {
-        return $this->getContextsFor($student)
+        return ($contexts ?? $this->getContextsFor($student))
             ->groupBy(fn ($ctx) => $ctx['school']->id)
             ->map(fn ($schoolContexts) => [
                 'school' => $schoolContexts->first()['school'],

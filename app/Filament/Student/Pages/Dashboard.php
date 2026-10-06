@@ -92,8 +92,9 @@ class Dashboard extends BaseDashboard
         $this->tier = $this->student->getAgeTier();
 
         $service = app(StudentContextService::class);
-        $this->activeContext = $service->getActiveContext($this->student);
-        $this->allContexts = $service->getContextsGroupedBySchool($this->student);
+        $contexts = $service->getContextsFor($this->student);
+        $this->activeContext = $service->getActiveContext($this->student, $contexts);
+        $this->allContexts = $service->getContextsGroupedBySchool($this->student, $contexts);
 
         $this->profileName = $user->name;
         $this->profileEmail = $user->email;
@@ -266,7 +267,7 @@ class Dashboard extends BaseDashboard
         // Always create a new note — multiple notes per day are now supported
         $this->student->calendarNotes()->create([
             'note_date' => $date,
-            'content'   => $trimmed,
+            'content' => $trimmed,
         ]);
 
         $this->calendarNoteText = '';
@@ -303,8 +304,9 @@ class Dashboard extends BaseDashboard
 
         $service = app(StudentContextService::class);
         $service->setActiveContext($this->student, $key);
-        $this->activeContext = $service->getActiveContext($this->student);
-        $this->allContexts = $service->getContextsGroupedBySchool($this->student);
+        $contexts = $service->getContextsFor($this->student);
+        $this->activeContext = $service->getActiveContext($this->student, $contexts);
+        $this->allContexts = $service->getContextsGroupedBySchool($this->student, $contexts);
     }
 
     public string $notificationFilter = 'all'; // 'all', 'unread', 'assignment', 'quiz', 'lesson', 'announcement'
@@ -342,8 +344,9 @@ class Dashboard extends BaseDashboard
     public function refreshContext(): void
     {
         $service = app(StudentContextService::class);
-        $this->activeContext = $service->getActiveContext($this->student);
-        $this->allContexts = $service->getContextsGroupedBySchool($this->student);
+        $contexts = $service->getContextsFor($this->student);
+        $this->activeContext = $service->getActiveContext($this->student, $contexts);
+        $this->allContexts = $service->getContextsGroupedBySchool($this->student, $contexts);
     }
 
     public function logout(): void
@@ -368,6 +371,31 @@ class Dashboard extends BaseDashboard
     protected function getViewData(): array
     {
         $user = auth()->user();
+
+        // Notification queries are only needed when the notifications tab is
+        // visible — skip them entirely on every other tab.
+        if ($this->activeTab !== 'notifications') {
+            return [
+                'tier' => $this->tier,
+                'student' => $this->student,
+                'activeContext' => $this->activeContext,
+                'allContexts' => $this->allContexts,
+                'firstName' => explode(' ', $this->profileName ?: 'Student')[0],
+                'notifications' => collect(),
+                'allNotificationsCount' => 0,
+                'notifStats' => [
+                    'total' => 0,
+                    'unread' => 0,
+                    'assignments' => 0,
+                    'quizzes' => 0,
+                    'lessons' => 0,
+                    'announcements' => 0,
+                ],
+                'notificationFilter' => $this->notificationFilter,
+                'notificationSearch' => $this->notificationSearch,
+            ];
+        }
+
         $service = app(NotificationService::class);
 
         $query = Notification::query()->with(['sender', 'recipients']);
@@ -434,7 +462,7 @@ class Dashboard extends BaseDashboard
             'student' => $this->student,
             'activeContext' => $this->activeContext,
             'allContexts' => $this->allContexts,
-            'firstName' => explode(' ', $this->student?->user->name ?? 'Student')[0],
+            'firstName' => explode(' ', $this->profileName ?: 'Student')[0],
             'notifications' => $filtered->values(),
             'allNotificationsCount' => $allFormatted->count(),
             'notifStats' => [

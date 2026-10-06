@@ -132,4 +132,3 @@ class NotificationPanel extends Component
         ]);
     }
 }
-

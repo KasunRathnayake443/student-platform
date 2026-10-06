@@ -1,54 +1,29 @@
 @php
     use Illuminate\Support\Carbon;
-    use App\Models\AssignmentSubmission;
 
     $activeClasses    = $activeContext ? $activeContext['classes'] : collect();
     $activeSchoolName = $activeContext ? ($activeContext['school']->name ?? 'School') : 'School';
     $activeGradeName  = $activeContext ? ($activeContext['grade']->name  ?? 'Grade')  : 'Grade';
 
-    // Quiz stats
-    $quizAttempts   = $student?->quizAttempts()->where('status', 'submitted')->with('quiz')->get() ?? collect();
-    $quizAvgPct     = $quizAttempts->count() ? round($quizAttempts->avg('percentage'), 1) : 0;
-    $quizPassed     = $quizAttempts->where('is_passed', true)->count();
-    $recentQuizzes  = $quizAttempts->sortByDesc('completed_at')->take(6);
+    // Quiz stats ($quizAttempts, $quizAvgPct, $quizPassed, $recentQuizzes, $chartData)
+    // come from the main dashboard block — already batched there.
 
-    // Chart data: quiz scores by week (last 8 weeks)
-    $chartData = [];
-    for ($w = 7; $w >= 0; $w--) {
-        $weekStart = Carbon::now()->startOfWeek()->subWeeks($w);
-        $weekEnd   = $weekStart->copy()->endOfWeek();
-        $weekAttempts = $quizAttempts->filter(
-            fn ($a) => $a->completed_at && $a->completed_at->between($weekStart, $weekEnd)
-        );
-        $chartData[] = [
-            'label' => $weekStart->format('M j'),
-            'value' => $weekAttempts->count() ? round($weekAttempts->avg('percentage'), 1) : 0,
-        ];
-    }
-
-    // Assignments
+    // Assignments: derive for the ACTIVE context from the parent's batched maps
     $allAssignments     = collect();
     $pendingAssignments = collect();
     foreach ($activeClasses as $class) {
-        $all  = $class->assignments()->where('is_published', true)->get();
-        $pend = $class->assignments()
-            ->with('learningClass')
-            ->where('is_published', true)
-            ->whereDoesntHave('submissions', fn ($q) => $q->where('student_id', $student?->id))
-            ->orderBy('end_at')
-            ->get();
-        $allAssignments     = $allAssignments->merge($all);
-        $pendingAssignments = $pendingAssignments->merge($pend);
+        $list = $assignmentsByClassId[$class->id] ?? collect();
+        $allAssignments     = $allAssignments->merge($list);
+        $pendingAssignments = $pendingAssignments->merge(
+            $list->filter(fn ($a) => ! isset($studentSubmissionMap[$a->id]))
+        );
     }
-    $pendingAssignments = $pendingAssignments->sortBy('end_at');
+    $pendingAssignments = $pendingAssignments->sortBy('end_at')->values();
 
-    // Submitted count
-    $submittedCount = 0;
-    if ($student && $allAssignments->count()) {
-        $submittedCount = AssignmentSubmission::where('student_id', $student->id)
-            ->whereIn('assignment_id', $allAssignments->pluck('id'))
-            ->count();
-    }
+    // Submitted count (rows, as before)
+    $submittedCount = ($student && $allAssignments->isNotEmpty())
+        ? $studentSubmissions->whereIn('assignment_id', $allAssignments->pluck('id')->all())->count()
+        : 0;
 
     // Live-search index for the topbar search bar (e-commerce style dropdown)
     $searchIndex = [];

@@ -348,6 +348,33 @@
         font-weight: 600;
         color: #94a3b8;
     }
+
+    .slogin-back-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 1.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        background: #fdf4ff;
+        border: 1.5px solid #f5d0fe;
+        color: #c026d3;
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .slogin-back-home:hover {
+        transform: translateY(-1px);
+        background: #fae8ff;
+        border-color: #f0abfc;
+        box-shadow: 0 6px 16px -6px rgba(192, 38, 211, 0.4);
+    }
+
+    .slogin-back-home svg {
+        flex-shrink: 0;
+    }
     </style>
 
     <div class="slogin-shell">
@@ -398,6 +425,11 @@
             <span class="slogin-mobile-brand">🏫 School Admin Portal · Student Platform</span>
 
             <div class="slogin-form-box">
+                <a href="/" class="slogin-back-home">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    Back to Home
+                </a>
+
                 <h1>Welcome back 👋</h1>
                 <p>Sign in with your school administrator credentials to continue.</p>
 

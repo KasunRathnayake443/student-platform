@@ -6,46 +6,41 @@
     $activeGradeName  = $activeContext ? ($activeContext['grade']->name  ?? 'My Grade')  : 'My Grade';
     $activeGradeKey   = $activeContext ? ($activeContext['key'] ?? '') : '';
 
-    // Stats
-    $quizAttempts = $student?->quizAttempts()->where('status', 'submitted')->get() ?? collect();
-    $quizAvgPct   = $quizAttempts->count() ? round($quizAttempts->avg('percentage'), 1) : 0;
-    $quizPassed   = $quizAttempts->where('is_passed', true)->count();
+    // Stats ($quizAttempts, $quizAvgPct, $quizPassed) come from the main
+    // dashboard block — already batched there.
 
-    // Pending assignments
+    // Pending assignments: derive for the ACTIVE context from the parent's batched maps
     $pendingAssignments = collect();
     $allAssignments = collect();
     foreach ($activeClasses as $class) {
-        $pend = $class->assignments()
-            ->with('learningClass')
-            ->where('is_published', true)
-            ->whereDoesntHave('submissions', fn ($q) => $q->where('student_id', $student?->id))
-            ->orderBy('end_at')
-            ->take(8)
-            ->get();
-        $pendingAssignments = $pendingAssignments->merge($pend);
-
-        $all = $class->assignments()->where('is_published', true)->get();
-        $allAssignments = $allAssignments->merge($all);
+        $list = $assignmentsByClassId[$class->id] ?? collect();
+        $allAssignments = $allAssignments->merge($list);
+        $pendingAssignments = $pendingAssignments->merge(
+            $list->filter(fn ($a) => ! isset($studentSubmissionMap[$a->id]))
+        );
     }
     $pendingAssignments = $pendingAssignments->sortBy('end_at')->values();
 
-    // Progress (submitted / total)
-    $submittedCount = 0;
-    if ($student && $allAssignments->count()) {
-        $submittedCount = \App\Models\AssignmentSubmission::where('student_id', $student->id)
-            ->whereIn('assignment_id', $allAssignments->pluck('id'))
-            ->count();
-    }
+    // Progress (submitted / total) — row count from the parent's batched submissions
+    $submittedCount = ($student && $allAssignments->isNotEmpty())
+        ? $studentSubmissions->whereIn('assignment_id', $allAssignments->pluck('id')->all())->count()
+        : 0;
     $progressPct = $allAssignments->count() ? round(($submittedCount / $allAssignments->count()) * 100) : 0;
 
-    // Login streak (simple: consecutive days with quiz attempts)
+    // Login streak (consecutive days with quiz attempts — one query, then in-memory)
     $streak = 0;
     if ($student) {
-        $day = Carbon::today();
+        $activityDays = $student->quizAttempts()
+            ->where('created_at', '>=', Carbon::today()->subDays(30))
+            ->pluck('created_at')
+            ->map(fn ($d) => Carbon::parse($d)->toDateString())
+            ->flip();
         for ($d = 0; $d < 30; $d++) {
-            $hasActivity = $student->quizAttempts()->whereDate('created_at', $day->copy()->subDays($d))->exists();
-            if ($hasActivity) $streak++;
-            elseif ($d > 0) break;
+            if ($activityDays->has(Carbon::today()->subDays($d)->toDateString())) {
+                $streak++;
+            } elseif ($d > 0) {
+                break;
+            }
         }
     }
 

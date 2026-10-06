@@ -353,6 +353,33 @@
         font-weight: 600;
         color: #94a3b8;
     }
+
+    .alogin-back-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 1.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        background: #fffbeb;
+        border: 1.5px solid #fde68a;
+        color: #b45309;
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .alogin-back-home:hover {
+        transform: translateY(-1px);
+        background: #fef3c7;
+        border-color: #fcd34d;
+        box-shadow: 0 6px 16px -6px rgba(180, 83, 9, 0.4);
+    }
+
+    .alogin-back-home svg {
+        flex-shrink: 0;
+    }
     </style>
 
     <div class="alogin-shell">
@@ -404,6 +431,11 @@
             <span class="alogin-mobile-brand">🔐 Super Admin Portal · Student Platform</span>
 
             <div class="alogin-form-box">
+                <a href="/" class="alogin-back-home">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    Back to Home
+                </a>
+
                 <h1>Super admin sign in</h1>
                 <p>Enter your super administrator credentials to continue.</p>
 

@@ -367,6 +367,8 @@
         .qa-kids .qa-hero .qa-breadcrumb .sep { color: #fed7aa; }
         .qa-kids .qa-hero .qa-title { color: #ffffff; text-shadow: 2px 2px 0 rgba(0,0,0,0.15); font-size: clamp(2rem, 5vw, 3.2rem); }
         .qa-kids .qa-hero .qa-chip { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); color: #ffffff; backdrop-filter: blur(4px); }
+        .qa-kids .qa-hero .qa-take-title { color: #ffffff; text-shadow: 1px 1px 0 rgba(0,0,0,0.15); }
+        .qa-kids .qa-hero .qa-take-sub { color: #ffffff; }
         .qa-kids .qa-card {
             border-radius: 2rem; border: 4px solid #ede9fe; padding: 2.25rem 2.5rem;
             box-shadow: 0 16px 40px -12px rgba(124, 58, 237, 0.18);
