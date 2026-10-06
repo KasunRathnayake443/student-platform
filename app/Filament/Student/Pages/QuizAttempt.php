@@ -352,12 +352,11 @@ class QuizAttempt extends Page
             return;
         }
 
-        $option = QuizQuestionOption::find($optionId);
-        if ($option && (int) $option->quiz_question_id === $questionId) {
-            $this->attempt->recordAnswer($questionId, $optionId);
+        // Validation of the option (belongs to question/quiz) happens inside
+        // recordAnswer(), so the answer state is only updated when it saved.
+        if ($this->attempt->recordAnswer($questionId, $optionId)) {
+            $this->answers[$questionId] = $optionId;
         }
-
-        $this->answers[$questionId] = $optionId;
     }
 
     public function pickAnswer(int $questionId, int $optionId): void

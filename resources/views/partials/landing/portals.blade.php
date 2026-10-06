@@ -26,7 +26,7 @@
             'role'        => 'School Admin',
             'tagline'     => 'Run your school smarter.',
             'description' => "Create your school space, add teachers and students, build grade levels and classes, and get full visibility into every student's progress across the institution.",
-            'href'        => '/admin/login',
+            'href'        => '/school-admin/login',
             'icon'        => 'building-office',
             'emoji'       => '🏫',
             'features'    => ['Create & manage school space', 'Add students & teachers', 'Create grades & classes', 'Track all student progress'],

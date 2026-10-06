@@ -124,6 +124,11 @@
         }
         .qa .qa-take-title { font-size: 1.15rem; font-weight: 900; color: var(--ink); margin: 0; }
         .qa .qa-take-sub { font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+        .qa .qa-saving-chip {
+            display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem;
+            background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca;
+            font-size: 0.75rem; font-weight: 800; padding: 0.15rem 0.55rem; border-radius: 9999px;
+        }
         .qa .qa-timer {
             display: inline-flex; align-items: center; gap: 0.5rem;
             background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a;
@@ -254,14 +259,6 @@
         }
         @keyframes qaSpin { to { transform: rotate(360deg); } }
 
-        /* Interaction lock while media is loading */
-        .qa-loading-lock .qa-opts button,
-        .qa-loading-lock .qa-nav button {
-            opacity: 0.55 !important;
-            pointer-events: none !important;
-            cursor: wait !important;
-        }
-
         .qa .qa-opts { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.35rem; }
         .qa .qa-opt {
             display: flex; align-items: center; justify-content: space-between; gap: 0.9rem; width: 100%; text-align: left;
@@ -283,9 +280,10 @@
         .qa .qa-opt.qa-opt-selected .qa-opt-letter { background: var(--accent); color: #ffffff; }
         .qa .qa-opt-check {
             width: 1.5rem; height: 1.5rem; border-radius: 9999px; background: var(--accent); color: #ffffff;
-            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900;
+            display: none; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900;
             animation: qaPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        .qa .qa-opt.qa-opt-selected .qa-opt-check { display: inline-flex; }
         @keyframes qaPop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
         .qa .qa-nav {
@@ -720,7 +718,7 @@
             <div class="qa-take-head" style="margin-bottom: 0;">
                 <div>
                     <div class="qa-take-title">🧠 {{ $quiz->title }}</div>
-                    <div class="qa-take-sub">Attempt #{{ $attemptNumber }} · Question {{ $currentIndex + 1 }} of {{ $questionCount }}</div>
+                    <div class="qa-take-sub">Attempt #{{ $attemptNumber }} · Question {{ $currentIndex + 1 }} of {{ $questionCount }}<span class="qa-saving-chip" wire:loading.delay.inline-flex wire:target="selectAnswer">💾 Saving…</span></div>
                 </div>
                 @if($remainingSeconds !== null)
                     <div class="qa-timer"
@@ -742,15 +740,14 @@
                 </div>
             @endif
 
-            {{-- Question Card with Alpine Media Preloading & Interaction Locking --}}
+            {{-- Question Card with Alpine Media Preloading --}}
             <div class="qa-card qa-qcard"
                  wire:key="question-box-{{ $visibleQuestion->id }}-{{ $currentIndex }}"
                  x-data="qaQuestionState({
                      qId: {{ $visibleQuestion->id }},
                      hasMedia: {{ $hasMedia ? 'true' : 'false' }}
                  })"
-                 x-init="initQuestion()"
-                 :class="{ 'qa-loading-lock': isMediaLoading }">
+                 x-init="initQuestion()">
 
                 {{-- Question Progress Stepper --}}
                 <div class="qa-progress">
@@ -758,9 +755,7 @@
                     @foreach($orderedQuestions as $qIndex => $_q)
                         <button type="button"
                                 class="qa-dot {{ ($this->answers[$_q->id] ?? null) !== null ? 'qa-dot-answered' : '' }} {{ $qIndex === $currentIndex ? 'qa-dot-current' : '' }}"
-                                x-on:click="beforeNavigate()"
                                 wire:click="goToQuestion({{ $qIndex }})"
-                                :disabled="isMediaLoading"
                                 title="Question {{ $qIndex + 1 }}">
                             {{ $qIndex + 1 }}
                         </button>
@@ -799,7 +794,7 @@
                                     @elseif($hasVid)
                                         <div class="qa-media" x-show="!isMediaLoading" x-transition.opacity>
                                             <video controls
-                                                   preload="auto"
+                                                   preload="metadata"
                                                    src="{{ $visibleQuestion->question_video_url }}"
                                                    x-on:loadeddata="onMediaLoaded()"
                                                    x-on:canplay="onMediaLoaded()"
@@ -823,14 +818,12 @@
                                         <button type="button"
                                                 class="qa-opt {{ $isSelected ? 'qa-opt-selected' : '' }}"
                                                 wire:click="selectAnswer({{ $visibleQuestion->id }}, {{ $o->id }})"
-                                                :disabled="isMediaLoading">
+                                                x-on:click="choose($el, {{ $currentIndex }})">
                                             <div class="qa-opt-left">
                                                 <span class="qa-opt-letter qa-opt-letter-{{ $loop->index }}">{{ $optLetters[$loop->index] }}</span>
                                                 <span class="qa-opt-text">{{ $o->option_text }}</span>
                                             </div>
-                                            @if($isSelected)
-                                                <span class="qa-opt-check">✓</span>
-                                            @endif
+                                            <span class="qa-opt-check" aria-hidden="true">✓</span>
                                         </button>
                                     @endforeach
                                 </div>
@@ -839,25 +832,21 @@
                                 <div class="qa-nav">
                                     <button type="button"
                                             class="qa-nav-btn"
-                                            x-on:click="beforeNavigate()"
                                             wire:click="previousQuestion"
-                                            :disabled="isMediaLoading || {{ $currentIndex === 0 ? 'true' : 'false' }}">
+                                            :disabled="{{ $currentIndex === 0 ? 'true' : 'false' }}">
                                         ◀ Prev
                                     </button>
 
                                     @if($this->isLastQuestion())
                                         <button type="button"
                                                 class="qa-nav-btn qa-nav-primary qa-nav-submit"
-                                                wire:click="submitAttempt"
-                                                :disabled="isMediaLoading">
+                                                wire:click="submitAttempt">
                                             ✅ Submit my answers
                                         </button>
                                     @else
                                         <button type="button"
                                                 class="qa-nav-btn qa-nav-primary"
-                                                x-on:click="beforeNavigate()"
-                                                wire:click="nextOrSubmit"
-                                                :disabled="isMediaLoading">
+                                                wire:click="nextOrSubmit">
                                             Next ▶
                                         </button>
                                     @endif
@@ -878,14 +867,12 @@
                                 <button type="button"
                                         class="qa-opt {{ $isSelected ? 'qa-opt-selected' : '' }}"
                                         wire:click="selectAnswer({{ $visibleQuestion->id }}, {{ $o->id }})"
-                                        :disabled="isMediaLoading">
+                                        x-on:click="choose($el, {{ $currentIndex }})">
                                     <div class="qa-opt-left">
                                         <span class="qa-opt-letter qa-opt-letter-{{ $loop->index }}">{{ $optLetters[$loop->index] }}</span>
                                         <span class="qa-opt-text">{{ $o->option_text }}</span>
                                     </div>
-                                    @if($isSelected)
-                                        <span class="qa-opt-check">✓</span>
-                                    @endif
+                                    <span class="qa-opt-check" aria-hidden="true">✓</span>
                                 </button>
                             @endforeach
                         </div>
@@ -894,25 +881,21 @@
                         <div class="qa-nav">
                             <button type="button"
                                     class="qa-nav-btn"
-                                    x-on:click="beforeNavigate()"
                                     wire:click="previousQuestion"
-                                    :disabled="isMediaLoading || {{ $currentIndex === 0 ? 'true' : 'false' }}">
+                                    :disabled="{{ $currentIndex === 0 ? 'true' : 'false' }}">
                                 ◀ Prev
                             </button>
 
                             @if($this->isLastQuestion())
                                 <button type="button"
                                         class="qa-nav-btn qa-nav-primary qa-nav-submit"
-                                        wire:click="submitAttempt"
-                                        :disabled="isMediaLoading">
+                                        wire:click="submitAttempt">
                                     ✅ Submit my answers
                                 </button>
                             @else
                                 <button type="button"
                                         class="qa-nav-btn qa-nav-primary"
-                                        x-on:click="beforeNavigate()"
-                                        wire:click="nextOrSubmit"
-                                        :disabled="isMediaLoading">
+                                        wire:click="nextOrSubmit">
                                     Next ▶
                                 </button>
                             @endif
@@ -1044,16 +1027,30 @@
             timeoutId: null,
 
             initQuestion() {
-                if (this.hasMedia) {
-                    this.isMediaLoading = true;
-                    clearTimeout(this.timeoutId);
-                    // Safety timeout: auto-unlock if media fails or takes > 5 seconds so student isn't permanently locked out
-                    this.timeoutId = setTimeout(() => {
-                        this.isMediaLoading = false;
-                    }, 5000);
-                } else {
+                if (!this.hasMedia) {
                     this.isMediaLoading = false;
+
+                    return;
                 }
+
+                const img = this.$el.querySelector('img');
+                const video = this.$el.querySelector('video');
+
+                // Cached media is already complete before Alpine attaches its
+                // load listeners, so unlock instantly instead of waiting.
+                if ((img && img.complete && img.naturalWidth > 0) || (video && video.readyState >= 2)) {
+                    clearTimeout(this.timeoutId);
+                    this.isMediaLoading = false;
+
+                    return;
+                }
+
+                this.isMediaLoading = true;
+                clearTimeout(this.timeoutId);
+                // Safety timeout: auto-unlock if media fails or takes too long so student isn't locked out
+                this.timeoutId = setTimeout(() => {
+                    this.isMediaLoading = false;
+                }, 3000);
             },
 
             onMediaLoaded() {
@@ -1066,9 +1063,18 @@
                 this.isMediaLoading = false;
             },
 
-            beforeNavigate() {
-                if (this.hasMedia) {
-                    this.isMediaLoading = true;
+            // Optimistic UI: highlight the chosen option (and its progress dot)
+            // immediately, before the server round trip finishes.
+            choose(btn, questionIndex) {
+                const group = btn.closest('.qa-opts');
+                if (group) {
+                    group.querySelectorAll('.qa-opt').forEach(b => b.classList.remove('qa-opt-selected'));
+                }
+                btn.classList.add('qa-opt-selected');
+
+                const dot = document.querySelectorAll('.qa-dot')[questionIndex];
+                if (dot) {
+                    dot.classList.add('qa-dot-answered');
                 }
             }
         };

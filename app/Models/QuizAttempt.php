@@ -120,20 +120,27 @@ class QuizAttempt extends Model
             return null;
         }
 
-        $question = QuizQuestion::where('quiz_id', $this->quiz_id)->find($questionId);
-        if (! $question) {
-            return null;
-        }
-
         $isCorrect = false;
         $pointsAwarded = 0;
 
         if ($optionId) {
-            $option = QuizQuestionOption::where('quiz_question_id', $questionId)->find($optionId);
-            if ($option && $option->is_correct) {
-                $isCorrect = true;
-                $pointsAwarded = $question->points;
+            // Single query: option + owning question (validates question & option together).
+            $option = QuizQuestionOption::query()
+                ->whereKey($optionId)
+                ->where('quiz_question_id', $questionId)
+                ->with('question:id,quiz_id,points')
+                ->first();
+
+            if (! $option || (int) $option->question?->quiz_id !== (int) $this->quiz_id) {
+                return null;
             }
+
+            if ($option->is_correct) {
+                $isCorrect = true;
+                $pointsAwarded = $option->question->points;
+            }
+        } elseif (! QuizQuestion::where('quiz_id', $this->quiz_id)->whereKey($questionId)->exists()) {
+            return null;
         }
 
         return QuizAttemptAnswer::updateOrCreate(
