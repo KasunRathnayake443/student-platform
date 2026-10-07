@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\RequestPasswordReset;
+use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\PlatformSettings;
 use Filament\Http\Middleware\Authenticate;
@@ -30,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(fn (): string => \App\Services\PlatformSettings::name())
             ->brandLogo(fn (): string => \App\Services\PlatformSettings::logoUrl())
             ->login(Login::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->profile(isSimple: false)
             ->colors([
                 'primary' => Color::Amber,
