@@ -2653,7 +2653,7 @@
                 <!-- Brand -->
                 <div class="brand-header">
                     <div class="brand-icon">
-                        <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="Student Platform" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
+                        <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
                     </div>
                     <div>
                         <div class="brand-title">Student Portal</div>

@@ -386,7 +386,7 @@
                 </div>
 
                 <div class="stureset-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>For students only</span>
                 </div>
             </div>
@@ -394,7 +394,7 @@
 
         <!-- Right: Reset form -->
         <section class="stureset-form-side">
-            <span class="stureset-mobile-brand">🎓 Student Portal · Student Platform</span>
+            <span class="stureset-mobile-brand">🎓 Student Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="stureset-form-box">
                 <a href="/" class="stureset-back-home">

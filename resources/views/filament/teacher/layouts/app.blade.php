@@ -297,7 +297,7 @@
             <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="">
         </div>
         <div>
-            <div class="t-brand-name">Student Platform</div>
+            <div class="t-brand-name">{{ \App\Services\PlatformSettings::name() }}</div>
             <div class="t-brand-label">Teacher Portal</div>
         </div>
     </div>

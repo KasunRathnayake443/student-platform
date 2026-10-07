@@ -419,7 +419,7 @@
                 </div>
 
                 <div class="slogin-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>For students only</span>
                 </div>
             </div>
@@ -427,7 +427,7 @@
 
         <!-- Right: Sign-in form -->
         <section class="slogin-form-side">
-            <span class="slogin-mobile-brand">🎓 Student Portal · Student Platform</span>
+            <span class="slogin-mobile-brand">🎓 Student Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="slogin-form-box">
                 <a href="/" class="slogin-back-home">

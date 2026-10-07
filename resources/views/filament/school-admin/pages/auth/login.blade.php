@@ -414,7 +414,7 @@
                 </div>
 
                 <div class="slogin-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>For school administrators only</span>
                 </div>
             </div>
@@ -422,7 +422,7 @@
 
         <!-- Right: Sign-in form -->
         <section class="slogin-form-side">
-            <span class="slogin-mobile-brand">🏫 School Admin Portal · Student Platform</span>
+            <span class="slogin-mobile-brand">🏫 School Admin Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="slogin-form-box">
                 <a href="/" class="slogin-back-home">

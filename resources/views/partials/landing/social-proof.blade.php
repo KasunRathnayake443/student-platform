@@ -29,7 +29,7 @@
             </div>
 
             <blockquote class="font-display text-2xl md:text-3xl font-medium text-white leading-relaxed italic mb-8">
-                "StudentPlatform transformed how our 600-student school manages learning. Teachers spend 40% less time on admin, and students actually log in every day."
+                "{{ \App\Services\PlatformSettings::name() }} transformed how our 600-student school manages learning. Teachers spend 40% less time on admin, and students actually log in every day."
             </blockquote>
 
             <div>

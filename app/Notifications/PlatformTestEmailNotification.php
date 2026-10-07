@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\PlatformSettings;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -15,7 +16,7 @@ class PlatformTestEmailNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $fromName = (string) config('mail.from.name', 'Student Platform');
+        $fromName = (string) config('mail.from.name', PlatformSettings::name());
 
         return (new MailMessage)
             ->subject('Platform email test')

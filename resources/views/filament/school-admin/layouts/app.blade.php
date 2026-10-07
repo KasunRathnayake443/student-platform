@@ -197,7 +197,7 @@
             <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="">
         </div>
         <div>
-            <div class="sa-brand-name">Student Platform</div>
+            <div class="sa-brand-name">{{ \App\Services\PlatformSettings::name() }}</div>
             <div class="sa-brand-label">School Admin Portal</div>
         </div>
     </div>

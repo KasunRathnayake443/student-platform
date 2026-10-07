@@ -201,3 +201,24 @@ test('student dashboard sidebar shows the default logo when no logo is configure
         ->assertSee('images/platform-logo.svg', false)
         ->assertSee('brand-icon', false);
 });
+
+test('platform name from settings is rendered on the landing and login pages', function () {
+    PlatformSetting::settings()->update(['platform_name' => 'EduCloud']);
+    PlatformSettingsService::flushCache();
+
+    expect(PlatformSettingsService::name())->toBe('EduCloud');
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('EduCloud', false);
+
+    foreach (['/admin/login', '/school-admin/login', '/teacher/login', '/student/login'] as $loginPath) {
+        $this->get($loginPath)
+            ->assertOk()
+            ->assertSee('EduCloud', false);
+    }
+
+    $this->get('/student/password-reset/request')
+        ->assertOk()
+        ->assertSee('EduCloud', false);
+});

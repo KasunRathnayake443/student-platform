@@ -386,7 +386,7 @@
                 </div>
 
                 <div class="sreset-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>For school administrators only</span>
                 </div>
             </div>
@@ -394,7 +394,7 @@
 
         <!-- Right: Reset form -->
         <section class="sreset-form-side">
-            <span class="sreset-mobile-brand">🏫 School Admin Portal · Student Platform</span>
+            <span class="sreset-mobile-brand">🏫 School Admin Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="sreset-form-box">
                 <a href="/" class="sreset-back-home">

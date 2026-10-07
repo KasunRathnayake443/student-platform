@@ -32,7 +32,7 @@ class StudentPanelProvider extends PanelProvider
         return $panel
             ->id('student')
             ->path('student')
-            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandName(fn (): string => PlatformSettings::name())
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(StudentLogin::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)

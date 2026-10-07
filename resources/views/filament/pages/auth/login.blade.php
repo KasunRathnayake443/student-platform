@@ -398,7 +398,7 @@
                 <div>
                     <h1 class="alogin-headline">Govern the entire <em>platform.</em></h1>
                     <p class="alogin-tagline">
-                        This is the control room for Student Platform — oversee every school,
+                        This is the control room for {{ \App\Services\PlatformSettings::name() }} — oversee every school,
                         teacher and student on the system, define the academic structure and
                         manage global settings from one place.
                     </p>
@@ -420,7 +420,7 @@
                 </div>
 
                 <div class="alogin-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>Super admins only</span>
                 </div>
             </div>
@@ -428,7 +428,7 @@
 
         <!-- Right: Sign-in form -->
         <section class="alogin-form-side">
-            <span class="alogin-mobile-brand">🔐 Super Admin Portal · Student Platform</span>
+            <span class="alogin-mobile-brand">🔐 Super Admin Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="alogin-form-box">
                 <a href="/" class="alogin-back-home">

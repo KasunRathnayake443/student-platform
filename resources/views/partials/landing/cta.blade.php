@@ -14,7 +14,7 @@
         <h2 class="reveal font-display text-section-title font-semibold mb-5">Bring your school online in days, not months.</h2>
 
         <p class="reveal text-slate-500 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-            StudentPlatform is built on Laravel — battle-tested, fast, and ready to scale with your institution. Request a live demo and see it running with your own data.
+            {{ \App\Services\PlatformSettings::name() }} is built on Laravel — battle-tested, fast, and ready to scale with your institution. Request a live demo and see it running with your own data.
         </p>
 
         <div class="reveal flex flex-col sm:flex-row gap-4 justify-center">

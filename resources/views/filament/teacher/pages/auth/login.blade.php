@@ -419,7 +419,7 @@
                 </div>
 
                 <div class="tlogin-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>For teachers only</span>
                 </div>
             </div>
@@ -427,7 +427,7 @@
 
         <!-- Right: Sign-in form -->
         <section class="tlogin-form-side">
-            <span class="tlogin-mobile-brand">📘 Teacher Portal · Student Platform</span>
+            <span class="tlogin-mobile-brand">📘 Teacher Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="tlogin-form-box">
                 <a href="/" class="tlogin-back-home">

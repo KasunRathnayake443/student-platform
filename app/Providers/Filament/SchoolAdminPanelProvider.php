@@ -28,7 +28,7 @@ class SchoolAdminPanelProvider extends PanelProvider
         return $panel
             ->id('school-admin')
             ->path('school-admin')
-            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandName(fn (): string => PlatformSettings::name())
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)

@@ -79,6 +79,17 @@ final class PlatformSettings
             && filled($settings->mail_from_address);
     }
 
+    public static function name(): string
+    {
+        $settings = self::current();
+
+        if ($settings instanceof PlatformSetting && filled($settings->platform_name)) {
+            return (string) $settings->platform_name;
+        }
+
+        return (string) config('app.name');
+    }
+
     public static function logoUrl(): string
     {
         $settings = self::current();

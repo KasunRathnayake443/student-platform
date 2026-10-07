@@ -230,9 +230,9 @@
     <aside id="t-sidebar">
         <!-- Brand -->
         <div class="t-brand">
-            <div class="t-brand-icon">SP</div>
+            <div class="t-brand-icon"><img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"></div>
             <div>
-                <div class="t-brand-name">Student Platform</div>
+                <div class="t-brand-name">{{ \App\Services\PlatformSettings::name() }}</div>
                 <div class="t-brand-label">Teacher Portal</div>
             </div>
         </div>

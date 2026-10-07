@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandName(fn (): string => \App\Services\PlatformSettings::name())
             ->brandLogo(fn (): string => \App\Services\PlatformSettings::logoUrl())
             ->login(Login::class)
             ->profile(isSimple: false)

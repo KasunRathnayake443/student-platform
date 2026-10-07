@@ -403,7 +403,7 @@
     {{-- ── HEADER ─────────────────────────────────────────────── --}}
     <div class="kids-header">
         <div class="kids-header-inner">
-            <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="Student Platform" style="width:52px; height:52px; border-radius:16px; object-fit:cover; box-shadow:0 6px 16px rgba(0,0,0,.15);">
+            <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" style="width:52px; height:52px; border-radius:16px; object-fit:cover; box-shadow:0 6px 16px rgba(0,0,0,.15);">
             <div class="kids-mascot" role="button" title="Tap me for a surprise! 🎉" x-on:click="kidsCelebrate()">⭐</div>
             <div class="kids-greeting">
                 <h1>Hi {{ $firstName }}! 🌟</h1>

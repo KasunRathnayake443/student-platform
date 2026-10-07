@@ -28,7 +28,7 @@ class TeacherPanelProvider extends PanelProvider
         return $panel
             ->id('teacher')
             ->path('teacher')
-            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandName(fn (): string => PlatformSettings::name())
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)

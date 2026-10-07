@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ config('app.name', 'StudentPlatform') }} — Modern School Learning Hub</title>
-        <meta name="description" content="StudentPlatform is a modern LMS for schools — interactive courses, progress tracking, and digital tools for students, teachers, and administrators.">
+        <title>{{ \App\Services\PlatformSettings::name() }} — Modern School Learning Hub</title>
+        <meta name="description" content="{{ \App\Services\PlatformSettings::name() }} is a modern LMS for schools — interactive courses, progress tracking, and digital tools for students, teachers, and administrators.">
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

@@ -2,8 +2,8 @@
     <div class="max-w-7xl mx-auto px-6">
         <div class="flex items-center justify-between h-20">
             <a href="/" class="flex items-center gap-2.5 group">
-                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="Student Platform" class="w-9 h-9 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-200">
-                <span class="font-display font-semibold text-lg text-white tracking-tight hidden sm:block">StudentPlatform</span>
+                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" class="w-9 h-9 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-200">
+                <span class="font-display font-semibold text-lg text-white tracking-tight hidden sm:block">{{ \App\Services\PlatformSettings::name() }}</span>
             </a>
 
             <nav class="hidden md:flex items-center gap-8">

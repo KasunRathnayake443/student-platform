@@ -3,7 +3,7 @@
         <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
             <a href="/" class="flex items-center gap-2">
                 <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-sm">🎓</span>
-                <span class="font-display font-semibold text-base tracking-tight">StudentPlatform</span>
+                <span class="font-display font-semibold text-base tracking-tight">{{ \App\Services\PlatformSettings::name() }}</span>
             </a>
 
             <nav class="flex flex-wrap items-center justify-center gap-6">
@@ -13,7 +13,7 @@
                 <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">Terms</a>
             </nav>
 
-            <p class="text-sm text-slate-500">© 2026 StudentPlatform</p>
+            <p class="text-sm text-slate-500">© {{ now()->format('Y') }} {{ \App\Services\PlatformSettings::name() }}</p>
         </div>
     </div>
 </footer>

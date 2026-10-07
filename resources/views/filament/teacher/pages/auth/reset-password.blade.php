@@ -386,7 +386,7 @@
                 </div>
 
                 <div class="treset-hero-foot">
-                    <span>&copy; {{ now()->format('Y') }} <strong>Student Platform</strong></span>
+                    <span>&copy; {{ now()->format('Y') }} <strong>{{ \App\Services\PlatformSettings::name() }}</strong></span>
                     <span>For teachers only</span>
                 </div>
             </div>
@@ -394,7 +394,7 @@
 
         <!-- Right: Reset form -->
         <section class="treset-form-side">
-            <span class="treset-mobile-brand">📘 Teacher Portal · Student Platform</span>
+            <span class="treset-mobile-brand">📘 Teacher Portal · {{ \App\Services\PlatformSettings::name() }}</span>
 
             <div class="treset-form-box">
                 <a href="/" class="treset-back-home">
