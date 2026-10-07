@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Student\Pages\AssignmentView;
+use App\Filament\Student\Pages\Auth\RequestPasswordReset;
+use App\Filament\Student\Pages\Auth\ResetPassword;
 use App\Filament\Student\Pages\Auth\StudentLogin;
 use App\Filament\Student\Pages\Dashboard;
 use App\Filament\Student\Pages\LessonView;
@@ -33,6 +35,7 @@ class StudentPanelProvider extends PanelProvider
             ->brandName(fn (): string => (string) config('app.name'))
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(StudentLogin::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->profile(isSimple: false)
             ->colors([
                 'primary' => Color::Violet,

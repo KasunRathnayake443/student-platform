@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Teacher\Pages\Auth\Login;
+use App\Filament\Teacher\Pages\Auth\RequestPasswordReset;
+use App\Filament\Teacher\Pages\Auth\ResetPassword;
 use App\Filament\Teacher\Pages\TeacherDashboard;
 use App\Services\PlatformSettings;
 use Filament\Http\Middleware\Authenticate;
@@ -29,6 +31,7 @@ class TeacherPanelProvider extends PanelProvider
             ->brandName(fn (): string => (string) config('app.name'))
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->colors([
                 'primary' => Color::Indigo,
                 'gray' => Color::Slate,
