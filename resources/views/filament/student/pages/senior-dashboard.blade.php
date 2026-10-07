@@ -494,9 +494,12 @@
 
         {{-- Topbar --}}
         <div class="sd-topbar">
-            <div class="sd-topbar-left">
-                <h2>{{ $firstName }}</h2>
-                <p>{{ now()->format('l, F j, Y') }}</p>
+            <div class="sd-topbar-left" style="display:flex; align-items:center; gap:0.85rem;">
+                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="Student Platform" style="width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow:0 4px 12px rgba(124,58,237,.18);">
+                <div>
+                    <h2>{{ $firstName }}</h2>
+                    <p>{{ now()->format('l, F j, Y') }}</p>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                 <div class="sd-search-wrap" x-data="{

@@ -338,6 +338,8 @@ test('student dashboard handles open-tab event from notification panel', functio
     $studentUser = ntStudent();
     $student = $studentUser->student;
 
+    Filament\Facades\Filament::setCurrentPanel(Filament\Facades\Filament::getPanel('student'));
+
     Livewire::actingAs($studentUser)
         ->test(\App\Filament\Student\Pages\Dashboard::class)
         ->assertSuccessful()

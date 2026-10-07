@@ -8,6 +8,7 @@ uses(RefreshDatabase::class);
 
 test('student login page renders full screen with student branding', function () {
     $this->seed();
+    config(['app.name' => 'Student Platform']);
 
     $response = $this->get('/student/login');
 

@@ -35,6 +35,7 @@
         justify-content: center; color:#fff; font-weight:700; font-size:13px;
         box-shadow: 0 6px 14px rgba(217,70,239,.3);
     }
+    .sa-brand-icon img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
     .sa-brand-name  { font-size:14px; font-weight:700; color:#0f172a; line-height:1.25; letter-spacing:-.01em; }
     .sa-brand-label { font-size:11px; color:#8b95a9; margin-top:2px; font-weight:500; }
 
@@ -192,7 +193,9 @@
 <!-- ── SIDEBAR ──────────────────────────────── -->
 <aside id="sa-sidebar">
     <div class="sa-brand">
-        <div class="sa-brand-icon">SP</div>
+        <div class="sa-brand-icon">
+            <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="">
+        </div>
         <div>
             <div class="sa-brand-name">Student Platform</div>
             <div class="sa-brand-label">School Admin Portal</div>

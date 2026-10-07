@@ -8,6 +8,7 @@ use App\Filament\Student\Pages\Dashboard;
 use App\Filament\Student\Pages\LessonView;
 use App\Filament\Student\Pages\Notifications;
 use App\Filament\Student\Pages\QuizAttempt;
+use App\Services\PlatformSettings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -29,7 +30,8 @@ class StudentPanelProvider extends PanelProvider
         return $panel
             ->id('student')
             ->path('student')
-            ->brandName('Student Platform')
+            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(StudentLogin::class)
             ->profile(isSimple: false)
             ->colors([

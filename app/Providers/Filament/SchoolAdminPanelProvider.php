@@ -3,7 +3,10 @@
 namespace App\Providers\Filament;
 
 use App\Filament\SchoolAdmin\Pages\Auth\Login;
+use App\Filament\SchoolAdmin\Pages\Auth\RequestPasswordReset;
+use App\Filament\SchoolAdmin\Pages\Auth\ResetPassword;
 use App\Filament\SchoolAdmin\Pages\SchoolAdminDashboard;
+use App\Services\PlatformSettings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -25,8 +28,10 @@ class SchoolAdminPanelProvider extends PanelProvider
         return $panel
             ->id('school-admin')
             ->path('school-admin')
-            ->brandName('Student Platform')
+            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->colors([
                 'primary' => Color::Fuchsia,
                 'gray' => Color::Slate,

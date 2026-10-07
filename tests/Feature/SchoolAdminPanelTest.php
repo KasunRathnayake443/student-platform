@@ -79,6 +79,7 @@ function spStudentIn(School $school): Student
 
 test('school admin login page renders with school admin branding', function () {
     $this->seed();
+    config(['app.name' => 'Student Platform']);
 
     $response = $this->get('/school-admin/login');
 

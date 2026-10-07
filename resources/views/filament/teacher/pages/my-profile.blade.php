@@ -1,5 +1,11 @@
 <div class="profile-wrap">
     <style>
+    .profile-wrap {
+        padding: 24px 28px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
     .profile-grid {
         display: grid;
         grid-template-columns: 280px minmax(0, 1fr);
@@ -79,7 +85,7 @@
 
     /* Filament field polish inside profile page */
     .profile-form-body .fi-fo-field-wrp,
-    .profile-form-body [data-field-wrapper] { margin-bottom: 4px; }
+    .profile-form-body [data-field-wrapper] { margin-bottom: 16px; }
 </style>
 
     <div class="profile-grid">

@@ -7,7 +7,7 @@
     $roleLinks = [
         ['label' => 'Student Portal', 'href' => '/student/login', 'icon' => 'academic-cap'],
         ['label' => 'Teacher Portal', 'href' => '/teacher/login', 'icon' => 'book-open'],
-        ['label' => 'School Admin', 'href' => '/admin/login', 'icon' => 'building-office'],
+        ['label' => 'School Admin', 'href' => '/school-admin/login', 'icon' => 'building-office'],
     ];
     $heroKpis = [
         ['label' => 'AVG SCORE', 'value' => '60.1%', 'sub' => '3 quizzes passed', 'border' => 'border-t-2 border-purple-400'],

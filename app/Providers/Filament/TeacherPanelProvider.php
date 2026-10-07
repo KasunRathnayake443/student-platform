@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Teacher\Pages\Auth\Login;
 use App\Filament\Teacher\Pages\TeacherDashboard;
+use App\Services\PlatformSettings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -25,7 +26,8 @@ class TeacherPanelProvider extends PanelProvider
         return $panel
             ->id('teacher')
             ->path('teacher')
-            ->brandName('Student Platform')
+            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandLogo(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
             ->colors([
                 'primary' => Color::Indigo,

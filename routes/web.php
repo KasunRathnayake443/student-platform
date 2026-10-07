@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PlatformLogoController;
 use App\Http\Controllers\QuizImportTemplateController;
 use App\Http\Controllers\QuizQuestionMediaController;
 use App\Http\Controllers\SchoolAdminProfilePhotoController;
@@ -9,6 +10,9 @@ use App\Http\Controllers\TeacherProfilePhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+
+Route::get('/platform/logo', PlatformLogoController::class)
+    ->name('platform.logo');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/teachers/{teacher}/profile-photo', TeacherProfilePhotoController::class)

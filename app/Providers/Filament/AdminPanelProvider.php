@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\PlatformSettings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -26,7 +27,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('Student Platform')
+            ->brandName(fn (): string => (string) config('app.name'))
+            ->brandLogo(fn (): string => \App\Services\PlatformSettings::logoUrl())
             ->login(Login::class)
             ->profile(isSimple: false)
             ->colors([
@@ -36,6 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
+                PlatformSettings::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([])

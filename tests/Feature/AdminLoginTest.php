@@ -8,6 +8,7 @@ uses(RefreshDatabase::class);
 
 test('admin login page renders full screen with super admin branding', function () {
     $this->seed();
+    config(['app.name' => 'Student Platform']);
 
     $response = $this->get('/admin/login');
 

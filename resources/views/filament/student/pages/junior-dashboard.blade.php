@@ -551,6 +551,7 @@
     {{-- ── GLOBAL HEADER ROW ── --}}
     <div class="bento-header">
         <div class="bento-greeting">
+            <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="Student Platform" style="width:40px; height:40px; border-radius:12px; object-fit:cover; box-shadow:0 4px 12px rgba(168,85,247,.2);">
             <h1>Hey {{ $firstName }}! <span class="welcome-badge">🟣</span></h1>
             <p>{{ now()->format('l, F j') }} - Here's how your week is going</p>
         </div>
