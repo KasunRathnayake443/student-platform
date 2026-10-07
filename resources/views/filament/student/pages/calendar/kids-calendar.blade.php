@@ -641,14 +641,14 @@
         this.panel = true;
         this.editingNoteId = null;
         this.editNoteText = '';
-        @this.set('calendarSelectedDate', d);
+        $wire.set('calendarSelectedDate', d, false);
     },
     closePanel() {
         this.panel = false;
         this.selDate = null;
         this.editingNoteId = null;
         this.editNoteText = '';
-        @this.set('calendarSelectedDate', null);
+        $wire.set('calendarSelectedDate', null, false);
     },
     dayEvents(d) { return this.events[d] || []; },
     dayNotes(d) { return this.notes[d] || []; },

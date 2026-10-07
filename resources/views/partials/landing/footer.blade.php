@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto px-6 py-8">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
             <a href="/" class="flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-sm">🎓</span>
+                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" class="w-7 h-7 rounded-lg object-cover">
                 <span class="font-display font-semibold text-base tracking-tight">{{ \App\Services\PlatformSettings::name() }}</span>
             </a>
 
