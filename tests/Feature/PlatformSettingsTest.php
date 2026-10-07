@@ -190,3 +190,14 @@ test('student dashboard renders the configured platform logo', function () {
         ->assertOk()
         ->assertSee('/platform/logo', false);
 });
+
+test('student dashboard sidebar shows the default logo when no logo is configured', function () {
+    PlatformSetting::settings()->update(['platform_logo' => null]);
+    PlatformSettingsService::flushCache();
+
+    $this->actingAs(User::where('email', 'student1@example.com')->firstOrFail())
+        ->get('/student')
+        ->assertOk()
+        ->assertSee('images/platform-logo.svg', false)
+        ->assertSee('brand-icon', false);
+});
