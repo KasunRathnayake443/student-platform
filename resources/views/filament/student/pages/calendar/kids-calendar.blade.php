@@ -113,7 +113,7 @@
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 1.75rem;
-    align-items: start;
+    align-items: stretch;
 }
 @media (max-width: 1050px) {
     .kids-cal-grid-layout {
@@ -398,6 +398,9 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    min-height: 0;
+    max-height: calc(100vh - 12rem);
+    overflow-x: hidden;
 }
 .kids-drawer-head {
     display: flex;
@@ -405,6 +408,17 @@
     justify-content: space-between;
     padding-bottom: 1rem;
     border-bottom: 3px dashed #ede9fe;
+    flex-shrink: 0;
+}
+.kids-drawer-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-right: 0.15rem;
+    overflow-x: hidden;
 }
 .kids-drawer-title-wrap h3 {
     font-size: 1.35rem;
@@ -450,8 +464,8 @@
     border-radius: 1.4rem;
     padding: 1.1rem 1.25rem;
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.9rem;
     border: 3px solid;
     text-decoration: none;
     transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -468,9 +482,15 @@
     background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
     border-color: #d8b4fe;
 }
+.kids-event-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    min-width: 0;
+}
 .kids-event-emoji {
     font-size: 2.4rem;
-    line-height: 1;
+    line-height: 1.15;
     flex-shrink: 0;
 }
 .kids-event-info {
@@ -491,6 +511,7 @@
     color: #1e1b4b;
     margin-bottom: 0.25rem;
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 .kids-event-meta {
     font-size: 0.78rem;
@@ -500,11 +521,11 @@
 .kids-event-btn {
     background: linear-gradient(135deg, #7c3aed, #a855f7);
     color: #ffffff;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 900;
-    padding: 0.5rem 0.95rem;
+    padding: 0.6rem 1rem;
     border-radius: 999px;
-    white-space: nowrap;
+    text-align: center;
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
     flex-shrink: 0;
 }
@@ -826,7 +847,7 @@
         <!-- Right Column: Interactive Day Inspector Card -->
         <div class="kids-cal-drawer">
             <template x-if="selDate">
-                <div style="display:flex; flex-direction:column; gap:1.25rem;">
+                <div style="display:flex; flex-direction:column; gap:1.25rem; flex:1; min-height:0;">
                     
                     <!-- Drawer Header with formatted date -->
                     <div class="kids-drawer-head">
@@ -837,6 +858,8 @@
                         <button type="button" @click="closePanel()" class="kids-drawer-close" title="Close Panel">✕</button>
                     </div>
 
+                    <div class="kids-drawer-body">
+
                     <!-- Events for the Day -->
                     <template x-if="dayEvents(selDate).length > 0">
                         <div>
@@ -846,11 +869,13 @@
                             <div class="kids-event-list">
                                 <template x-for="(ev, i) in dayEvents(selDate)" :key="i">
                                     <a class="kids-event-card" :class="ev.type.startsWith('quiz') ? 'type-quiz' : 'type-asgn'" :href="ev.url">
-                                        <div class="kids-event-emoji" x-text="ev.type.startsWith('quiz') ? '🧠' : '📋'"></div>
-                                        <div class="kids-event-info">
-                                            <div class="kids-event-class-badge" x-text="'📘 ' + ev.class"></div>
-                                            <div class="kids-event-title" x-text="ev.title"></div>
-                                            <div class="kids-event-meta" x-text="ev.meta"></div>
+                                        <div class="kids-event-main">
+                                            <div class="kids-event-emoji" x-text="ev.type.startsWith('quiz') ? '🧠' : '📋'"></div>
+                                            <div class="kids-event-info">
+                                                <div class="kids-event-class-badge" x-text="'📘 ' + ev.class"></div>
+                                                <div class="kids-event-title" x-text="ev.title"></div>
+                                                <div class="kids-event-meta" x-text="ev.meta"></div>
+                                            </div>
                                         </div>
                                         <div class="kids-event-btn" x-text="ev.type.startsWith('quiz') ? 'Play Quiz 🎮' : 'Start Mission 🚀'"></div>
                                     </a>
@@ -920,12 +945,13 @@
                         </div>
                     </div>
 
+                    </div>
                 </div>
             </template>
 
             <!-- Initial state before any day is clicked -->
             <template x-if="!selDate">
-                <div class="kids-drawer-empty" style="background:#ffffff; border-style:solid; border-color:#ede9fe;">
+                <div class="kids-drawer-empty" style="background:#ffffff; border-style:solid; border-color:#ede9fe; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                     <div class="kids-drawer-empty-emoji">🗓️</div>
                     <h4>Pick a Day!</h4>
                     <p>Click any date on the calendar to see all your homework, quizzes, and notes! ✨</p>

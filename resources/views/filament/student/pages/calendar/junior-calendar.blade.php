@@ -85,7 +85,7 @@
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 1.5rem;
-    align-items: start;
+    align-items: stretch;
 }
 @media (max-width: 1050px) {
     .junior-cal-grid-layout { grid-template-columns: 1fr; }
@@ -345,6 +345,8 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    min-height: 0;
+    max-height: calc(100vh - 12rem);
 }
 .junior-sidecard-head {
     display: flex;
@@ -352,6 +354,16 @@
     justify-content: space-between;
     padding-bottom: 0.85rem;
     border-bottom: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+.junior-sidecard-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-right: 0.15rem;
 }
 .junior-sidecard-title-wrap h3 {
     font-size: 1.05rem;
@@ -768,7 +780,7 @@
         <!-- Right Column: Bento Side Inspector Card -->
         <div class="junior-cal-sidecard">
             <template x-if="selDate">
-                <div style="display:flex; flex-direction:column; gap:1.25rem;">
+                <div style="display:flex; flex-direction:column; gap:1.25rem; flex:1; min-height:0;">
                     
                     <!-- Sidecard Header -->
                     <div class="junior-sidecard-head">
@@ -778,6 +790,8 @@
                         </div>
                         <button type="button" @click="closePanel()" class="junior-sidecard-close" title="Close Panel">✕</button>
                     </div>
+
+                    <div class="junior-sidecard-body">
 
                     <!-- Event Details -->
                     <template x-if="dayEvents(selDate).length > 0">
@@ -861,12 +875,14 @@
                         </div>
                     </div>
 
-                </div>
+                    </div>
+
+            </div>
             </template>
 
             <!-- Initial state before any day is clicked -->
             <template x-if="!selDate">
-                <div class="junior-empty-side">
+                <div class="junior-empty-side" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                     <div style="font-size:2.5rem; margin-bottom:0.5rem;">📅</div>
                     <div style="font-weight:700; color:#475569; margin-bottom:0.25rem;">Select a Date</div>
                     <div>Click on any date in the calendar to view deadlines, quizzes, or write notes.</div>

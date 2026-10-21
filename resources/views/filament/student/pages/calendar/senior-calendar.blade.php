@@ -73,7 +73,7 @@
     display: grid;
     grid-template-columns: 1.35fr 1fr;
     gap: 1.5rem;
-    align-items: start;
+    align-items: stretch;
 }
 @media (max-width: 1080px) {
     .senior-cal-split { grid-template-columns: 1fr; }
@@ -319,7 +319,9 @@
     padding: 1.35rem;
     display: flex;
     flex-direction: column;
-    gap: 1.35rem;
+    gap: 1rem;
+    min-height: 0;
+    max-height: calc(100vh - 12rem);
 }
 .senior-agenda-tab-bar {
     display: flex;
@@ -327,6 +329,16 @@
     gap: 0.4rem;
     border-bottom: 1px solid #e2e8f0;
     padding-bottom: 0.65rem;
+    flex-shrink: 0;
+}
+.senior-agenda-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-right: 0.15rem;
 }
 .senior-agenda-tab-btn {
     padding: 0.35rem 0.75rem;
@@ -730,6 +742,8 @@
                 </button>
             </div>
 
+            <div class="senior-agenda-body">
+
             <!-- TAB 1: Selected Day Inspector -->
             <div x-show="agendaTab === 'day'">
                 <template x-if="selDate">
@@ -864,6 +878,7 @@
                         </div>
                     @endif
                 </div>
+            </div>
             </div>
 
         </div>
