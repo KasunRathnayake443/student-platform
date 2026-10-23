@@ -247,6 +247,14 @@ class Student extends Model
         );
     }
 
+    public function gameScores(): HasMany
+    {
+        return $this->hasMany(
+            KidsGameScore::class,
+            'student_id'
+        );
+    }
+
     /**
      * Determine dashboard tier based on date_of_birth.
      * Returns: 'kids' | 'junior' | 'senior'

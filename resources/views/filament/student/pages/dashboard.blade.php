@@ -2668,6 +2668,12 @@
                         <span class="nav-icon">📊</span>
                         <span>Dashboard</span>
                     </button>
+                    @if($tier === 'kids')
+                        <button wire:click="setTab('games')" type="button" class="nav-link {{ $activeTab === 'games' ? 'active' : '' }}">
+                            <span class="nav-icon">🎮</span>
+                            <span>Games</span>
+                        </button>
+                    @endif
                     <button wire:click="setTab('classes')" type="button" class="nav-link {{ $activeTab === 'classes' ? 'active' : '' }}">
                         <span class="nav-icon">📖</span>
                         <span>My Classes</span>
@@ -2779,6 +2785,9 @@
                     @elseif($activeTab === 'notifications')
                         <h1>Notifications 🔔</h1>
                         <p>Stay up to date with your classes, assignments, and quizzes.</p>
+                    @elseif($activeTab === 'games')
+                        <h1>Game Arcade 🎮</h1>
+                        <p>Play learning games, master new skills and collect stars!</p>
                     @else
                         <h1>Welcome back, {{ $firstName }}! 👋</h1>
                         <p>{{ now()->format('l, F j, Y') }} · Have a great study session today!</p>
@@ -2805,6 +2814,8 @@
                             'firstName'     => $firstName,
                             'activeContext' => $activeContext,
                             'allContexts'   => $allContexts,
+                            'gameStars'     => $gameStars ?? 0,
+                            'gamePlays'     => $gamePlays ?? 0,
                         ])
                     @elseif($tier === 'junior')
                         {{-- Age 11 to 15: Teens Dashboard --}}
@@ -2823,7 +2834,13 @@
                             'allContexts'   => $allContexts,
                         ])
                     @endif
-                
+
+                {{-- ── KIDS TAB: GAME ARCADE (ages 5-10 only) ── --}}
+                @elseif($activeTab === 'games')
+                    @if($tier === 'kids')
+                        <livewire:kids.games />
+                    @endif
+
                 {{-- ── TAB 2: MY CLASSES (all schools, grouped) ── --}}
                 @elseif($activeTab === 'classes')
                     <div class="glass-card">

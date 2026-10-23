@@ -106,7 +106,14 @@ class Dashboard extends BaseDashboard
         $this->profileParentPhone = $this->student->parent_phone ?? '';
 
         $tab = request()->query('tab');
-        if (is_string($tab) && in_array($tab, ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'calendar', 'notifications', 'profile'], true)) {
+        $allowedTabs = ['dashboard', 'classes', 'lessons', 'assignments', 'quizzes', 'grades', 'calendar', 'notifications', 'profile'];
+
+        // The Games arcade only exists on the kids dashboard.
+        if ($this->tier === 'kids') {
+            $allowedTabs[] = 'games';
+        }
+
+        if (is_string($tab) && in_array($tab, $allowedTabs, true)) {
             $this->activeTab = $tab;
         }
         $classFilter = request()->query('class_filter');
@@ -203,12 +210,21 @@ class Dashboard extends BaseDashboard
 
     public function setTab(string $tab): void
     {
+        // The Games arcade is reserved for the kids dashboard.
+        if ($tab === 'games' && $this->tier !== 'kids') {
+            return;
+        }
+
         $this->activeTab = $tab;
         $this->activeClassFilterId = null;
     }
 
     public function openTab(string $tab, ?int $classId = null): void
     {
+        if ($tab === 'games' && $this->tier !== 'kids') {
+            return;
+        }
+
         $this->activeTab = $tab;
         $this->activeClassFilterId = $classId;
         if ($tab === 'calendar') {
@@ -368,6 +384,30 @@ class Dashboard extends BaseDashboard
         $this->setTab((string) $tab);
     }
 
+    /**
+     * Stars and play counts earned in the kids Game Arcade.
+     *
+     * Only the kids dashboard uses these, so the query is skipped for the
+     * junior and senior tiers.
+     *
+     * @return array{gameStars: int, gamePlays: int}
+     */
+    protected function arcadeSummary(): array
+    {
+        if ($this->tier !== 'kids' || ! $this->student instanceof Student) {
+            return ['gameStars' => 0, 'gamePlays' => 0];
+        }
+
+        $totals = $this->student->gameScores()
+            ->selectRaw('COALESCE(SUM(stars), 0) as stars, COALESCE(SUM(plays), 0) as plays')
+            ->first();
+
+        return [
+            'gameStars' => (int) ($totals->stars ?? 0),
+            'gamePlays' => (int) ($totals->plays ?? 0),
+        ];
+    }
+
     protected function getViewData(): array
     {
         $user = auth()->user();
@@ -375,7 +415,7 @@ class Dashboard extends BaseDashboard
         // Notification queries are only needed when the notifications tab is
         // visible — skip them entirely on every other tab.
         if ($this->activeTab !== 'notifications') {
-            return [
+            return array_merge([
                 'tier' => $this->tier,
                 'student' => $this->student,
                 'activeContext' => $this->activeContext,
@@ -393,7 +433,7 @@ class Dashboard extends BaseDashboard
                 ],
                 'notificationFilter' => $this->notificationFilter,
                 'notificationSearch' => $this->notificationSearch,
-            ];
+            ], $this->arcadeSummary());
         }
 
         $service = app(NotificationService::class);

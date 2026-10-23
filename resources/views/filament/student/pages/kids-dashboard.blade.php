@@ -378,6 +378,50 @@
     50% { transform: rotate(8deg); }
 }
 
+/* ── Game Arcade CTA ── */
+.kids-games-cta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    width: 100%;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #f97316 100%);
+    border-radius: 1.75rem;
+    padding: 1.5rem 1.75rem;
+    color: #fff;
+    box-shadow: 0 12px 30px -12px rgba(124, 58, 237, .5);
+    transition: transform .18s ease, box-shadow .18s ease;
+    font-family: inherit;
+}
+.kids-games-cta:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -14px rgba(124, 58, 237, .6); }
+.kids-games-cta:active { transform: scale(0.98); }
+.kids-games-cta-emoji { font-size: 2.8rem; line-height: 1; }
+.kids-games-cta-title { display: block; font-family: 'Fredoka One', 'Nunito', sans-serif; font-size: 1.5rem; }
+.kids-games-cta-sub { display: block; font-size: .95rem; font-weight: 800; opacity: .92; margin-top: .15rem; }
+.kids-games-cta-meta {
+    display: inline-block;
+    margin-top: .4rem;
+    padding: .2rem .65rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .22);
+    border: 1px solid rgba(255, 255, 255, .4);
+    font-size: .8rem;
+    font-weight: 800;
+}
+.kids-games-cta-btn {
+    margin-left: auto;
+    background: #fff;
+    color: #7c3aed;
+    font-family: 'Fredoka One', 'Nunito', sans-serif;
+    font-size: 1rem;
+    padding: .7rem 1.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
 /* Responsive fit */
 @media (max-width: 900px) {
     .kids-header { padding: 1.5rem 1.5rem 2rem; }
@@ -459,6 +503,19 @@
                 <span class="kids-stars-count" x-text="filled + ' / 10'"></span>
             </div>
         </div>
+
+        {{-- 🎮 Game Arcade CTA --}}
+        <button type="button" class="kids-games-cta" wire:click="setTab('games')">
+            <span class="kids-games-cta-emoji">🎮</span>
+            <span>
+                <span class="kids-games-cta-title">Game Arcade</span>
+                <span class="kids-games-cta-sub">Play games, learn new skills and collect stars!</span>
+                @if(($gameStars ?? 0) > 0)
+                    <span class="kids-games-cta-meta">⭐ {{ $gameStars }} stars · {{ $gamePlays }} game{{ $gamePlays === 1 ? '' : 's' }} played</span>
+                @endif
+            </span>
+            <span class="kids-games-cta-btn">Play ▶</span>
+        </button>
 
         {{-- 🎯 Today's Missions --}}
         <div>
