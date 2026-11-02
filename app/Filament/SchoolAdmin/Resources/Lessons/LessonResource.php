@@ -4,11 +4,11 @@ namespace App\Filament\SchoolAdmin\Resources\Lessons;
 
 use App\Filament\Resources\Lessons\Schemas\LessonForm;
 use App\Filament\Resources\Lessons\Schemas\LessonInfolist;
-use App\Filament\Resources\Lessons\Tables\LessonsTable;
 use App\Filament\SchoolAdmin\Resources\Lessons\Pages\CreateLesson;
 use App\Filament\SchoolAdmin\Resources\Lessons\Pages\EditLesson;
 use App\Filament\SchoolAdmin\Resources\Lessons\Pages\ListLessons;
 use App\Filament\SchoolAdmin\Resources\Lessons\Pages\ViewLesson;
+use App\Filament\SchoolAdmin\Resources\Lessons\Tables\LessonsTable;
 use App\Filament\SchoolAdmin\Scopes\SchoolAdminScopes;
 use App\Models\Lesson;
 use BackedEnum;

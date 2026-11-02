@@ -248,6 +248,155 @@ test('quizzes are scoped to the assigned schools', function () {
         ->assertCanSeeTableRecords([spQuizIn(spSchool('HIA-2026'))]);
 });
 
+test('lesson filters narrow records by class, teacher and publication status', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+    $lesson = spLessonIn($school);
+    $otherClassLesson = Lesson::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->where('learning_class_id', '!=', $lesson->learning_class_id)
+        ->firstOrFail();
+    $otherTeacherLesson = Lesson::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->where('teacher_id', '!=', $lesson->teacher_id)
+        ->firstOrFail();
+
+    Livewire::test(ListLessons::class)
+        ->filterTable('learning_class_id', $lesson->learning_class_id)
+        ->assertCanSeeTableRecords([$lesson])
+        ->assertCanNotSeeTableRecords([$otherClassLesson]);
+
+    Livewire::test(ListLessons::class)
+        ->filterTable('teacher_id', $lesson->teacher_id)
+        ->assertCanSeeTableRecords([$lesson])
+        ->assertCanNotSeeTableRecords([$otherTeacherLesson]);
+
+    $lesson->update(['is_published' => false]);
+
+    Livewire::test(ListLessons::class)
+        ->filterTable('is_published', false)
+        ->assertCanSeeTableRecords([$lesson])
+        ->assertCanNotSeeTableRecords([$otherClassLesson]);
+
+    Livewire::test(ListLessons::class)
+        ->assertSuccessful()
+        ->assertTableFilterExists('school_id')
+        ->assertTableFilterExists('grade_id')
+        ->assertTableFilterExists('learning_class_id')
+        ->assertTableFilterExists('teacher_id')
+        ->assertTableFilterExists('has_attachments')
+        ->assertTableFilterExists('has_video');
+});
+
+test('assignment filters narrow records by class, late submissions and availability', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+    $assignment = spAssignmentIn($school);
+    $otherClassAssignment = Assignment::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->where('learning_class_id', '!=', $assignment->learning_class_id)
+        ->firstOrFail();
+    $lateAssignment = Assignment::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->where('allow_late_submissions', true)
+        ->firstOrFail();
+    $nonLateAssignment = Assignment::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->where('allow_late_submissions', false)
+        ->firstOrFail();
+
+    Livewire::test(ListAssignments::class)
+        ->filterTable('learning_class_id', $assignment->learning_class_id)
+        ->assertCanSeeTableRecords([$assignment])
+        ->assertCanNotSeeTableRecords([$otherClassAssignment]);
+
+    Livewire::test(ListAssignments::class)
+        ->filterTable('allow_late_submissions', true)
+        ->assertCanSeeTableRecords([$lateAssignment])
+        ->assertCanNotSeeTableRecords([$nonLateAssignment]);
+
+    $expiredAssignment = Assignment::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->whereKeyNot($lateAssignment->getKey())
+        ->firstOrFail();
+
+    $expiredAssignment->update([
+        'is_published' => true,
+        'availability_type' => 'immediate',
+        'start_at' => now()->subDays(10),
+        'end_at' => now()->subDay(),
+    ]);
+
+    Livewire::test(ListAssignments::class)
+        ->filterTable('availability_status', 'expired')
+        ->assertCanSeeTableRecords([$expiredAssignment])
+        ->assertCanNotSeeTableRecords([$lateAssignment]);
+
+    Livewire::test(ListAssignments::class)
+        ->assertSuccessful()
+        ->assertTableFilterExists('school_id')
+        ->assertTableFilterExists('grade_id')
+        ->assertTableFilterExists('learning_class_id')
+        ->assertTableFilterExists('teacher_id')
+        ->assertTableFilterExists('deadline')
+        ->assertTableFilterExists('has_submissions');
+});
+
+test('quiz filters narrow records by class, time limit and publication status', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+    $quiz = spQuizIn($school);
+    $otherClassQuiz = Quiz::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->where('learning_class_id', '!=', $quiz->learning_class_id)
+        ->firstOrFail();
+    $timedQuiz = Quiz::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->whereNotNull('time_limit_minutes')
+        ->firstOrFail();
+    $untimedQuiz = Quiz::query()
+        ->whereHas('learningClass.grade', fn ($query) => $query->where('school_id', $school->getKey()))
+        ->whereKeyNot($timedQuiz->getKey())
+        ->firstOrFail();
+
+    $untimedQuiz->update(['time_limit_minutes' => null]);
+
+    Livewire::test(ListQuizzes::class)
+        ->filterTable('learning_class_id', $quiz->learning_class_id)
+        ->assertCanSeeTableRecords([$quiz])
+        ->assertCanNotSeeTableRecords([$otherClassQuiz]);
+
+    Livewire::test(ListQuizzes::class)
+        ->filterTable('has_time_limit', true)
+        ->assertCanSeeTableRecords([$timedQuiz])
+        ->assertCanNotSeeTableRecords([$untimedQuiz]);
+
+    $timedQuiz->update(['is_published' => false]);
+
+    Livewire::test(ListQuizzes::class)
+        ->filterTable('is_published', false)
+        ->assertCanSeeTableRecords([$timedQuiz])
+        ->assertCanNotSeeTableRecords([$otherClassQuiz]);
+
+    Livewire::test(ListQuizzes::class)
+        ->assertSuccessful()
+        ->assertTableFilterExists('school_id')
+        ->assertTableFilterExists('grade_id')
+        ->assertTableFilterExists('learning_class_id')
+        ->assertTableFilterExists('teacher_id')
+        ->assertTableFilterExists('availability_status')
+        ->assertTableFilterExists('has_attempts');
+});
+
 test('records in other schools are not accessible', function () {
     $this->seed();
     $this->actingAs(spSchoolAdmin());

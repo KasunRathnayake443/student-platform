@@ -2,6 +2,8 @@
 
 namespace App\Filament\SchoolAdmin\Resources\Assignments\Tables;
 
+use App\Filament\SchoolAdmin\Scopes\SchoolAdminScopes;
+use App\Filament\SchoolAdmin\Tables\Filters\TeachingContentFilters;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -83,6 +85,13 @@ class AssignmentsTable
 
             ])
             ->defaultSort('created_at', 'desc')
+            ->filters([
+                ...TeachingContentFilters::common(SchoolAdminScopes::schoolIds()),
+                TeachingContentFilters::availabilityStatus(),
+                TeachingContentFilters::deadlineBetween(),
+                TeachingContentFilters::lateSubmissions(),
+                TeachingContentFilters::hasSubmissions(),
+            ])
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

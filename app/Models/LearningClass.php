@@ -24,6 +24,9 @@ class LearningClass extends Model
     /**
      * @return BelongsTo<Grade, $this>
      */
+    /**
+     * @return BelongsTo<Grade, $this>
+     */
     public function grade(): BelongsTo
     {
 
