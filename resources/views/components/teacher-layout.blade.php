@@ -219,10 +219,14 @@
     }
 
     @media (max-width:1024px) {
-        #t-sidebar { position:fixed; top:0; left:0; height:100%; z-index:210; transform:translateX(-100%); }
+        #t-sidebar { position:fixed; top:0; left:0; width:min(280px, 85vw); min-width:0; height:100%; z-index:210; transform:translateX(-105%); }
         #t-sidebar.open { transform:translateX(0); }
         #t-overlay.open { display:block; }
         #t-hamburger { display:flex; }
+    }
+    @media (max-width:640px) {
+        #t-topbar { padding:0 14px; height:54px; }
+        #t-content { padding:14px; }
     }
 </style>
 

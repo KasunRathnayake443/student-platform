@@ -83,6 +83,15 @@
             .nc-grid{grid-template-columns:1fr;}
             .nc-hero-stat{display:none;}
         }
+        @media (max-width:640px){
+            .nc-hero{padding:1.1rem 1.15rem;gap:.75rem;border-radius:.9rem;}
+            .nc-hero-icon{width:42px;height:42px;font-size:1.35rem;border-radius:11px;}
+            .nc-hero-text h1{font-size:1.15rem;}
+            .nc-hero-text p{font-size:.8rem;}
+            .nc-card-body{padding:.9rem;}
+            .nc-item{flex-wrap:wrap;padding:.95rem 1rem;gap:.75rem;}
+            .nc-actions{width:100%;justify-content:flex-end;padding-top:.5rem;border-top:1px dashed #e8ecf3;}
+        }
     </style>
 
     <div class="nc-wrap">

@@ -287,6 +287,126 @@
     .t-logout-btn:hover { background:#dc2626; color:#ffffff; border-color:#dc2626; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2); }
     .t-logout-btn svg { width:16px; height:16px; color:#ef4444; transition:color .18s ease, transform .18s ease; }
     .t-logout-btn:hover svg { color:#ffffff; transform: translateX(2px); }
+
+    /* ── Mobile Navigation Controls (hidden on desktop) ── */
+    #t-hamburger,
+    #t-sidebar-close,
+    #t-overlay,
+    #t-mobile-nav {
+        display: none;
+    }
+
+    @media (max-width: 1024px) {
+        #t-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: min(285px, 86vw);
+            min-width: 0;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 210;
+            transform: translateX(-105%);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+        }
+        #t-sidebar.open {
+            transform: translateX(0);
+        }
+        #t-overlay.open {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 200;
+        }
+        #t-hamburger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all .15s ease;
+        }
+        #t-hamburger:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        #t-sidebar-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        #t-mobile-nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #ffffff;
+            border-bottom: 1px solid #e8ecf3;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+        #t-mobile-nav::-webkit-scrollbar { display: none; }
+        .t-mnav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all .15s ease;
+        }
+        .t-mnav-pill.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25);
+        }
+    }
+
+    @media (max-width: 640px) {
+        #t-topbar {
+            height: 56px;
+            padding: 0 14px;
+        }
+        .t-topbar-left { gap: 9px; }
+        .t-topbar-accent { display: none; }
+        .t-topbar-title { font-size: 14px; }
+        .t-topbar-right { gap: 8px; }
+        .t-date-pill { display: none; }
+        .t-topbar-divider { display: none; }
+        .t-tb-user { padding: 3px; }
+        .t-tb-user-info { display: none; }
+        #t-content .fi-page { padding: 14px !important; }
+    }
 </style>
 
 <!-- ── SIDEBAR ──────────────────────────────── -->
@@ -296,10 +416,11 @@
         <div class="t-brand-icon">
             <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="">
         </div>
-        <div>
+        <div style="min-width:0;">
             <div class="t-brand-name">{{ \App\Services\PlatformSettings::name() }}</div>
             <div class="t-brand-label">Teacher Portal</div>
         </div>
+        <button type="button" id="t-sidebar-close" onclick="tCloseSidebar()" aria-label="Close navigation">✕</button>
     </div>
 
     <!-- Navigation -->
@@ -435,11 +556,19 @@
     </div>
 </aside>
 
+<!-- Mobile backdrop overlay -->
+<div id="t-overlay" onclick="tCloseSidebar()"></div>
+
 <!-- ── MAIN ──────────────────────────────────── -->
 <div id="t-main">
     <!-- Top bar -->
     <header id="t-topbar">
         <div class="t-topbar-left">
+            <button type="button" id="t-hamburger" onclick="tOpenSidebar()" aria-label="Open navigation menu">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
             <span class="t-topbar-accent"></span>
             <span class="t-topbar-title">{{ strip_tags((string) $title) }}</span>
         </div>
@@ -478,6 +607,33 @@
         </div>
     </header>
 
+    <!-- Mobile Quick Navigation Strip (<= 1024px) -->
+    <nav id="t-mobile-nav" aria-label="Quick navigation">
+        <a href="{{ route('filament.teacher.pages.teacher-dashboard') }}"
+           class="t-mnav-pill {{ request()->routeIs('filament.teacher.pages.teacher-dashboard') && request('tab') !== 'grades' ? 'active' : '' }}">
+            <span>📊</span><span>Dashboard</span>
+        </a>
+        <a href="{{ route('filament.teacher.pages.teacher-dashboard', ['tab' => 'grades']) }}"
+           class="t-mnav-pill {{ request()->routeIs('filament.teacher.pages.teacher-dashboard') && request('tab') === 'grades' ? 'active' : '' }}">
+            <span>🏆</span><span>Grades</span>
+        </a>
+        <a href="{{ \App\Filament\Teacher\Pages\Notifications::getUrl(panel: 'teacher') }}"
+           class="t-mnav-pill {{ request()->routeIs('filament.teacher.pages.notifications*') ? 'active' : '' }}">
+            <span>🔔</span><span>Alerts</span>
+            @if(($navUnreadNotificationsCount ?? 0) > 0)
+                <span class="t-nav-badge" style="min-width:17px;height:17px;font-size:10px;padding:0 5px;">{{ $navUnreadNotificationsCount > 99 ? '99+' : $navUnreadNotificationsCount }}</span>
+            @endif
+        </a>
+        <a href="{{ \App\Filament\Teacher\Pages\ComposeStudentEmail::getUrl(panel: 'teacher') }}"
+           class="t-mnav-pill {{ request()->routeIs('filament.teacher.pages.compose-student-email') ? 'active' : '' }}">
+            <span>✉️</span><span>Email</span>
+        </a>
+        <a href="{{ \App\Filament\Teacher\Pages\MyProfile::getUrl(panel: 'teacher') }}"
+           class="t-mnav-pill {{ request()->routeIs('filament.teacher.pages.my-profile') ? 'active' : '' }}">
+            <span>👤</span><span>Profile</span>
+        </a>
+    </nav>
+
     <!-- Page Content (Livewire renders the view into $slot) -->
     <div id="t-content">
         {{ $slot }}
@@ -493,5 +649,20 @@
         const open = el.classList.toggle('open');
         btn.classList.toggle('open', open);
     }
+    function tOpenSidebar() {
+        const sb = document.getElementById('t-sidebar');
+        const ov = document.getElementById('t-overlay');
+        if (sb) sb.classList.add('open');
+        if (ov) ov.classList.add('open');
+    }
+    function tCloseSidebar() {
+        const sb = document.getElementById('t-sidebar');
+        const ov = document.getElementById('t-overlay');
+        if (sb) sb.classList.remove('open');
+        if (ov) ov.classList.remove('open');
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') tCloseSidebar();
+    });
 </script>
 </x-filament-panels::layout.base>

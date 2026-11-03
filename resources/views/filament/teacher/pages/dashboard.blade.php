@@ -1,4 +1,4 @@
-<div style="padding:24px 28px; max-width: 100%; box-sizing: border-box;">
+<div class="t-dash-outer" style="padding:24px 28px; max-width: 100%; box-sizing: border-box;">
 @php $activeTab = request('tab') === 'grades' ? 'tab-grades' : 'tab-overview'; @endphp
 <style>
     /* ── Core Typography & Resets ─────────────── */
@@ -208,6 +208,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
     }
     .t-attention-badge-alert {
         display: inline-flex;
@@ -332,7 +333,7 @@
     }
     .t-list-main { min-width: 0; }
     .t-list-title { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .t-list-meta { font-size: 11.5px; color: #64748b; margin-top: 2px; display: flex; align-items: center; gap: 8px; }
+    .t-list-meta { font-size: 11.5px; color: #64748b; margin-top: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .t-badge-pill {
         display: inline-flex; align-items: center;
         padding: 2px 8px; border-radius: 999px;
@@ -434,7 +435,7 @@
 
     .classes-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
         gap: 14px; padding: 4px 0 20px;
     }
 
@@ -603,21 +604,95 @@
         .t-gd-grid { grid-template-columns: 1fr; }
         .t-grade-stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     }
-    @media (max-width: 640px) {
-        .t-grade-stats { grid-template-columns: repeat(2, 1fr); }
-        .t-grade-head-row { gap: 12px; }
-        .t-gd-box { overflow-x: auto; }
-        .t-gd-table { min-width: 560px; }
-    }
 
     /* ── Responsive rules ────────────────────── */
     @media (max-width: 960px) {
         .t-summary-strip { grid-template-columns: repeat(2, 1fr); }
         .t-split-grid { grid-template-columns: 1fr; }
     }
+    @media (max-width: 860px) {
+        .t-dash-outer { padding: 18px 16px !important; }
+        .t-primary-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important; }
+        .stat-card { padding: 14px 12px; gap: 10px; }
+        .stat-icon { width: 40px; height: 40px; border-radius: 10px; }
+        .stat-value { font-size: 24px; }
+    }
     @media (max-width: 640px) {
+        .t-dash-outer { padding: 14px 12px !important; }
+        .t-tabs { gap: 6px; padding: 5px; margin-bottom: 16px; }
+        .t-tab { flex: 1; justify-content: center; padding: 8px 10px; font-size: 12.5px; }
+        .t-hero { padding: 20px 18px; border-radius: 16px; margin-bottom: 18px; }
+        .t-hero-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .t-hero-title { font-size: clamp(18px, 5vw, 22px); }
+        .t-hero-sub { font-size: 12.5px; }
+        .t-hero-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .t-btn-hero-primary, .t-btn-hero-secondary { justify-content: center; padding: 10px 12px; font-size: 12.5px; }
+        .t-primary-stats { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 18px !important; }
+        .stat-card { padding: 14px 16px; gap: 14px; }
+        .stat-icon { width: 44px; height: 44px; }
+        .stat-value { font-size: 26px; }
+        .t-summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+        .t-summary-pill { padding: 12px; gap: 10px; }
+        .t-pill-icon { width: 34px; height: 34px; }
+        .t-pill-num { font-size: 17px; }
+        .t-pill-text { font-size: 11px; }
+        .t-attention-card { padding: 16px; margin-bottom: 18px; }
+        .t-sub-item { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; }
+        .t-sub-meta { width: 100%; }
+        .t-sub-name { white-space: normal; word-break: break-word; }
+        .t-sub-actions { width: 100%; justify-content: space-between; padding-top: 8px; border-top: 1px dashed #e2e8f0; }
+        .t-btn-grade { margin-left: auto; }
+        .t-card-box { padding: 16px; }
+        .t-list-card { padding: 10px 12px; gap: 8px; align-items: flex-start; }
+        .t-list-title { white-space: normal; word-break: break-word; }
+        .t-class-filter-bar { gap: 10px; }
+        .t-search-input-wrap { max-width: 100% !important; min-width: 0; width: 100%; flex-basis: 100% !important; }
+        .school-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+        .school-badge { margin-left: 0; }
+        .grade-section { padding: 0 14px; }
+        .classes-grid { grid-template-columns: 1fr; gap: 10px; padding-bottom: 14px; }
+        .t-grade-head-row { padding: 14px; gap: 12px; }
+        .t-grade-id { flex: 1 1 calc(100% - 96px); }
+        .t-grade-stats { flex: 1 1 100%; order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .t-gstat { padding: 8px 10px; }
+        .t-gstat-value { font-size: 17px; }
+        .t-grade-detail { padding: 14px 12px 16px; }
+
+        /* Stacked mobile cards for grades tables */
+        .t-gd-table thead { display: none; }
+        .t-gd-table, .t-gd-table tbody { display: block; width: 100%; min-width: 0; }
+        .t-gd-table tr {
+            display: block;
+            background: #fafbfe;
+            border-bottom: 1px solid #eef1f7;
+            padding: 10px 14px;
+        }
+        .t-gd-table tr:last-child { border-bottom: none; }
+        .t-gd-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 5px 0;
+            border-bottom: 1px dashed #f1f5f9;
+            text-align: right;
+        }
+        .t-gd-table td:last-child { border-bottom: none; padding-bottom: 0; }
+        .t-gd-table td:first-child { padding-top: 0; }
+        .t-gd-table td::before {
+            content: attr(data-label);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94a3b8;
+            text-align: left;
+            flex-shrink: 0;
+        }
+    }
+    @media (max-width: 380px) {
+        .t-hero-actions { grid-template-columns: 1fr; }
         .t-summary-strip { grid-template-columns: 1fr; }
-        .t-hero-inner { flex-direction: column; align-items: flex-start; }
     }
 </style>
 
@@ -674,7 +749,7 @@
     </div>
 
     {{-- ── Three Primary Stat Cards (preserves exact test contract) ── --}}
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="t-primary-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
 
         <div class="stat-card">
             <div class="stat-icon stat-icon-indigo">
@@ -807,7 +882,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:14px;">
+                        <div class="t-sub-actions" style="display:flex; align-items:center; gap:14px;">
                             <span class="t-sub-time">
                                 {{ $sub->submitted_at ? $sub->submitted_at->diffForHumans() : 'Recently' }}
                             </span>
@@ -1164,18 +1239,18 @@
                                             <tbody>
                                                 @foreach($g['attempts'] as $attempt)
                                                     <tr>
-                                                        <td><span class="t-gd-title">{{ $attempt->quiz?->title ?? 'Quiz' }}</span></td>
-                                                        <td class="t-gd-muted">{{ $attempt->quiz?->learningClass?->name ?? '—' }}</td>
-                                                        <td class="t-gd-muted">{{ $attempt->score }} / {{ $attempt->quiz?->total_points }}</td>
-                                                        <td><span class="t-gp">{{ round((float) $attempt->percentage) }}%</span></td>
-                                                        <td>
+                                                        <td data-label="Quiz"><span class="t-gd-title">{{ $attempt->quiz?->title ?? 'Quiz' }}</span></td>
+                                                        <td data-label="Class" class="t-gd-muted">{{ $attempt->quiz?->learningClass?->name ?? '—' }}</td>
+                                                        <td data-label="Score" class="t-gd-muted">{{ $attempt->score }} / {{ $attempt->quiz?->total_points }}</td>
+                                                        <td data-label="Percentage"><span class="t-gp">{{ round((float) $attempt->percentage) }}%</span></td>
+                                                        <td data-label="Result">
                                                             @if($attempt->is_passed)
                                                                 <span class="t-gd-badge t-gd-pass">Passed</span>
                                                             @else
                                                                 <span class="t-gd-badge t-gd-fail">Failed</span>
                                                             @endif
                                                         </td>
-                                                        <td class="t-gd-muted">{{ $attempt->completed_at?->format('M d, Y') ?? '—' }}</td>
+                                                        <td data-label="Completed" class="t-gd-muted">{{ $attempt->completed_at?->format('M d, Y') ?? '—' }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -1208,23 +1283,23 @@
                                                 @foreach($g['submissions'] as $submission)
                                                     @php $subPct = $submission->percentage(); @endphp
                                                     <tr>
-                                                        <td><span class="t-gd-title">{{ $submission->assignment?->title ?? 'Assignment' }}</span></td>
-                                                        <td class="t-gd-muted">{{ $submission->assignment?->learningClass?->name ?? '—' }}</td>
-                                                        <td class="t-gd-muted">
+                                                        <td data-label="Assignment"><span class="t-gd-title">{{ $submission->assignment?->title ?? 'Assignment' }}</span></td>
+                                                        <td data-label="Class" class="t-gd-muted">{{ $submission->assignment?->learningClass?->name ?? '—' }}</td>
+                                                        <td data-label="Score" class="t-gd-muted">
                                                             @if($submission->status === 'graded')
                                                                 {{ $submission->score }} / {{ $submission->assignment?->max_score }}
                                                             @else
                                                                 —
                                                             @endif
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Percentage">
                                                             @if($submission->status === 'graded' && $subPct !== null)
                                                                 <span class="t-gp">{{ $subPct }}%</span>
                                                             @else
                                                                 <span class="t-gd-muted">—</span>
                                                             @endif
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Status">
                                                             @if($submission->status === 'graded')
                                                                 <span class="t-gd-badge t-gd-graded">Graded</span>
                                                             @elseif(in_array($submission->status, ['submitted'], true))
@@ -1233,7 +1308,7 @@
                                                                 <span class="t-gd-badge t-gd-pending">{{ ucfirst($submission->status) }}</span>
                                                             @endif
                                                         </td>
-                                                        <td class="t-gd-muted">{{ $submission->graded_at?->format('M d, Y') ?? ($submission->submitted_at?->format('M d, Y') ?? '—') }}</td>
+                                                        <td data-label="Date" class="t-gd-muted">{{ $submission->graded_at?->format('M d, Y') ?? ($submission->submitted_at?->format('M d, Y') ?? '—') }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

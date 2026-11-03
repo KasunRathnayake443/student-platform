@@ -29,6 +29,12 @@
         .compose-shell [data-field-wrapper] {
             margin-bottom: 16px;
         }
+
+        @media (max-width: 640px) {
+            .compose-page { padding: 14px 12px; }
+            .compose-note { padding: 14px 14px 4px; }
+            .compose-ctn { padding: 8px 14px 16px; }
+        }
     </style>
 
     <div class="compose-page">

@@ -86,6 +86,13 @@
     /* Filament field polish inside profile page */
     .profile-form-body .fi-fo-field-wrp,
     .profile-form-body [data-field-wrapper] { margin-bottom: 16px; }
+
+    @media (max-width: 640px) {
+        .profile-wrap { padding: 14px 12px; }
+        .identity-body { padding: 16px 14px; }
+        .profile-form-body { padding: 16px 14px; }
+        .profile-card-head { padding: 14px 16px; }
+    }
 </style>
 
     <div class="profile-grid">

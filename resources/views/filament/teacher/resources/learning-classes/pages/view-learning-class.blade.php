@@ -1,9 +1,9 @@
 <x-teacher-layout title="{{ $record->name }}">
-    <div style="padding: 24px; max-width: 1200px; margin: 0 auto; height: 100%; overflow-y: auto; width: 100%;">
+    <div style="padding: clamp(12px, 3vw, 24px); max-width: 1200px; margin: 0 auto; height: 100%; overflow-y: auto; width: 100%;">
         
         <!-- Header -->
-        <header style="margin-bottom: 24px;">
-            <h1 style="font-size: 24px; font-weight: 700; color: #0f172a;">{{ $record->name }}</h1>
+        <header style="margin-bottom: 20px;">
+            <h1 style="font-size: clamp(18px, 4vw, 24px); font-weight: 700; color: #0f172a;">{{ $record->name }}</h1>
         </header>
 
         <!-- Filament Page Content (Infolist & Relation Managers) -->
