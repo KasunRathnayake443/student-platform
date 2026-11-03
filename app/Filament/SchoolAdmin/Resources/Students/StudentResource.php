@@ -4,11 +4,11 @@ namespace App\Filament\SchoolAdmin\Resources\Students;
 
 use App\Filament\Resources\Students\Schemas\StudentForm;
 use App\Filament\Resources\Students\Schemas\StudentInfolist;
-use App\Filament\Resources\Students\Tables\StudentsTable;
 use App\Filament\SchoolAdmin\Resources\Students\Pages\CreateStudent;
 use App\Filament\SchoolAdmin\Resources\Students\Pages\EditStudent;
 use App\Filament\SchoolAdmin\Resources\Students\Pages\ListStudents;
 use App\Filament\SchoolAdmin\Resources\Students\Pages\ViewStudent;
+use App\Filament\SchoolAdmin\Resources\Students\Tables\StudentsTable as SchoolStudentsTable;
 use App\Filament\SchoolAdmin\Scopes\SchoolAdminScopes;
 use App\Models\Grade;
 use App\Models\LearningClass;
@@ -49,7 +49,7 @@ class StudentResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return StudentsTable::configure($table);
+        return SchoolStudentsTable::configure($table);
     }
 
     public static function getRelations(): array

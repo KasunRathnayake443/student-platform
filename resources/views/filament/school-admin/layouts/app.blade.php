@@ -72,6 +72,15 @@
     .sa-link svg { width:17px; height:17px; flex-shrink:0; color:#98a2b8; transition:color .14s ease; }
     .sa-link:hover svg { color:#86198f; }
     .sa-link.active svg { color:#c026d3; }
+    .sa-link-text { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .sa-nav-badge {
+        display:inline-flex; align-items:center; justify-content:center;
+        min-width:20px; height:20px; padding:0 6px;
+        border-radius:999px; font-size:11px; font-weight:700;
+        background:#ef4444; color:#fff;
+        line-height:1; flex-shrink:0;
+        box-shadow:0 2px 6px rgba(239,68,68,.3);
+    }
 
     /* sidebar bottom */
     .sa-sidebar-footer {
@@ -211,6 +220,23 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             Dashboard
+        </a>
+
+        @php
+            $navUnreadNotificationsCount = $user
+                ? app(\App\Services\NotificationService::class)->unreadCount($user)
+                : 0;
+        @endphp
+
+        <a href="{{ \App\Filament\SchoolAdmin\Pages\Notifications::getUrl(panel: 'school-admin') }}"
+           class="sa-link {{ request()->routeIs('filament.school-admin.pages.notifications*') ? 'active' : '' }}">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <span class="sa-link-text">Notifications</span>
+            @if ($navUnreadNotificationsCount > 0)
+                <span class="sa-nav-badge">{{ $navUnreadNotificationsCount > 99 ? '99+' : $navUnreadNotificationsCount }}</span>
+            @endif
         </a>
 
         <a href="{{ \App\Filament\SchoolAdmin\Pages\MyProfile::getUrl(panel: 'school-admin') }}"

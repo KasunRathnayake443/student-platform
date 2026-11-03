@@ -4,11 +4,11 @@ namespace App\Filament\SchoolAdmin\Resources\Teachers;
 
 use App\Filament\Resources\Teachers\Schemas\TeacherForm;
 use App\Filament\Resources\Teachers\Schemas\TeacherInfolist;
-use App\Filament\Resources\Teachers\Tables\TeachersTable;
 use App\Filament\SchoolAdmin\Resources\Teachers\Pages\CreateTeacher;
 use App\Filament\SchoolAdmin\Resources\Teachers\Pages\EditTeacher;
 use App\Filament\SchoolAdmin\Resources\Teachers\Pages\ListTeachers;
 use App\Filament\SchoolAdmin\Resources\Teachers\Pages\ViewTeacher;
+use App\Filament\SchoolAdmin\Resources\Teachers\Tables\TeachersTable as SchoolTeachersTable;
 use App\Filament\SchoolAdmin\Scopes\SchoolAdminScopes;
 use App\Models\Teacher;
 use BackedEnum;
@@ -45,7 +45,7 @@ class TeacherResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return TeachersTable::configure($table);
+        return SchoolTeachersTable::configure($table);
     }
 
     public static function getRelations(): array

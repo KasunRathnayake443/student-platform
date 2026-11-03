@@ -148,6 +148,16 @@ test('school admin can render the dashboard', function () {
         ->assertDontSee('Oakridge STEM College');
 });
 
+test('school admin dashboard links to the notifications page', function () {
+    $this->seed();
+
+    $this->actingAs(spSchoolAdmin())
+        ->get('/school-admin/school-admin-dashboard')
+        ->assertOk()
+        ->assertSee('Notifications')
+        ->assertSee(route('filament.school-admin.pages.notifications'), false);
+});
+
 test('school admin only sees their assigned schools', function () {
     $this->seed();
     $this->actingAs(spSchoolAdmin());
@@ -214,6 +224,120 @@ test('students are scoped to the assigned schools', function () {
         ->assertSuccessful()
         ->assertSee('Liam Ethan Miller')
         ->assertDontSee('Emma Charlotte Taylor');
+});
+
+test('teacher filters narrow records by school, class, class assignment and password status', function () {
+    $this->seed();
+    $this->actingAs(spUser('schooladmin3@example.com'));
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+    $robert = spUser('teacher1@example.com')->teacher;
+    $sarah = spUser('teacher2@example.com')->teacher;
+    $david = spUser('teacher3@example.com')->teacher;
+
+    Livewire::test(ListTeachers::class)
+        ->filterTable('school_id', $school->getKey())
+        ->assertCanSeeTableRecords([$robert])
+        ->assertCanNotSeeTableRecords([$david]);
+
+    Livewire::test(ListTeachers::class)
+        ->filterTable('learning_class_id', spClass($school, '10-A Mathematics')->getKey())
+        ->assertCanSeeTableRecords([$sarah])
+        ->assertCanNotSeeTableRecords([$robert]);
+
+    $robert->classes()->detach();
+
+    Livewire::test(ListTeachers::class)
+        ->filterTable('has_classes', false)
+        ->assertCanSeeTableRecords([$robert])
+        ->assertCanNotSeeTableRecords([$sarah]);
+
+    $robert->user()->update(['must_change_password' => true]);
+
+    Livewire::test(ListTeachers::class)
+        ->filterTable('password_pending', true)
+        ->assertCanSeeTableRecords([$robert])
+        ->assertCanNotSeeTableRecords([$sarah]);
+
+    Livewire::test(ListTeachers::class)
+        ->assertSuccessful()
+        ->assertTableFilterExists('school_id')
+        ->assertTableFilterExists('learning_class_id')
+        ->assertTableFilterExists('has_classes')
+        ->assertTableFilterExists('password_pending');
+});
+
+test('student filters narrow records by school, grade, class, year and enrollment details', function () {
+    $this->seed();
+    $this->actingAs(spUser('schooladmin3@example.com'));
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+    $liam = spUser('student1@example.com')->student;
+    $sophia = spUser('student2@example.com')->student;
+    $noah = spUser('student3@example.com')->student;
+    $emma = spUser('student6@example.com')->student;
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('school_id', $school->getKey())
+        ->assertCanSeeTableRecords([$liam])
+        ->assertCanNotSeeTableRecords([$emma]);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('grade_id', spGrade($school, 'Grade 10')->getKey())
+        ->assertCanSeeTableRecords([$liam])
+        ->assertCanNotSeeTableRecords([$noah]);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('learning_class_id', spClass($school, '10-A Mathematics')->getKey())
+        ->assertCanSeeTableRecords([$liam])
+        ->assertCanNotSeeTableRecords([$noah]);
+
+    $liam->enrollments()
+        ->where('school_id', $school->getKey())
+        ->update(['academic_year' => 2025]);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('academic_year', '2026')
+        ->assertCanSeeTableRecords([$noah])
+        ->assertCanNotSeeTableRecords([$liam]);
+
+    $liam->enrollments()
+        ->where('school_id', $school->getKey())
+        ->update(['status' => 'inactive']);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('enrollment_status', 'active')
+        ->assertCanSeeTableRecords([$noah])
+        ->assertCanNotSeeTableRecords([$liam]);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('enrollment_status', 'inactive')
+        ->assertCanSeeTableRecords([$liam])
+        ->assertCanNotSeeTableRecords([$noah]);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('gender', 'female')
+        ->assertCanSeeTableRecords([$sophia])
+        ->assertCanNotSeeTableRecords([$liam]);
+
+    $liam->user()->update(['must_change_password' => true]);
+
+    Livewire::test(ListStudents::class)
+        ->filterTable('password_pending', true)
+        ->assertCanSeeTableRecords([$liam])
+        ->assertCanNotSeeTableRecords([$sophia]);
+
+    Livewire::test(ListStudents::class)
+        ->assertSuccessful()
+        ->assertTableFilterExists('school_id')
+        ->assertTableFilterExists('grade_id')
+        ->assertTableFilterExists('learning_class_id')
+        ->assertTableFilterExists('academic_year')
+        ->assertTableFilterExists('enrollment_status')
+        ->assertTableFilterExists('gender')
+        ->assertTableFilterExists('password_pending');
 });
 
 test('lessons are scoped to the assigned schools', function () {
