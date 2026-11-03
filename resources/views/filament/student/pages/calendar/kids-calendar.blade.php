@@ -647,6 +647,32 @@
     color: #a855f7;
     margin: 0;
 }
+
+@media (max-width: 1050px) {
+    .kids-cal-drawer { max-height: none; }
+}
+@media (max-width: 640px) {
+    .kids-cal-hero { padding: 1.25rem; border-radius: 1.35rem; gap: 0.85rem; }
+    .kids-cal-hero-mascot { font-size: 2.5rem; }
+    .kids-cal-hero-text h2 { font-size: 1.3rem; }
+    .kids-cal-hero-text p { font-size: 0.85rem; }
+    .kids-cal-hero-stats { width: 100%; justify-content: flex-start; gap: 0.5rem; }
+    .kids-cal-stat-pill { padding: 0.4rem 0.75rem; font-size: 0.78rem; }
+    .kids-cal-board { padding: 1rem 0.65rem; border-radius: 1.35rem; }
+    .kids-cal-header { gap: 0.65rem; margin-bottom: 1rem; }
+    .kids-cal-month-title { font-size: 1.25rem; min-width: 0; }
+    .kids-cal-btn-nav { width: 2.4rem; height: 2.4rem; font-size: 1.15rem; }
+    .kids-cal-btn-today { padding: 0.45rem 0.9rem; font-size: 0.82rem; }
+    .kids-cal-weekdays { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; margin-bottom: 0.4rem; }
+    .kids-cal-wd { font-size: 0.68rem; padding: 0.35rem 0.1rem; border-radius: 0.5rem; }
+    .kids-cal-days { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; }
+    .kids-cal-day { min-height: 3.6rem; padding: 0.3rem 0.25rem; border-radius: 0.75rem; border-width: 2px; }
+    .kids-cal-day-num { font-size: 0.85rem; }
+    .kids-cal-day-today-tag { display: none; }
+    .kids-cal-badge-pill { font-size: 0.58rem; padding: 0.1rem 0.25rem; border-radius: 0.35rem; }
+    .kids-cal-drawer { padding: 1.15rem; border-radius: 1.35rem; }
+    .kids-btn-save-note { width: 100%; text-align: center; }
+}
 </style>
 
 <div class="kids-cal-container" x-data="{

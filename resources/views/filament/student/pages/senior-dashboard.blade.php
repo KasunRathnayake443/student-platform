@@ -187,6 +187,10 @@
     font-size: 0.8rem;
     color: #7c3aed;
     font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Search bar */
@@ -481,6 +485,86 @@
     font-weight: 500;
     text-align: center;
 }
+
+/* ── Mobile & Tablet Responsive ── */
+@media (max-width: 860px) {
+    .sd-topbar { padding: 1.25rem 1.25rem; }
+    .sd-main { padding: 1.25rem 1.25rem 2.5rem; gap: 1.25rem; }
+}
+@media (max-width: 640px) {
+    .sd-topbar { padding: 1rem; gap: 0.75rem; }
+    .sd-topbar-left { width: 100%; }
+    .sd-topbar-right { width: 100%; justify-content: space-between; }
+    .sd-search-wrap { width: 100%; order: 3; }
+    .sd-search { width: 100%; box-sizing: border-box; }
+    .sd-context-pill { max-width: calc(100% - 3.5rem); }
+    .sd-main { padding: 1rem 1rem 2rem; gap: 1rem; }
+    .sd-kpi-row { gap: 0.75rem; }
+    .sd-kpi { padding: 1rem; }
+    .sd-kpi-value { font-size: 1.5rem; }
+    .sd-card { padding: 1rem; }
+    .sd-chart-container { height: 130px; gap: 2px; }
+    .sd-chart-label { font-size: 0.52rem; }
+
+    /* Responsive stacked tables */
+    .sd-class-table thead,
+    .sd-quiz-table thead {
+        display: none;
+    }
+    .sd-class-table,
+    .sd-class-table tbody,
+    .sd-quiz-table,
+    .sd-quiz-table tbody {
+        display: block;
+        width: 100%;
+    }
+    .sd-class-table tr,
+    .sd-quiz-table tr {
+        display: block;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.75rem 0.9rem;
+        margin-bottom: 0.65rem;
+    }
+    .sd-class-table tr:last-child,
+    .sd-quiz-table tr:last-child {
+        margin-bottom: 0;
+    }
+    .sd-class-table td,
+    .sd-quiz-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.35rem 0;
+        border-bottom: 1px dashed #e2e8f0;
+        text-align: right;
+    }
+    .sd-class-table td:last-child,
+    .sd-quiz-table td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .sd-class-table td:first-child,
+    .sd-quiz-table td:first-child {
+        padding-top: 0;
+    }
+    .sd-class-table td::before,
+    .sd-quiz-table td::before {
+        content: attr(data-label);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        text-align: left;
+        flex-shrink: 0;
+    }
+}
+@media (max-width: 380px) {
+    .sd-kpi-row { grid-template-columns: 1fr; }
+}
 </style>
 
 <div class="sd-wrap">
@@ -501,7 +585,7 @@
                     <p>{{ now()->format('l, F j, Y') }}</p>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <div class="sd-topbar-right" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                 <div class="sd-search-wrap" x-data="{
                     search: '',
                     open: false,
@@ -659,10 +743,10 @@
                                         ->count();
                                 @endphp
                                 <tr>
-                                    <td class="sd-class-name-cell">{{ $class->name }}</td>
-                                    <td class="sd-class-teacher-cell">{{ $class->teachers->first()?->user?->name ?? '—' }}</td>
-                                    <td style="color:#94a3b8;">{{ $lessonCount }} lessons</td>
-                                    <td>
+                                    <td data-label="Class" class="sd-class-name-cell">{{ $class->name }}</td>
+                                    <td data-label="Teacher" class="sd-class-teacher-cell">{{ $class->teachers->first()?->user?->name ?? '—' }}</td>
+                                    <td data-label="Lessons" style="color:#64748b;">{{ $lessonCount }} lessons</td>
+                                    <td data-label="Status">
                                         @if($pendingCount === 0)
                                             <span class="sd-status-tag ok">Up to date</span>
                                         @else
@@ -694,10 +778,10 @@
                         <tbody>
                             @foreach($recentQuizzes as $attempt)
                                 <tr>
-                                    <td style="color:#cbd5e1;">{{ $attempt->quiz->title ?? 'Quiz' }}</td>
-                                    <td class="pct">{{ round($attempt->percentage) }}%</td>
-                                    <td style="color:#64748b;font-size:0.8rem;">{{ $attempt->completed_at?->format('M j, Y') ?? '—' }}</td>
-                                    <td>
+                                    <td data-label="Quiz" style="color:#1e293b; font-weight:600;">{{ $attempt->quiz->title ?? 'Quiz' }}</td>
+                                    <td data-label="Score" class="pct">{{ round($attempt->percentage) }}%</td>
+                                    <td data-label="Date" style="color:#64748b;font-size:0.8rem;">{{ $attempt->completed_at?->format('M j, Y') ?? '—' }}</td>
+                                    <td data-label="Result">
                                         <span class="sd-badge {{ $attempt->is_passed ? 'pass' : 'fail' }}">
                                             {{ $attempt->is_passed ? 'PASSED' : 'FAILED' }}
                                         </span>

@@ -884,6 +884,45 @@
             color: #94a3b8;
             font-size: 0.85rem;
         }
+
+        /* ── Mobile Responsive across all 3 tiers ── */
+        @media (max-width: 640px) {
+            /* Kids */
+            .nv-kids-hero { padding: 1.25rem; border-radius: 1.35rem; gap: 0.85rem; }
+            .nv-kids-mascot { font-size: 2.75rem; }
+            .nv-kids-hero-text h2 { font-size: 1.4rem; }
+            .nv-kids-hero-text p { font-size: 0.88rem; }
+            .nv-kids-stat-pill { padding: 0.4rem 0.75rem; font-size: 0.78rem; }
+            .nv-kids-toolbar { padding: 0.85rem; border-radius: 1.15rem; gap: 0.65rem; }
+            .nv-kids-filter-btn { padding: 0.45rem 0.85rem; font-size: 0.8rem; }
+            .nv-kids-search { width: 100%; max-width: none; }
+            .nv-kids-card { padding: 1rem; border-radius: 1.25rem; gap: 0.85rem; flex-direction: column; }
+            .nv-kids-card-icon { width: 3rem; height: 3rem; font-size: 1.65rem; border-radius: 1rem; }
+            .nv-kids-card-title { font-size: 1.05rem; }
+            .nv-kids-action-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+
+            /* Junior */
+            .nv-junior-toolbar { padding: 0.85rem; border-radius: 0.9rem; gap: 0.65rem; }
+            .nv-junior-filters { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; scrollbar-width: none; }
+            .nv-junior-filters::-webkit-scrollbar { display: none; }
+            .nv-junior-filter-btn { white-space: nowrap; flex-shrink: 0; }
+            .nv-junior-right-tools { width: 100%; justify-content: space-between; }
+            .nv-junior-search { flex: 1; }
+            .nv-junior-search input { width: 100%; box-sizing: border-box; }
+            .nv-junior-card { padding: 1rem; border-radius: 0.9rem; gap: 0.75rem; }
+            .nv-junior-card-top { flex-wrap: wrap; }
+
+            /* Senior */
+            .nv-senior-toolbar { gap: 0.65rem; }
+            .nv-senior-filters { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; scrollbar-width: none; }
+            .nv-senior-filters::-webkit-scrollbar { display: none; }
+            .nv-senior-filter-btn { white-space: nowrap; flex-shrink: 0; }
+            .nv-senior-actions { width: 100%; justify-content: space-between; }
+            .nv-senior-search { flex: 1; }
+            .nv-senior-search input { width: 100%; box-sizing: border-box; }
+            .nv-senior-card { padding: 0.85rem; flex-direction: column; gap: 0.5rem; }
+            .nv-senior-card-top { flex-wrap: wrap; }
+        }
     </style>
 
     {{-- ══════════════════════════════════════════════════════════════

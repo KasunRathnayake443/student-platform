@@ -550,6 +550,29 @@
     font-size: 0.85rem;
     font-weight: 500;
 }
+
+@media (max-width: 1050px) {
+    .junior-cal-sidecard { max-height: none; }
+}
+@media (max-width: 640px) {
+    .junior-cal-metrics { gap: 0.65rem; }
+    .junior-cal-metric-card { padding: 0.9rem 1rem; }
+    .junior-cal-metric-val { font-size: 1.45rem; }
+    .junior-cal-card { padding: 1rem 0.65rem; border-radius: 1rem; gap: 0.85rem; }
+    .junior-cal-toolbar { gap: 0.65rem; }
+    .junior-cal-month-title { font-size: 1.05rem; min-width: 0; }
+    .junior-cal-filter-group { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .junior-cal-filter-group::-webkit-scrollbar { display: none; }
+    .junior-cal-filter-btn { white-space: nowrap; flex-shrink: 0; padding: 0.3rem 0.65rem; font-size: 0.72rem; }
+    .junior-cal-weekdays { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; }
+    .junior-cal-wd { font-size: 0.64rem; padding: 0.3rem 0; }
+    .junior-cal-days { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; }
+    .junior-cal-day { min-height: 3.4rem; padding: 0.3rem 0.25rem; border-radius: 0.6rem; }
+    .junior-cal-day-num { font-size: 0.78rem; }
+    .junior-cal-today-badge { display: none; }
+    .junior-cal-pill-item { font-size: 0.56rem; padding: 0.1rem 0.25rem; }
+    .junior-cal-sidecard { padding: 1.15rem; border-radius: 1rem; }
+}
 </style>
 
 <div class="junior-cal-container" x-data="{

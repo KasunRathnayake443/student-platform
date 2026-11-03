@@ -384,7 +384,7 @@
     }
 @endphp
 
-<div x-data="{ openClassId: null, openAssignmentId: null }">
+<div x-data="{ openClassId: null, openAssignmentId: null, mobileMenuOpen: false }" @keydown.escape.window="mobileMenuOpen = false">
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -394,7 +394,9 @@
         padding: 0;
         width: 100%;
         height: 100vh !important;
+        height: 100dvh !important;
         max-height: 100vh !important;
+        max-height: 100dvh !important;
         overflow: hidden !important;
         background-color: #f8fafc;
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -404,7 +406,9 @@
     .custom-app-container {
         display: flex;
         height: 100vh;
+        height: 100dvh;
         max-height: 100vh;
+        max-height: 100dvh;
         width: 100%;
         background: #f8fafc;
         overflow: hidden;
@@ -414,7 +418,9 @@
     .custom-sidebar {
         width: 260px;
         height: 100vh;
+        height: 100dvh;
         max-height: 100vh;
+        max-height: 100dvh;
         background: #ffffff;
         border-right: 1px solid #e2e8f0;
         display: flex;
@@ -896,7 +902,7 @@
     /* My Classes Grid Cards */
     .classes-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
         gap: 1.25rem;
     }
     .class-card {
@@ -2127,7 +2133,7 @@
 
     /* ── Kids: My Classes — big playful class cards ── */
     .kids-mode .classes-grid {
-        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
         gap: 1.75rem;
     }
     .kids-mode .class-card {
@@ -2612,20 +2618,214 @@
         display: none;
     }
 
+    /* ── Mobile Navigation Shell (hidden on desktop) ── */
+    .mobile-nav-header,
+    .mobile-tab-strip,
+    .mobile-sidebar-backdrop,
+    .sidebar-close-btn {
+        display: none;
+    }
+
     /* ── Responsive: keep the layout on the screen ── */
     @media (max-width: 1180px) {
         .custom-sidebar, .kids-mode .custom-sidebar { width: 230px; }
     }
     @media (max-width: 860px) {
-        .custom-app-container { flex-direction: column; }
-        .custom-sidebar, .kids-mode .custom-sidebar {
-            width: 100%;
+        html, body, .fi-layout, .fi-main {
+            height: auto !important;
+            max-height: none !important;
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+        .custom-app-container {
+            flex-direction: column;
             height: auto;
             max-height: none;
-            flex-direction: column;
-            padding: 0.75rem 1rem;
-            border-right: none;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: visible;
+        }
+        .mobile-nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.7rem 1rem;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        }
+        .kids-mode .mobile-nav-header {
+            background: linear-gradient(90deg, #faf5ff, #fdf2f8);
             border-bottom: 3px solid #e9d5ff;
+        }
+        .mobile-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+        .mobile-brand-logo {
+            width: 2.15rem;
+            height: 2.15rem;
+            border-radius: 0.6rem;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+        }
+        .mobile-brand-text {
+            min-width: 0;
+        }
+        .mobile-brand-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kids-mode .mobile-brand-title {
+            color: #6b21a8;
+            font-weight: 900;
+        }
+        .mobile-brand-ctx {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mobile-menu-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.8rem;
+            border-radius: 0.65rem;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #0f172a;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .mobile-menu-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .kids-mode .mobile-menu-btn {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            border-radius: 999px;
+            font-weight: 900;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        .mobile-tab-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.85rem;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .mobile-tab-strip::-webkit-scrollbar { display: none; }
+        .kids-mode .mobile-tab-strip {
+            background: #faf5ff;
+            border-bottom: 2px dashed #e9d5ff;
+            padding: 0.55rem 0.85rem;
+        }
+        .mobile-tab-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .mobile-tab-pill.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25);
+        }
+        .kids-mode .mobile-tab-pill {
+            border: 2px solid #e9d5ff;
+            background: #ffffff;
+            color: #6b21a8;
+            font-weight: 800;
+            font-size: 0.82rem;
+        }
+        .kids-mode .mobile-tab-pill.active {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            border-color: #ffffff;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+        }
+        .mobile-sidebar-backdrop {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 190;
+        }
+        .custom-sidebar, .kids-mode .custom-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: min(290px, 85vw);
+            height: 100vh;
+            height: 100dvh;
+            max-height: 100dvh;
+            z-index: 200;
+            padding: 1.25rem 1rem;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: none;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+            transform: translateX(-105%);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .custom-sidebar.mobile-open, .kids-mode .custom-sidebar.mobile-open {
+            transform: translateX(0);
+        }
+        .sidebar-close-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            flex-shrink: 0;
         }
         .sidebar-scrollable-content {
             width: 100%;
@@ -2636,19 +2836,167 @@
             max-height: none;
             overflow-y: visible;
         }
-        .workspace-content { padding: 1.25rem; }
+        .custom-topbar { padding: 1rem 1.25rem; }
+        .workspace-content { padding: 1.25rem; gap: 1.25rem; }
         .kids-mode .workspace-content { padding: 0; }
         .kids-mode .workspace-content.kids-tab-space { padding: 1.5rem 1.25rem 2.5rem; }
         .topbar-title h1 { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 768px) {
+        .custom-table thead { display: none; }
+        .custom-table, .custom-table tbody { display: block; width: 100%; }
+        .custom-table tr {
+            display: block;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.9rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .custom-table tr:last-child { margin-bottom: 0; }
+        .custom-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.45rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+            text-align: right;
+        }
+        .custom-table td:last-child { border-bottom: none; padding-bottom: 0; }
+        .custom-table td:first-child { padding-top: 0; }
+        .custom-table td::before {
+            content: attr(data-label);
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            text-align: left;
+            flex-shrink: 0;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .custom-topbar { padding: 0.9rem 1rem; gap: 0.65rem; }
+        .topbar-title { width: 100%; }
+        .topbar-title h1 { font-size: 1.15rem; }
+        .topbar-title p { font-size: 0.8rem; }
+        .topbar-actions { width: 100%; justify-content: space-between; }
+        .active-context-badge {
+            max-width: calc(100% - 3.5rem);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .workspace-content { padding: 1rem; gap: 1rem; }
+        .kids-mode .workspace-content.kids-tab-space { padding: 1rem 0.85rem 2rem; }
+        .glass-card, .kids-mode .glass-card { padding: 1rem; border-radius: 1rem; }
+        .glass-card-title { font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.65rem; }
+        .kids-mode .glass-card-title { font-size: 1.2rem; }
+        .classes-grid, .kids-mode .classes-grid { grid-template-columns: 1fr; gap: 1rem; }
+        .class-card, .kids-mode .class-card { padding: 1.15rem; border-radius: 1.15rem; }
+        .lesson-class-group, .assignment-class-group, .quiz-class-group,
+        .kids-mode .lesson-class-group, .kids-mode .assignment-class-group, .kids-mode .quiz-class-group {
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+        }
+        .lesson-item, .assignment-item, .quiz-item,
+        .kids-mode .lesson-item, .kids-mode .assignment-item, .kids-mode .quiz-item {
+            padding: 0.9rem;
+            gap: 0.75rem;
+        }
+        .lesson-icon, .assignment-icon, .quiz-icon,
+        .kids-mode .lesson-icon, .kids-mode .assignment-icon, .kids-mode .quiz-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1.25rem;
+            border-radius: 0.75rem;
+        }
+        .lesson-title, .assignment-title, .quiz-title,
+        .kids-mode .lesson-title, .kids-mode .assignment-title, .kids-mode .quiz-title {
+            font-size: 0.98rem;
+        }
+        .lesson-filter-bar { gap: 0.4rem; }
+        .lesson-filter-pill, .kids-mode .lesson-filter-pill {
+            padding: 0.38rem 0.75rem;
+            font-size: 0.76rem;
+        }
+        .grades-summary-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+        .grades-stat-card, .kids-mode .grades-stat-card { padding: 1rem; gap: 0.75rem; }
+        .grades-stat-value, .kids-mode .grades-stat-value { font-size: 1.35rem; }
+        .kids-grade-card { padding: 1rem; gap: 0.75rem; }
+        .kids-grade-score { margin-left: 0; width: 100%; justify-content: space-between; display: flex; align-items: center; }
+        .profile-card { padding: 1.15rem; border-radius: 1rem; }
+        .profile-avatar-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        .profile-save-btn { width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 480px) {
+        .lesson-open-btn, .assignment-open-btn, .quiz-open-btn,
+        .kids-mode .lesson-open-btn, .kids-mode .assignment-open-btn, .kids-mode .quiz-open-btn {
+            width: 100%;
+            justify-content: center;
+            margin-left: 0;
+        }
     }
 
     /* ── Notifications are styled in Livewire NotificationPanel and NotificationsView components ── */
     </style>
 
     <div class="custom-app-container {{ $tier === 'kids' ? 'kids-mode' : '' }}">
+
+        <!-- ── MOBILE TOP NAVIGATION BAR & QUICK TAB STRIP (<= 860px) ── -->
+        <div class="mobile-nav-header">
+            <div class="mobile-brand">
+                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" class="mobile-brand-logo">
+                <div class="mobile-brand-text">
+                    <div class="mobile-brand-title">Student Portal</div>
+                    <div class="mobile-brand-ctx">{{ $activeSchoolName }} · {{ $activeGradeName }}</div>
+                </div>
+            </div>
+            <button type="button" class="mobile-menu-btn" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle navigation menu">
+                <span>☰</span>
+                <span>Menu</span>
+            </button>
+        </div>
+
+        <nav class="mobile-tab-strip" aria-label="Quick navigation">
+            <button wire:click="setTab('dashboard')" type="button" class="mobile-tab-pill {{ $activeTab === 'dashboard' ? 'active' : '' }}">
+                <span>📊</span><span>Dashboard</span>
+            </button>
+            <button wire:click="setTab('classes')" type="button" class="mobile-tab-pill {{ $activeTab === 'classes' ? 'active' : '' }}">
+                <span>📖</span><span>Classes</span>
+            </button>
+            <button wire:click="setTab('lessons')" type="button" class="mobile-tab-pill {{ $activeTab === 'lessons' ? 'active' : '' }}">
+                <span>📚</span><span>Lessons</span>
+            </button>
+            <button wire:click="setTab('assignments')" type="button" class="mobile-tab-pill {{ $activeTab === 'assignments' ? 'active' : '' }}">
+                <span>📋</span><span>Assignments</span>
+            </button>
+            <button wire:click="setTab('quizzes')" type="button" class="mobile-tab-pill {{ $activeTab === 'quizzes' ? 'active' : '' }}">
+                <span>🧠</span><span>Quizzes</span>
+            </button>
+            <button wire:click="setTab('grades')" type="button" class="mobile-tab-pill {{ $activeTab === 'grades' ? 'active' : '' }}">
+                <span>🏆</span><span>Grades</span>
+            </button>
+            <button wire:click="setTab('calendar')" type="button" class="mobile-tab-pill {{ $activeTab === 'calendar' ? 'active' : '' }}">
+                <span>📅</span><span>Calendar</span>
+            </button>
+            <button wire:click="setTab('notifications')" type="button" class="mobile-tab-pill {{ $activeTab === 'notifications' ? 'active' : '' }}">
+                <span>🔔</span><span>Alerts</span>
+            </button>
+            <button wire:click="setTab('profile')" type="button" class="mobile-tab-pill {{ $activeTab === 'profile' ? 'active' : '' }}">
+                <span>👤</span><span>Profile</span>
+            </button>
+        </nav>
+
+        <div class="mobile-sidebar-backdrop" x-show="mobileMenuOpen" x-cloak @click="mobileMenuOpen = false"></div>
         
         <!-- ── CUSTOM LIGHT SIDEBAR ── -->
-        <aside class="custom-sidebar">
+        <aside class="custom-sidebar" :class="{ 'mobile-open': mobileMenuOpen }">
             <div class="sidebar-scrollable-content">
                 <!-- Brand -->
                 <div class="brand-header">
@@ -2659,44 +3007,45 @@
                         <div class="brand-title">Student Portal</div>
                         <div class="brand-sub">Academic Workspace</div>
                     </div>
+                    <button type="button" class="sidebar-close-btn" @click="mobileMenuOpen = false" aria-label="Close menu">✕</button>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="nav-group-label">Navigation</div>
                 <nav class="nav-menu">
-                    <button wire:click="setTab('dashboard')" type="button" class="nav-link {{ $activeTab === 'dashboard' ? 'active' : '' }}">
+                    <button wire:click="setTab('dashboard')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'dashboard' ? 'active' : '' }}">
                         <span class="nav-icon">📊</span>
                         <span>Dashboard</span>
                     </button>
-                    <button wire:click="setTab('classes')" type="button" class="nav-link {{ $activeTab === 'classes' ? 'active' : '' }}">
+                    <button wire:click="setTab('classes')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'classes' ? 'active' : '' }}">
                         <span class="nav-icon">📖</span>
                         <span>My Classes</span>
                     </button>
-                    <button wire:click="setTab('lessons')" type="button" class="nav-link {{ $activeTab === 'lessons' ? 'active' : '' }}">
+                    <button wire:click="setTab('lessons')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'lessons' ? 'active' : '' }}">
                         <span class="nav-icon">📚</span>
                         <span>My Lessons</span>
                     </button>
-                    <button wire:click="setTab('assignments')" type="button" class="nav-link {{ $activeTab === 'assignments' ? 'active' : '' }}">
+                    <button wire:click="setTab('assignments')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'assignments' ? 'active' : '' }}">
                         <span class="nav-icon">📋</span>
                         <span>Assignments</span>
                     </button>
-                    <button wire:click="setTab('quizzes')" type="button" class="nav-link {{ $activeTab === 'quizzes' ? 'active' : '' }}">
+                    <button wire:click="setTab('quizzes')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'quizzes' ? 'active' : '' }}">
                         <span class="nav-icon">🧠</span>
                         <span>Quizzes</span>
                     </button>
-                    <button wire:click="setTab('grades')" type="button" class="nav-link {{ $activeTab === 'grades' ? 'active' : '' }}">
+                    <button wire:click="setTab('grades')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'grades' ? 'active' : '' }}">
                         <span class="nav-icon">🏆</span>
                         <span>Grades</span>
                     </button>
-                    <button wire:click="setTab('calendar')" type="button" class="nav-link {{ $activeTab === 'calendar' ? 'active' : '' }}">
+                    <button wire:click="setTab('calendar')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'calendar' ? 'active' : '' }}">
                         <span class="nav-icon">📅</span>
                         <span>Calendar</span>
                     </button>
-                    <button wire:click="setTab('notifications')" type="button" class="nav-link {{ $activeTab === 'notifications' ? 'active' : '' }}">
+                    <button wire:click="setTab('notifications')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'notifications' ? 'active' : '' }}">
                         <span class="nav-icon">🔔</span>
                         <span>Notifications</span>
                     </button>
-                    <button wire:click="setTab('profile')" type="button" class="nav-link {{ $activeTab === 'profile' ? 'active' : '' }}">
+                    <button wire:click="setTab('profile')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'profile' ? 'active' : '' }}">
                         <span class="nav-icon">👤</span>
                         <span>My Profile</span>
                     </button>
@@ -2712,7 +3061,7 @@
                                 <div class="ctx-grades">
                                     @foreach($schoolGroup['contexts'] as $ctx)
                                         @php $isActive = $activeContext && $activeContext['key'] === $ctx['key']; @endphp
-                                        <div wire:click="switchContext('{{ $ctx['key'] }}')" class="ctx-item {{ $isActive ? 'active' : '' }}">
+                                        <div wire:click="switchContext('{{ $ctx['key'] }}')" @click="mobileMenuOpen = false" class="ctx-item {{ $isActive ? 'active' : '' }}">
                                             <span>{{ $ctx['grade']->name ?? '' }}</span>
                                         </div>
                                     @endforeach
@@ -3646,27 +3995,27 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                                 $scoreColor = $scorePct >= 80 ? '#16a34a' : ($scorePct >= 60 ? '#ca8a04' : '#dc2626');
                                             @endphp
                                             <tr>
-                                                <td>
+                                                <td data-label="Type">
                                                     <span class="status-pill {{ $isQuiz ? 'status-ok' : 'status-pending' }}" style="font-size: 0.8rem;">
                                                         {{ $isQuiz ? '🧠 Quiz' : '📋 Assignment' }}
                                                     </span>
                                                 </td>
-                                                <td class="class-title">{{ $grade['title'] }}</td>
-                                                <td style="color: #64748b; font-weight: 600;">{{ $grade['class_name'] }}</td>
-                                                <td class="teacher-name">{{ $grade['teacher'] }}</td>
-                                                <td style="font-size: 1.15rem; font-weight: 800; color: {{ $scoreColor }};">
+                                                <td data-label="Title" class="class-title">{{ $grade['title'] }}</td>
+                                                <td data-label="Class" style="color: #64748b; font-weight: 600;">{{ $grade['class_name'] }}</td>
+                                                <td data-label="Teacher" class="teacher-name">{{ $grade['teacher'] }}</td>
+                                                <td data-label="Score" style="font-size: 1.15rem; font-weight: 800; color: {{ $scoreColor }};">
                                                     {{ $scorePct }}%
                                                     @if(! $isQuiz && $grade['points'] !== null)
                                                         <span style="font-size: 0.8rem; color: #64748b;">({{ $grade['points'] }}/{{ $grade['max_points'] }})</span>
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td data-label="Status">
                                                     <span class="status-pill {{ $grade['is_passed'] ? 'status-ok' : 'status-pending' }}">
                                                         {{ $grade['status_label'] }}
                                                     </span>
                                                 </td>
-                                                <td style="color: #64748b;">{{ $grade['date']?->format('M j, Y') ?? '—' }}</td>
-                                                <td>
+                                                <td data-label="Date" style="color: #64748b;">{{ $grade['date']?->format('M j, Y') ?? '—' }}</td>
+                                                <td data-label="Feedback">
                                                     @if($grade['has_feedback'] && $grade['feedback'])
                                                         <span class="status-pill status-ok" style="font-size: 0.8rem;" title="{{ $grade['feedback'] }}">
                                                             💬 Feedback

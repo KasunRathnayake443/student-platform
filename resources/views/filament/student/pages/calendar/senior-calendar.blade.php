@@ -502,6 +502,27 @@
     color: #94a3b8;
     font-size: 0.82rem;
 }
+
+@media (max-width: 1050px) {
+    .senior-cal-agenda-panel { max-height: none; }
+}
+@media (max-width: 640px) {
+    .senior-cal-kpis { gap: 0.65rem; }
+    .senior-cal-kpi { padding: 0.9rem 1rem; }
+    .senior-cal-kpi-value { font-size: 1.4rem; }
+    .senior-cal-card { padding: 1rem 0.65rem; gap: 0.75rem; }
+    .senior-cal-toolbar { gap: 0.6rem; }
+    .senior-cal-month-title { font-size: 0.98rem; min-width: 0; }
+    .senior-cal-filters { width: 100%; }
+    .senior-cal-select { flex: 1; min-width: 0; font-size: 0.74rem; padding: 0.35rem 0.5rem; }
+    .senior-cal-weekdays { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .senior-cal-wd { font-size: 0.62rem; }
+    .senior-cal-days { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .senior-cal-day { min-height: 3.3rem; padding: 0.25rem 0.2rem; }
+    .senior-cal-day-num { font-size: 0.74rem; }
+    .senior-cal-chip { font-size: 0.55rem; padding: 0.1rem 0.2rem; }
+    .senior-cal-agenda-panel { padding: 1rem; }
+}
 </style>
 
 <div class="senior-cal-container" x-data="{

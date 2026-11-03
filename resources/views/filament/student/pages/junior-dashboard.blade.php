@@ -207,6 +207,9 @@
     font-size: 0.78rem;
     font-weight: 700;
     white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ── School & grade filter tabs ── */
@@ -348,7 +351,7 @@
 /* Class cards horizontal row */
 .bento-classes-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
     gap: 1rem;
 }
 .bento-class-card {
@@ -433,7 +436,7 @@
 /* ── Section 3: Recent quiz results (full width) ── */
 .bento-quiz-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
     gap: 1rem;
 }
 .bento-quiz-card {
@@ -541,6 +544,45 @@
     color: #64748b;
     font-weight: 500;
     text-align: center;
+}
+
+/* ── Mobile & Tablet Responsive ── */
+@media (max-width: 860px) {
+    .bento-header { padding: 1.25rem 1.25rem 0.75rem; }
+    .bento-filter-bar { padding: 0.5rem 1.25rem 1rem; }
+    .bento-main { padding: 0.5rem 1.25rem 2.5rem; gap: 1.25rem; }
+}
+@media (max-width: 640px) {
+    .bento-header { padding: 1rem 1rem 0.5rem; gap: 0.75rem; }
+    .bento-greeting { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
+    .bento-greeting h1 { font-size: 1.3rem; }
+    .bento-greeting p { width: 100%; margin-top: 0; }
+    .bento-header-center { width: 100%; }
+    .bento-search-wrap { width: 100%; }
+    .bento-search { width: 100%; box-sizing: border-box; }
+    .bento-header-right { width: 100%; justify-content: space-between; }
+    .bento-context-badge { max-width: calc(100vw - 2rem); }
+    .bento-filter-bar {
+        padding: 0.5rem 1rem 0.85rem;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .bento-filter-bar::-webkit-scrollbar { display: none; }
+    .bento-filter-school { white-space: nowrap; flex-shrink: 0; }
+    .bento-filter-pill { flex-shrink: 0; }
+    .bento-main { padding: 0.5rem 1rem 2rem; gap: 1rem; }
+    .bento-card { padding: 1.15rem; border-radius: 1rem; }
+    .metric-card { padding: 1.15rem 1.25rem; }
+    .metric-value { font-size: 1.75rem; }
+    .bento-classes-row { grid-template-columns: 1fr; }
+    .bento-quiz-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+    .bento-quiz-card { padding: 1rem; }
+    .bento-quiz-score { font-size: 1.5rem; }
+}
+@media (max-width: 400px) {
+    .bento-quiz-grid { grid-template-columns: 1fr; }
 }
 </style>
 

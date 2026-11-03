@@ -199,7 +199,7 @@
 /* Missions */
 .kids-missions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: 1.5rem;
 }
 .kids-mission-card {
@@ -264,7 +264,7 @@
 /* Classes */
 .kids-classes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
     gap: 1.5rem;
 }
 .kids-class-tile {
@@ -383,9 +383,41 @@
     .kids-header { padding: 1.5rem 1.5rem 2rem; }
     .kids-header-inner { justify-content: center; text-align: center; }
     .kids-greeting h1 { font-size: 1.9rem; }
-    .kids-main { padding: 1.5rem 1.25rem 2.5rem; gap: 2.5rem; }
+    .kids-main { padding: 1.5rem 1.25rem 2.5rem; gap: 2.25rem; }
     .kids-section-title { font-size: 1.4rem; }
-    .kids-school-switcher { padding: 1.25rem 1.25rem; }
+    .kids-school-switcher { padding: 1.25rem 1.25rem; justify-content: center; }
+}
+@media (max-width: 600px) {
+    .kids-header { padding: 1.25rem 1rem 1.5rem; }
+    .kids-header-inner { gap: 0.75rem; }
+    .kids-mascot { font-size: 3.1rem; }
+    .kids-greeting { width: 100%; }
+    .kids-greeting h1 { font-size: clamp(1.45rem, 6vw, 1.85rem); }
+    .kids-greeting p { font-size: 0.98rem; }
+    .kids-header-actions { width: 100%; justify-content: center; flex-wrap: wrap; gap: 0.65rem !important; }
+    .kids-date-badge { font-size: 0.85rem; padding: 0.4rem 0.95rem; }
+    .kids-school-switcher { padding: 1rem; gap: 0.75rem; }
+    .kids-school-btn { padding: 0.55rem 1.1rem; font-size: 0.92rem; }
+    .kids-school-btn.active { transform: scale(1.03); }
+    .kids-main { padding: 1.25rem 1rem 2.5rem; gap: 1.75rem; }
+    .kids-section-title { font-size: 1.25rem; margin-bottom: 1rem; }
+    .kids-stars-section { padding: 1.25rem 1rem; border-radius: 1.35rem; }
+    .kids-stars-row { justify-content: center; gap: 0.3rem; }
+    .kids-star { font-size: 1.75rem; }
+    .kids-stars-count { width: 100%; text-align: center; margin-left: 0; margin-top: 0.4rem; font-size: 1.35rem; }
+    .kids-missions-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .kids-mission-card { padding: 1.15rem; border-radius: 1.25rem; gap: 0.9rem; }
+    .kids-mission-emoji { font-size: 2.5rem; }
+    .kids-mission-name { font-size: 1.05rem; }
+    .kids-no-missions { padding: 1.75rem 1rem; font-size: 1.05rem; }
+    .kids-classes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+    .kids-class-tile { padding: 1.25rem 0.85rem; border-radius: 1.35rem; }
+    .kids-class-emoji { font-size: 2.6rem; }
+    .kids-class-name { font-size: 1.05rem; word-break: break-word; }
+    .kids-class-teacher { font-size: 0.8rem; }
+}
+@media (max-width: 360px) {
+    .kids-classes-grid { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -409,7 +441,7 @@
                 <h1>Hi {{ $firstName }}! 🌟</h1>
                 <p>Ready for today's adventures?</p>
             </div>
-            <div style="display:flex; align-items:center; gap:1rem;">
+            <div class="kids-header-actions" style="display:flex; align-items:center; gap:1rem;">
                 <div class="kids-date-badge">
                     📅 {{ now()->format('D, M j') }}
                 </div>
