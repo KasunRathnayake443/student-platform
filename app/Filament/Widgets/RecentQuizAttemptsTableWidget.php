@@ -36,13 +36,15 @@ class RecentQuizAttemptsTableWidget extends BaseWidget
                     ->label('Quiz Title')
                     ->searchable()
                     ->limit(30)
-                    ->default('Untitled Quiz'),
+                    ->default('Untitled Quiz')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('quiz.learningClass.name')
                     ->label('Class')
                     ->badge()
                     ->color('gray')
-                    ->default('-'),
+                    ->default('-')
+                    ->visibleFrom('lg'),
 
                 TextColumn::make('score')
                     ->label('Score')
@@ -50,7 +52,8 @@ class RecentQuizAttemptsTableWidget extends BaseWidget
                         $points = $record->quiz?->total_points;
 
                         return ($record->score !== null ? $record->score : '-').($points ? " / {$points}" : '');
-                    }),
+                    })
+                    ->visibleFrom('md'),
 
                 TextColumn::make('percentage')
                     ->label('Percentage')
@@ -83,12 +86,14 @@ class RecentQuizAttemptsTableWidget extends BaseWidget
                 IconColumn::make('is_passed')
                     ->label('Passed')
                     ->boolean()
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->visibleFrom('lg'),
 
                 TextColumn::make('created_at')
                     ->label('Attempted')
                     ->since()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('lg'),
             ])
             ->recordActions([
                 Action::make('view_quiz')

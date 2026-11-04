@@ -27,7 +27,8 @@ class LatestSchoolsTableWidget extends BaseWidget
                 ImageColumn::make('logo')
                     ->label('Logo')
                     ->circular()
-                    ->defaultImageUrl(url('/images/default-school.png')),
+                    ->defaultImageUrl(url('/images/default-school.png'))
+                    ->visibleFrom('md'),
 
                 TextColumn::make('name')
                     ->label('School Name')
@@ -38,14 +39,16 @@ class LatestSchoolsTableWidget extends BaseWidget
                 TextColumn::make('code')
                     ->label('Code')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->visibleFrom('lg'),
 
                 TextColumn::make('grades_count')
                     ->counts('grades')
                     ->label('Grades')
                     ->alignCenter()
                     ->badge()
-                    ->color('primary'),
+                    ->color('primary')
+                    ->visibleFrom('lg'),
 
                 TextColumn::make('students_count')
                     ->counts('students')
@@ -59,7 +62,8 @@ class LatestSchoolsTableWidget extends BaseWidget
                     ->label('Teachers')
                     ->alignCenter()
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->visibleFrom('lg'),
 
                 IconColumn::make('is_active')
                     ->label('Active')
@@ -69,7 +73,8 @@ class LatestSchoolsTableWidget extends BaseWidget
                 TextColumn::make('created_at')
                     ->label('Registered')
                     ->since()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('lg'),
             ])
             ->recordActions([
                 Action::make('view')

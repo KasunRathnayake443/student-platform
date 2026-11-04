@@ -1,18 +1,68 @@
 <x-filament-widgets::widget class="fi-super-admin-welcome-widget">
+    <style>
+        .fi-super-admin-welcome-widget .sa-welcome-intro,
+        .fi-super-admin-welcome-widget .sa-welcome-copy,
+        .fi-super-admin-welcome-widget .sa-welcome-title-row {
+            min-width: 0;
+        }
+        .fi-super-admin-welcome-widget .sa-welcome-title-row h2 {
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 768px) {
+            .fi-super-admin-welcome-widget .sa-welcome-header {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-intro {
+                align-items: flex-start !important;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-title-row h2 {
+                font-size: 1.1rem !important;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-badges {
+                width: 100%;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-badges > span {
+                flex: 1 1 auto;
+                justify-content: center;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-actions {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-action-buttons {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+            }
+            .fi-super-admin-welcome-widget .sa-welcome-action-buttons > a {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .fi-super-admin-welcome-widget .sa-welcome-action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
     <x-filament::section>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             
             <!-- Header Row: Greeting & System Status Badges -->
-            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.875rem;">
+            <div class="sa-welcome-header" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+                <div class="sa-welcome-intro" style="display: flex; align-items: center; gap: 0.875rem;">
                     <div style="display: flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border-radius: 0.75rem; background-color: rgba(245, 158, 11, 0.15); color: #d97706; flex-shrink: 0;">
                         <x-filament::icon
                             icon="heroicon-o-academic-cap"
                             style="width: 1.75rem; height: 1.75rem;"
                         />
                     </div>
-                    <div>
-                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+                    <div class="sa-welcome-copy">
+                        <div class="sa-welcome-title-row" style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
                             <h2 style="font-size: 1.25rem; font-weight: 700; line-height: 1.5; margin: 0;">
                                 Welcome, {{ $userName }}!
                             </h2>
@@ -27,7 +77,7 @@
                 </div>
 
                 <!-- Platform Quick Counts -->
-                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+                <div class="sa-welcome-badges" style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
                     <x-filament::badge color="warning" size="md" icon="heroicon-o-building-office-2">
                         {{ $data['active_schools'] }} / {{ $data['total_schools'] }} Active Schools
                     </x-filament::badge>
@@ -44,7 +94,7 @@
             <div style="height: 1px; background-color: currentColor; opacity: 0.1;"></div>
 
             <!-- Quick Actions Row -->
-            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;">
+            <div class="sa-welcome-actions" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;">
                 <div style="display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8;">
                     <x-filament::icon
                         icon="heroicon-m-bolt"
@@ -53,7 +103,7 @@
                     <span>Quick Actions:</span>
                 </div>
 
-                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+                <div class="sa-welcome-action-buttons" style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
                     <x-filament::button
                         tag="a"
                         :href="url('/admin/schools/create')"

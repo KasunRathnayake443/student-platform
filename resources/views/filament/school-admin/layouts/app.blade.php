@@ -188,6 +188,7 @@
     #sa-content {
         flex:1; overflow-y:auto; overflow-x:hidden;
         padding:0;
+        -webkit-overflow-scrolling:touch;
     }
     #sa-content::-webkit-scrollbar { width:6px; }
     #sa-content::-webkit-scrollbar-track { background: transparent; }
@@ -197,6 +198,126 @@
     #sa-content .fi-page {
         padding: 24px !important;
     }
+
+    /* ── Mobile navigation controls (hidden on desktop) ── */
+    #sa-hamburger,
+    #sa-sidebar-close,
+    #sa-overlay,
+    #sa-mobile-nav {
+        display: none;
+    }
+
+    @media (max-width: 1024px) {
+        #sa-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: min(285px, 86vw);
+            min-width: 0;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 210;
+            transform: translateX(-105%);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+        }
+        #sa-sidebar.open {
+            transform: translateX(0);
+        }
+        #sa-overlay.open {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 200;
+        }
+        #sa-hamburger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all .15s ease;
+        }
+        #sa-hamburger:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        #sa-sidebar-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        #sa-mobile-nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #ffffff;
+            border-bottom: 1px solid #e8ecf3;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+        #sa-mobile-nav::-webkit-scrollbar { display: none; }
+        .sa-mnav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all .15s ease;
+        }
+        .sa-mnav-pill.active {
+            background: #c026d3;
+            border-color: #c026d3;
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(192, 38, 211, 0.25);
+        }
+    }
+
+    @media (max-width: 640px) {
+        #sa-topbar {
+            height: 56px;
+            padding: 0 14px;
+        }
+        .sa-topbar-left { gap: 9px; }
+        .sa-topbar-accent { display: none; }
+        .sa-topbar-title { font-size: 14px; }
+        .sa-topbar-right { gap: 8px; }
+        .sa-date-pill { display: none; }
+        .sa-topbar-divider { display: none; }
+        .sa-tb-user { padding: 3px; }
+        .sa-tb-user-info { display: none; }
+        #sa-content .fi-page { padding: 14px !important; }
+    }
 </style>
 
 <!-- ── SIDEBAR ──────────────────────────────── -->
@@ -205,10 +326,11 @@
         <div class="sa-brand-icon">
             <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="">
         </div>
-        <div>
+        <div style="min-width:0;">
             <div class="sa-brand-name">{{ \App\Services\PlatformSettings::name() }}</div>
             <div class="sa-brand-label">School Admin Portal</div>
         </div>
+        <button type="button" id="sa-sidebar-close" onclick="saCloseSidebar()" aria-label="Close navigation">✕</button>
     </div>
 
     <nav id="sa-nav">
@@ -342,10 +464,18 @@
     </div>
 </aside>
 
+<!-- Mobile backdrop overlay -->
+<div id="sa-overlay" onclick="saCloseSidebar()"></div>
+
 <!-- ── MAIN ──────────────────────────────────── -->
 <div id="sa-main">
     <header id="sa-topbar">
         <div class="sa-topbar-left">
+            <button type="button" id="sa-hamburger" onclick="saOpenSidebar()" aria-label="Open navigation menu">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
             <span class="sa-topbar-accent"></span>
             <span class="sa-topbar-title">{{ strip_tags((string) $title) }}</span>
         </div>
@@ -384,10 +514,69 @@
         </div>
     </header>
 
+    <!-- Mobile Quick Navigation Strip (<= 1024px) -->
+    <nav id="sa-mobile-nav" aria-label="Quick navigation">
+        <a href="{{ route('filament.school-admin.pages.school-admin-dashboard') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.pages.school-admin-dashboard') ? 'active' : '' }}">
+            <span>🏠</span><span>Dashboard</span>
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Pages\Notifications::getUrl(panel: 'school-admin') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.pages.notifications*') ? 'active' : '' }}">
+            <span>🔔</span><span>Alerts</span>
+            @if(($navUnreadNotificationsCount ?? 0) > 0)
+                <span class="sa-nav-badge" style="min-width:17px;height:17px;font-size:10px;padding:0 5px;">{{ $navUnreadNotificationsCount > 99 ? '99+' : $navUnreadNotificationsCount }}</span>
+            @endif
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Resources\Schools\SchoolResource::getUrl('index') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.resources.schools.*') ? 'active' : '' }}">
+            <span>🏫</span><span>Schools</span>
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Resources\LearningClasses\LearningClassResource::getUrl('index') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.resources.learning-classes.*') ? 'active' : '' }}">
+            <span>📚</span><span>Classes</span>
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Resources\Teachers\TeacherResource::getUrl('index') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.resources.teachers.*') ? 'active' : '' }}">
+            <span>🧑‍🏫</span><span>Teachers</span>
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Resources\Students\StudentResource::getUrl('index') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.resources.students.*') ? 'active' : '' }}">
+            <span>🎒</span><span>Students</span>
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Resources\Quizzes\QuizResource::getUrl('index') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.resources.quizzes.*') ? 'active' : '' }}">
+            <span>📝</span><span>Quizzes</span>
+        </a>
+        <a href="{{ \App\Filament\SchoolAdmin\Pages\MyProfile::getUrl(panel: 'school-admin') }}"
+           class="sa-mnav-pill {{ request()->routeIs('filament.school-admin.pages.my-profile') ? 'active' : '' }}">
+            <span>👤</span><span>Profile</span>
+        </a>
+    </nav>
+
     <div id="sa-content">
         {{ $slot }}
     </div>
 </div>
 
 </div><!-- end #sa-app -->
+
+<script>
+    function saOpenSidebar() {
+        const sidebar = document.getElementById('sa-sidebar');
+        const overlay = document.getElementById('sa-overlay');
+        if (sidebar) sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+    }
+
+    function saCloseSidebar() {
+        const sidebar = document.getElementById('sa-sidebar');
+        const overlay = document.getElementById('sa-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') saCloseSidebar();
+    });
+</script>
 </x-filament-panels::layout.base>

@@ -66,8 +66,11 @@ class PlatformResourceDistributionChart extends ChartWidget
                 'legend' => [
                     'position' => 'bottom',
                     'labels' => [
-                        'boxWidth' => 12,
-                        'padding' => 16,
+                        'boxWidth' => 10,
+                        'padding' => 12,
+                        'font' => [
+                            'size' => 10,
+                        ],
                     ],
                 ],
             ],
