@@ -156,7 +156,7 @@ test('quiz create form has default values configured', function () {
         ->assertFormSet([
             'max_attempts' => 1,
             'passing_percentage' => 50,
-            'show_correct_answers_after_submission' => true,
+            'feedback_mode' => 'end_of_quiz',
             'available_immediately' => true,
             'is_published' => true,
         ]);

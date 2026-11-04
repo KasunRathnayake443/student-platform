@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Tables;
 
+use App\Models\Quiz;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -46,6 +47,15 @@ class QuizzesTable
                     ->label('Time Limit')
                     ->formatStateUsing(fn ($state) => $state ? "{$state}m" : 'Untimed')
                     ->sortable(),
+
+                TextColumn::make('feedback_mode')
+                    ->label('Feedback')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        Quiz::FEEDBACK_AFTER_EACH_ANSWER => 'After each answer',
+                        Quiz::FEEDBACK_SCORE_ONLY => 'Score only',
+                        default => 'At the end',
+                    }),
 
                 TextColumn::make('attempts_count')
                     ->label('Attempts')

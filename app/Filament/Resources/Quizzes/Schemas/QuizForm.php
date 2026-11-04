@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quizzes\Schemas;
 
 use App\Filament\Rules\InScope;
 use App\Models\LearningClass;
+use App\Models\Quiz;
 use App\Models\Teacher;
 use App\Services\QuizImportService;
 use Closure;
@@ -284,10 +285,13 @@ class QuizForm
                             ->default(true)
                             ->helperText('Visible to enrolled students when published.'),
 
-                        Toggle::make('show_correct_answers_after_submission')
-                            ->label('Show Correct Answers')
-                            ->default(true)
-                            ->helperText('Show answer key & feedback upon completion.'),
+                        Select::make('feedback_mode')
+                            ->label('Answer Feedback')
+                            ->options(Quiz::feedbackModeOptions())
+                            ->default(Quiz::FEEDBACK_END_OF_QUIZ)
+                            ->required()
+                            ->columnSpan(2)
+                            ->helperText('Choose when students see the correct answers and explanations.'),
 
                         Toggle::make('shuffle_questions')
                             ->label('Shuffle Questions')

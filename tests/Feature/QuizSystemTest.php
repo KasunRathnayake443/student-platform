@@ -104,6 +104,55 @@ test('expired quiz attempt auto-submits and prevents further answer modification
         ->and($attempt->fresh()->status)->toBe('time_expired');
 });
 
+test('instant feedback quizzes reveal the answer before advancing and lock the choice', function () {
+    $quiz = Quiz::with('questions.options', 'learningClass.grade')->where('is_published', true)->first();
+    $quiz->update(['feedback_mode' => Quiz::FEEDBACK_AFTER_EACH_ANSWER]);
+
+    $student = Student::whereHas('enrollments', function ($q) use ($quiz) {
+        $q->where('status', 'active')->whereHas('classes', function ($cq) use ($quiz) {
+            $cq->where('learning_classes.id', $quiz->learning_class_id);
+        });
+    })->firstOrFail();
+
+    $firstQuestion = $quiz->questions->first();
+    $firstOption = $firstQuestion->options->first();
+    $secondOption = $firstQuestion->options->skip(1)->first();
+
+    \Livewire\Livewire::actingAs($student->user)
+        ->withQueryParams(['quiz' => $quiz->id])
+        ->test(\App\Filament\Student\Pages\QuizAttempt::class)
+        ->call('startAttempt')
+        ->call('selectAnswer', $firstQuestion->id, $firstOption->id)
+        ->call('nextOrSubmit')
+        ->assertSet('currentIndex', 0)
+        ->assertSet("revealedAnswers.{$firstQuestion->id}", true)
+        ->assertSee('Correct! Well done!')
+        ->assertSee('Explanation:')
+        ->tap(function ($component) use ($quiz, $student, $firstQuestion, $firstOption, $secondOption) {
+            $attempt = QuizAttempt::query()
+                ->where('quiz_id', $quiz->id)
+                ->where('student_id', $student->id)
+                ->where('status', 'in_progress')
+                ->latest('id')
+                ->firstOrFail();
+
+            $attemptAnswer = $attempt->answers()
+                ->where('quiz_question_id', $firstQuestion->id)
+                ->first();
+
+            expect($attemptAnswer)->not->toBeNull()
+                ->and($attemptAnswer->revealed_at)->not->toBeNull();
+
+            // The answer is locked after the feedback is revealed.
+            $component->call('selectAnswer', $firstQuestion->id, $secondOption->id);
+            $component->assertSet("answers.{$firstQuestion->id}", $firstOption->id);
+
+            // The next click advances to the following question.
+            $component->call('nextOrSubmit');
+            $component->assertSet('currentIndex', 1);
+        });
+});
+
 test('quiz attempt component saves answer without advancing to next question', function () {
     $quiz = Quiz::with('questions.options', 'learningClass.grade')->where('is_published', true)->first();
     

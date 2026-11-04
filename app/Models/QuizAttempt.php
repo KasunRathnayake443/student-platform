@@ -156,6 +156,38 @@ class QuizAttempt extends Model
         );
     }
 
+    /**
+     * Mark a question's answer as revealed for instant-feedback quizzes.
+     * The selected option is left untouched — only the reveal timestamp is set.
+     */
+    public function revealAnswer(int $questionId): ?QuizAttemptAnswer
+    {
+        if ($this->isFinished() || $this->isTimeExpired()) {
+            $this->autoSubmitIfExpired();
+
+            return null;
+        }
+
+        $questionExists = QuizQuestion::query()
+            ->where('quiz_id', $this->quiz_id)
+            ->whereKey($questionId)
+            ->exists();
+
+        if (! $questionExists) {
+            return null;
+        }
+
+        return QuizAttemptAnswer::updateOrCreate(
+            [
+                'quiz_attempt_id' => $this->id,
+                'quiz_question_id' => $questionId,
+            ],
+            [
+                'revealed_at' => now(),
+            ]
+        );
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Submission & Auto-Grading

@@ -49,6 +49,9 @@ class QuizAttempt extends Page
     /** @var array<int, int|null> question id => chosen option id */
     public array $answers = [];
 
+    /** @var array<int, bool> question id => answer feedback revealed */
+    public array $revealedAnswers = [];
+
     public ?int $remainingSeconds = null;
 
     public bool $finished = false;
@@ -130,7 +133,7 @@ class QuizAttempt extends Page
         $this->timeLimit = $quiz->time_limit_minutes;
         $this->passingPercentage = $quiz->passing_percentage;
         $this->maxAttempts = $quiz->max_attempts;
-        $this->showCorrect = (bool) $quiz->show_correct_answers_after_submission;
+        $this->showCorrect = $quiz->showsCorrectAnswersAtEnd();
 
         // Resume an in-progress attempt (or finalise it if time already ran out).
         $inProgress = $student->quizAttempts()
@@ -200,10 +203,16 @@ class QuizAttempt extends Page
         $this->remainingSeconds = $attempt->getRemainingSeconds();
         $this->finished = false;
         $this->currentIndex = 0;
+        $this->revealedAnswers = [];
 
         $this->answers = $attempt->answers->mapWithKeys(
             fn ($answer) => [$answer->quiz_question_id => $answer->quiz_question_option_id]
         )->all();
+
+        $this->revealedAnswers = $attempt->answers
+            ->filter(fn ($answer) => $answer->revealed_at !== null)
+            ->mapWithKeys(fn ($answer) => [$answer->quiz_question_id => true])
+            ->all();
 
         if ($attempt->isTimeExpired()) {
             $this->notice = 'Your quiz time has run out, so your answers were submitted automatically.';
@@ -230,6 +239,11 @@ class QuizAttempt extends Page
         $this->answers = $attempt->answers->mapWithKeys(
             fn ($answer) => [$answer->quiz_question_id => $answer->quiz_question_option_id]
         )->all();
+
+        $this->revealedAnswers = $attempt->answers
+            ->filter(fn ($answer) => $answer->revealed_at !== null)
+            ->mapWithKeys(fn ($answer) => [$answer->quiz_question_id => true])
+            ->all();
 
         $this->canTryAgain = $this->quiz->canStudentAttempt($this->student);
     }
@@ -345,6 +359,11 @@ class QuizAttempt extends Page
             return;
         }
 
+        // Once instant feedback is shown for a question, its answer is locked.
+        if ($this->isInstantFeedback() && ($this->revealedAnswers[$questionId] ?? false)) {
+            return;
+        }
+
         if ($this->attempt->isTimeExpired() || $this->attempt->isFinished()) {
             $this->attempt->autoSubmitIfExpired();
             $this->loadFinished($this->attempt->refresh());
@@ -357,6 +376,20 @@ class QuizAttempt extends Page
         if ($this->attempt->recordAnswer($questionId, $optionId)) {
             $this->answers[$questionId] = $optionId;
         }
+    }
+
+    public function isInstantFeedback(): bool
+    {
+        return (bool) $this->quiz?->showsFeedbackAfterEachAnswer();
+    }
+
+    public function isCurrentQuestionRevealed(): bool
+    {
+        $question = $this->orderedQuestions()[$this->currentIndex] ?? null;
+
+        return $question
+            ? (bool) ($this->revealedAnswers[$question->id] ?? false)
+            : false;
     }
 
     public function pickAnswer(int $questionId, int $optionId): void
@@ -383,6 +416,25 @@ class QuizAttempt extends Page
     public function nextOrSubmit(): void
     {
         if ($this->finished || ! $this->attempt) {
+            return;
+        }
+
+        if ($this->attempt->isTimeExpired() || $this->attempt->isFinished()) {
+            $this->attempt->autoSubmitIfExpired();
+            $this->loadFinished($this->attempt->refresh());
+
+            return;
+        }
+
+        $question = $this->orderedQuestions()[$this->currentIndex] ?? null;
+
+        // Instant-feedback quizzes: the first "Next" click reveals the correct
+        // answer and explanation; the next click moves on (or submits).
+        if ($this->isInstantFeedback() && $question && ! ($this->revealedAnswers[$question->id] ?? false)) {
+            if ($this->attempt->revealAnswer($question->id)) {
+                $this->revealedAnswers[$question->id] = true;
+            }
+
             return;
         }
 

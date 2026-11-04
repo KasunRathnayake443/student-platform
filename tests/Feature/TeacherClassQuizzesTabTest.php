@@ -218,7 +218,7 @@ test('teacher create quiz page pre-assigns the logged in teacher and sets form d
         ->assertFormSet([
             'max_attempts' => 1,
             'passing_percentage' => 50,
-            'show_correct_answers_after_submission' => true,
+            'feedback_mode' => 'end_of_quiz',
             'available_immediately' => true,
             'is_published' => true,
             'teacher_ids' => [$me->getKey()],

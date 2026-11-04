@@ -284,7 +284,45 @@
             animation: qaPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .qa .qa-opt.qa-opt-selected .qa-opt-check { display: inline-flex; }
+        .qa .qa-opt.qa-opt-correct {
+            border-color: #10b981; background: #ecfdf5; color: #065f46;
+        }
+        .qa .qa-opt.qa-opt-correct .qa-opt-letter,
+        .qa .qa-opt.qa-opt-correct .qa-opt-check { background: #10b981 !important; color: #ffffff !important; }
+        .qa .qa-opt.qa-opt-correct .qa-opt-check { display: inline-flex; }
+        .qa .qa-opt.qa-opt-wrong {
+            border-color: #f43f5e; background: #fff1f2; color: #9f1239;
+        }
+        .qa .qa-opt.qa-opt-wrong .qa-opt-letter,
+        .qa .qa-opt.qa-opt-wrong .qa-opt-check { background: #f43f5e !important; color: #ffffff !important; }
+        .qa .qa-opt:disabled { cursor: default; }
         @keyframes qaPop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* ── INSTANT ANSWER FEEDBACK ── */
+        .qa .qa-instant-feedback {
+            margin-top: 1rem; padding: 1rem 1.15rem; border-radius: 1rem;
+            border: 2px solid var(--border-color); font-weight: 600;
+        }
+        .qa .qa-instant-correct { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .qa .qa-instant-wrong { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .qa .qa-instant-skip { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+        .qa .qa-feedback-head {
+            display: flex; align-items: center; gap: 0.45rem;
+            font-size: 1.02rem; font-weight: 900; margin-bottom: 0.5rem;
+        }
+        .qa .qa-feedback-chosen { font-size: 0.9rem; margin-top: 0.35rem; opacity: 0.9; }
+        .qa .qa-feedback-answer {
+            display: flex; align-items: center; gap: 0.6rem;
+            margin-top: 0.65rem; padding: 0.65rem 0.8rem;
+            background: rgba(255, 255, 255, 0.75); border-radius: 0.75rem;
+            color: #0f172a; font-weight: 800;
+        }
+        .qa .qa-feedback-letter {
+            flex-shrink: 0; width: 1.9rem; height: 1.9rem; border-radius: 9999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #10b981; color: #ffffff; font-size: 0.85rem; font-weight: 900;
+        }
+        .qa .qa-instant-feedback .qa-explanation { margin-top: 0.75rem; }
 
         .qa .qa-nav {
             display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 1.75rem;
@@ -695,6 +733,14 @@
                         </div>
                     @endforeach
                 </div>
+            @elseif($this->isInstantFeedback())
+                <div class="qa-card">
+                    <h2>✅ Answers Reviewed</h2>
+                    <p class="qa-text">
+                        You saw the correct answer and explanation after each question as you went through this quiz.
+                        Contact <strong>{{ $quiz->teacher?->user?->name ?? 'your teacher' }}</strong> if you have questions regarding your score.
+                    </p>
+                </div>
             @else
                 <div class="qa-card">
                     <h2>🔒 Answers Hidden</h2>
@@ -714,6 +760,14 @@
             $hasImg = !empty($visibleQuestion?->question_image_url);
             $hasVid = !empty($visibleQuestion?->question_video_url);
             $hasMedia = $hasImg || $hasVid;
+            $currentOptions = $visibleQuestion ? $this->orderedOptions($visibleQuestion) : collect();
+            $correctOption = $currentOptions->firstWhere('is_correct', true);
+            $correctIndex = $correctOption
+                ? $currentOptions->search(fn ($option) => (int) $option->id === (int) $correctOption->id)
+                : null;
+            $selectedOptionId = $visibleQuestion ? ($this->answers[$visibleQuestion->id] ?? null) : null;
+            $isRevealed = $visibleQuestion && $this->isInstantFeedback() && ($this->revealedAnswers[$visibleQuestion->id] ?? false);
+            $showCheckButton = $visibleQuestion && $this->isInstantFeedback() && ! $isRevealed;
         @endphp
 
         <header class="qa-hero" style="padding: 1.4rem 2.25rem;">
@@ -813,22 +867,29 @@
 
                                 {{-- Options List (Clicking saves answer immediately, does NOT auto-advance) --}}
                                 <div class="qa-opts">
-                                    @foreach($this->orderedOptions($visibleQuestion) as $o)
+                                    @foreach($currentOptions as $o)
                                         @php
-                                            $isSelected = ($this->answers[$visibleQuestion->id] ?? null) === (int) $o->id;
+                                            $isSelected = $selectedOptionId === (int) $o->id;
+                                            $isCorrectOption = $correctOption && (int) $o->id === (int) $correctOption->id;
+                                            $isWrongChoice = $isRevealed && $isSelected && ! $isCorrectOption;
                                         @endphp
                                         <button type="button"
-                                                class="qa-opt {{ $isSelected ? 'qa-opt-selected' : '' }}"
+                                                class="qa-opt {{ $isSelected ? 'qa-opt-selected' : '' }} {{ $isRevealed && $isCorrectOption ? 'qa-opt-correct' : '' }} {{ $isWrongChoice ? 'qa-opt-wrong' : '' }}"
                                                 wire:click="selectAnswer({{ $visibleQuestion->id }}, {{ $o->id }})"
-                                                x-on:click="choose($el, {{ $currentIndex }})">
+                                                x-on:click="choose($el, {{ $currentIndex }})"
+                                                @disabled($isRevealed)>
                                             <div class="qa-opt-left">
                                                 <span class="qa-opt-letter qa-opt-letter-{{ $loop->index }}">{{ $optLetters[$loop->index] }}</span>
                                                 <span class="qa-opt-text">{{ $o->option_text }}</span>
                                             </div>
-                                            <span class="qa-opt-check" aria-hidden="true">✓</span>
+                                            <span class="qa-opt-check" aria-hidden="true">{{ $isWrongChoice ? '✗' : '✓' }}</span>
                                         </button>
                                     @endforeach
                                 </div>
+
+                                @if($isRevealed)
+                                    @include('filament.student.pages.partials.quiz-instant-feedback')
+                                @endif
 
                                 {{-- Navigation Row --}}
                                 <div class="qa-nav">
@@ -839,19 +900,18 @@
                                         ◀ Prev
                                     </button>
 
-                                    @if($this->isLastQuestion())
-                                        <button type="button"
-                                                class="qa-nav-btn qa-nav-primary qa-nav-submit"
-                                                wire:click="submitAttempt">
+                                    <button type="button"
+                                            class="qa-nav-btn qa-nav-primary {{ ! $showCheckButton && $this->isLastQuestion() ? 'qa-nav-submit' : '' }}"
+                                            wire:click="nextOrSubmit"
+                                            @disabled($showCheckButton && $selectedOptionId === null)">
+                                        @if($showCheckButton)
+                                            🔍 Check Answer
+                                        @elseif($this->isLastQuestion())
                                             ✅ Submit my answers
-                                        </button>
-                                    @else
-                                        <button type="button"
-                                                class="qa-nav-btn qa-nav-primary"
-                                                wire:click="nextOrSubmit">
+                                        @else
                                             Next ▶
-                                        </button>
-                                    @endif
+                                        @endif
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -862,22 +922,29 @@
 
                         {{-- Options List (Clicking saves answer immediately, does NOT auto-advance) --}}
                         <div class="qa-opts">
-                            @foreach($this->orderedOptions($visibleQuestion) as $o)
+                            @foreach($currentOptions as $o)
                                 @php
-                                    $isSelected = ($this->answers[$visibleQuestion->id] ?? null) === (int) $o->id;
+                                    $isSelected = $selectedOptionId === (int) $o->id;
+                                    $isCorrectOption = $correctOption && (int) $o->id === (int) $correctOption->id;
+                                    $isWrongChoice = $isRevealed && $isSelected && ! $isCorrectOption;
                                 @endphp
                                 <button type="button"
-                                        class="qa-opt {{ $isSelected ? 'qa-opt-selected' : '' }}"
+                                        class="qa-opt {{ $isSelected ? 'qa-opt-selected' : '' }} {{ $isRevealed && $isCorrectOption ? 'qa-opt-correct' : '' }} {{ $isWrongChoice ? 'qa-opt-wrong' : '' }}"
                                         wire:click="selectAnswer({{ $visibleQuestion->id }}, {{ $o->id }})"
-                                        x-on:click="choose($el, {{ $currentIndex }})">
+                                        x-on:click="choose($el, {{ $currentIndex }})"
+                                        @disabled($isRevealed)>
                                     <div class="qa-opt-left">
                                         <span class="qa-opt-letter qa-opt-letter-{{ $loop->index }}">{{ $optLetters[$loop->index] }}</span>
                                         <span class="qa-opt-text">{{ $o->option_text }}</span>
                                     </div>
-                                    <span class="qa-opt-check" aria-hidden="true">✓</span>
+                                    <span class="qa-opt-check" aria-hidden="true">{{ $isWrongChoice ? '✗' : '✓' }}</span>
                                 </button>
                             @endforeach
                         </div>
+
+                        @if($isRevealed)
+                            @include('filament.student.pages.partials.quiz-instant-feedback')
+                        @endif
 
                         {{-- Navigation Row --}}
                         <div class="qa-nav">
@@ -888,19 +955,18 @@
                                 ◀ Prev
                             </button>
 
-                            @if($this->isLastQuestion())
-                                <button type="button"
-                                        class="qa-nav-btn qa-nav-primary qa-nav-submit"
-                                        wire:click="submitAttempt">
+                            <button type="button"
+                                    class="qa-nav-btn qa-nav-primary {{ ! $showCheckButton && $this->isLastQuestion() ? 'qa-nav-submit' : '' }}"
+                                    wire:click="nextOrSubmit"
+                                    @disabled($showCheckButton && $selectedOptionId === null)">
+                                @if($showCheckButton)
+                                    🔍 Check Answer
+                                @elseif($this->isLastQuestion())
                                     ✅ Submit my answers
-                                </button>
-                            @else
-                                <button type="button"
-                                        class="qa-nav-btn qa-nav-primary"
-                                        wire:click="nextOrSubmit">
+                                @else
                                     Next ▶
-                                </button>
-                            @endif
+                                @endif
+                            </button>
                         </div>
                     @endif
                 @endif

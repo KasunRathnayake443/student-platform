@@ -9,6 +9,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Quiz extends Model
 {
+    public const FEEDBACK_END_OF_QUIZ = 'end_of_quiz';
+
+    public const FEEDBACK_SCORE_ONLY = 'score_only';
+
+    public const FEEDBACK_AFTER_EACH_ANSWER = 'after_each_answer';
+
+    /**
+     * @var array<string, string>
+     */
+    public const FEEDBACK_MODES = [
+        self::FEEDBACK_END_OF_QUIZ => 'Show all correct answers at the end of the quiz',
+        self::FEEDBACK_SCORE_ONLY => 'Only show the score — hide correct answers',
+        self::FEEDBACK_AFTER_EACH_ANSWER => 'Show the correct answer & explanation after each question',
+    ];
+
     protected $fillable = [
         'learning_class_id',
         'teacher_id',
@@ -20,6 +35,7 @@ class Quiz extends Model
         'passing_percentage',
         'total_points',
         'show_correct_answers_after_submission',
+        'feedback_mode',
         'shuffle_questions',
         'shuffle_options',
         'availability_type',
@@ -124,6 +140,29 @@ class Quiz extends Model
     | Helper Methods
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * @return array<string, string>
+     */
+    public static function feedbackModeOptions(): array
+    {
+        return self::FEEDBACK_MODES;
+    }
+
+    public function showsCorrectAnswersAtEnd(): bool
+    {
+        return $this->feedback_mode === self::FEEDBACK_END_OF_QUIZ;
+    }
+
+    public function showsFeedbackAfterEachAnswer(): bool
+    {
+        return $this->feedback_mode === self::FEEDBACK_AFTER_EACH_ANSWER;
+    }
+
+    public function onlyShowsScore(): bool
+    {
+        return $this->feedback_mode === self::FEEDBACK_SCORE_ONLY;
+    }
 
     public function isAvailable(): bool
     {

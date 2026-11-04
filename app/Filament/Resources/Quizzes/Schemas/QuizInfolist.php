@@ -105,9 +105,10 @@ class QuizInfolist
                             ->color('success')
                             ->suffix('%'),
 
-                        IconEntry::make('show_correct_answers_after_submission')
-                            ->label('Show Correct Answers')
-                            ->boolean(),
+                        TextEntry::make('feedback_mode')
+                            ->label('Answer Feedback')
+                            ->badge()
+                            ->formatStateUsing(fn ($state) => Quiz::feedbackModeOptions()[$state] ?? 'Show all correct answers at the end of the quiz'),
 
                         IconEntry::make('shuffle_questions')
                             ->label('Shuffle Questions')

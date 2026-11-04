@@ -13,11 +13,13 @@ class QuizAttemptAnswer extends Model
         'quiz_question_option_id',
         'is_correct',
         'points_awarded',
+        'revealed_at',
     ];
 
     protected $casts = [
         'is_correct' => 'boolean',
         'points_awarded' => 'decimal:2',
+        'revealed_at' => 'datetime',
     ];
 
     public function attempt(): BelongsTo

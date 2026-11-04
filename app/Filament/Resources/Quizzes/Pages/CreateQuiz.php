@@ -31,7 +31,7 @@ class CreateQuiz extends CreateRecord
         $fillData = [
             'max_attempts' => 1,
             'passing_percentage' => 50,
-            'show_correct_answers_after_submission' => true,
+            'feedback_mode' => Quiz::FEEDBACK_END_OF_QUIZ,
             'available_immediately' => true,
             'availability_type' => 'immediate',
             'is_published' => true,
