@@ -24,6 +24,12 @@ class LearningClassInfolist
 
                             ->schema([
 
+                                TextEntry::make('emoji')
+
+                                    ->label('Emoji')
+
+                                    ->formatStateUsing(fn ($state, $record) => $record->display_emoji),
+
                                 TextEntry::make('name')
 
                                     ->label('Class Name'),

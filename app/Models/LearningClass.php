@@ -9,6 +9,62 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LearningClass extends Model
 {
+    public const DEFAULT_EMOJI = '📘';
+
+    /**
+     * Emojis admins can pick to visually identify a class on the student dashboard.
+     *
+     * @var array<string, string>
+     */
+    public const EMOJI_OPTIONS = [
+        '🔢' => '🔢 Mathematics',
+        '📐' => '📐 Geometry',
+        '🧮' => '🧮 Counting / Abacus',
+        '📖' => '📖 English / Reading',
+        '✏️' => '✏️ Writing',
+        '📝' => '📝 Notes / Exams',
+        '🗣️' => '🗣️ Language / Speaking',
+        '📚' => '📚 Library / Literature',
+        '🔬' => '🔬 Science',
+        '🧪' => '🧪 Chemistry',
+        '⚛️' => '⚛️ Physics',
+        '🧬' => '🧬 Biology',
+        '🌍' => '🌍 Geography / World',
+        '🗺️' => '🗺️ Maps',
+        '🌱' => '🌱 Environment',
+        '🐾' => '🐾 Animals',
+        '🏛️' => '🏛️ History',
+        '🎨' => '🎨 Art & Drawing',
+        '🎭' => '🎭 Drama',
+        '🎵' => '🎵 Music',
+        '🎤' => '🎤 Singing',
+        '🎬' => '🎬 Film / Media',
+        '📷' => '📷 Photography',
+        '🏃' => '🏃 Physical Education',
+        '⚽' => '⚽ Sports',
+        '🏏' => '🏏 Cricket',
+        '🏊' => '🏊 Swimming',
+        '🧘' => '🧘 Health & Wellbeing',
+        '🩺' => '🩺 Health',
+        '💻' => '💻 Computing',
+        '🖥️' => '🖥️ ICT / Computer Lab',
+        '🤖' => '🤖 Robotics / AI',
+        '🌐' => '🌐 Internet / Web',
+        '🚀' => '🚀 STEM / Space',
+        '📊' => '📊 Business / Statistics',
+        '💰' => '💰 Finance',
+        '🍳' => '🍳 Cooking',
+        '🧵' => '🧵 Craft / Sewing',
+        '🔧' => '🔧 Technical / Workshop',
+        '🧩' => '🧩 Puzzles / Thinking',
+        '♟️' => '♟️ Chess',
+        '🌼' => '🌼 Nature',
+        '💡' => '💡 Ideas / Innovation',
+        '🌟' => '🌟 Stars / General',
+        '🎯' => '🎯 Focus / Goals',
+        '🎮' => '🎮 Games / Coding',
+    ];
+
     protected $fillable = [
 
         'grade_id',
@@ -17,9 +73,27 @@ class LearningClass extends Model
 
         'medium',
 
+        'emoji',
+
         'is_active',
 
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    public static function emojiOptions(): array
+    {
+        return self::EMOJI_OPTIONS;
+    }
+
+    /**
+     * The emoji to show for this class, falling back to the default when none was picked.
+     */
+    public function getDisplayEmojiAttribute(): string
+    {
+        return filled($this->emoji) ? $this->emoji : self::DEFAULT_EMOJI;
+    }
 
     /**
      * @return BelongsTo<Grade, $this>

@@ -17,6 +17,7 @@ class LearningClassesTable
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Class')
+                    ->formatStateUsing(fn ($state, $record) => trim($record->display_emoji.' '.$state))
                     ->searchable()
                     ->sortable(),
 

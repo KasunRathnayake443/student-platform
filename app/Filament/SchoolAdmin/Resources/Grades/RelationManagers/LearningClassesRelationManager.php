@@ -3,6 +3,7 @@
 namespace App\Filament\SchoolAdmin\Resources\Grades\RelationManagers;
 
 use App\Filament\SchoolAdmin\Resources\LearningClasses\LearningClassResource;
+use App\Models\LearningClass;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -38,6 +39,13 @@ class LearningClassesRelationManager extends RelationManager
                     ])
                     ->required(),
 
+                Select::make('emoji')
+                    ->label('Class Emoji')
+                    ->options(LearningClass::emojiOptions())
+                    ->searchable()
+                    ->default(LearningClass::DEFAULT_EMOJI)
+                    ->helperText('Shown on the class card in the kids dashboard.'),
+
                 Toggle::make('is_active')
                     ->label('Active')
                     ->default(true),
@@ -54,6 +62,7 @@ class LearningClassesRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Class')
+                    ->formatStateUsing(fn ($state, $record) => trim($record->display_emoji.' '.$state))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('medium')

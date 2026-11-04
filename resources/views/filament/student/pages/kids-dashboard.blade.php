@@ -512,7 +512,7 @@
                             class="kids-mission-card {{ $missionColors[$i % 5] }}"
                             title="Let's do this! 🚀"
                         >
-                            <div class="kids-mission-emoji">{{ $classEmojis[$i % count($classEmojis)] }}</div>
+                            <div class="kids-mission-emoji">{{ $assignment->learningClass?->emoji ?: $classEmojis[$i % count($classEmojis)] }}</div>
                             <div class="kids-mission-info">
                                 <div class="kids-mission-class">{{ $assignment->learningClass->name ?? 'Class' }}</div>
                                 <div class="kids-mission-name">{{ $assignment->title }}</div>
@@ -539,9 +539,9 @@
                         <a
                             href="?tab=classes"
                             class="kids-class-tile {{ $tileColors[$i % 6] }}"
-                            title="Tap to open {{ $class->name }} 📖"
+                            title="Tap to open {{ $class->name }} {{ $class->emoji ?: '📖' }}"
                         >
-                            <div class="kids-class-emoji"><span class="kids-class-emoji-inner">{{ $tileEmojis[$i % count($tileEmojis)] }}</span></div>
+                            <div class="kids-class-emoji"><span class="kids-class-emoji-inner">{{ $class->emoji ?: $tileEmojis[$i % count($tileEmojis)] }}</span></div>
                             <div class="kids-class-name">{{ $class->name }}</div>
                             <div class="kids-class-teacher">
                                 {{ $class->teachers->first()?->user?->name ?? 'Teacher' }}

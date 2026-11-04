@@ -185,37 +185,37 @@ class PlatformSeeder extends Seeder
             // School 1 Classes
             $class1 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade10_S1->id, 'name' => '10-A Mathematics'],
-                ['medium' => 'English', 'is_active' => true]
+                ['medium' => 'English', 'emoji' => '🔢', 'is_active' => true]
             );
             $class2 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade10_S1->id, 'name' => '10-B Science & Physics'],
-                ['medium' => 'English', 'is_active' => true]
+                ['medium' => 'English', 'emoji' => '🔬', 'is_active' => true]
             );
             $class3 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade11_S1->id, 'name' => '11-A ICT & Computing'],
-                ['medium' => 'English', 'is_active' => true]
+                ['medium' => 'English', 'emoji' => '💻', 'is_active' => true]
             );
             $class4 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade11_S1->id, 'name' => '11-B Combined Science'],
-                ['medium' => 'Sinhala', 'is_active' => true]
+                ['medium' => 'Sinhala', 'emoji' => '🧪', 'is_active' => true]
             );
 
             // School 2 Classes
             $class5 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade8_S2->id, 'name' => '8-A General Science'],
-                ['medium' => 'English', 'is_active' => true]
+                ['medium' => 'English', 'emoji' => '🔬', 'is_active' => true]
             );
             $class6 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade8_S2->id, 'name' => '8-B English Literature'],
-                ['medium' => 'English', 'is_active' => true]
+                ['medium' => 'English', 'emoji' => '📖', 'is_active' => true]
             );
             $class7 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade9_S2->id, 'name' => '9-A Biology & Ecology'],
-                ['medium' => 'English', 'is_active' => true]
+                ['medium' => 'English', 'emoji' => '🧬', 'is_active' => true]
             );
             $class8 = LearningClass::firstOrCreate(
                 ['grade_id' => $grade9_S2->id, 'name' => '9-B Computer Studies'],
-                ['medium' => 'Tamil', 'is_active' => true]
+                ['medium' => 'Tamil', 'emoji' => '🖥️', 'is_active' => true]
             );
 
             /*

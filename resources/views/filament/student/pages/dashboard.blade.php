@@ -3210,7 +3210,7 @@
                                                         $teacherName  = $class->teachers->first()?->user?->name ?? 'Course Instructor';
                                                         $kidsClassIdx++;
                                                         $kidCardColor = $kidsCardColors[($kidsClassIdx - 1) % 6];
-                                                        $kidCardIcon  = $kidsCardIcons[($kidsClassIdx - 1) % count($kidsCardIcons)];
+                                                        $kidCardIcon  = $class->emoji ?: $kidsCardIcons[($kidsClassIdx - 1) % count($kidsCardIcons)];
                                                     @endphp
                                                     <div class="class-card {{ $tier === 'kids' ? 'kids-class-card ' . $kidCardColor : '' }}">
                                                         <div style="display:flex; align-items:center; justify-content:space-between;">

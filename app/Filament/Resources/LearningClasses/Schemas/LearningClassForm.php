@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LearningClasses\Schemas;
 
 use App\Filament\Rules\InScope;
 use App\Models\Grade;
+use App\Models\LearningClass;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -95,6 +96,18 @@ class LearningClassForm
                     ])
 
                     ->required(),
+
+                Select::make('emoji')
+
+                    ->label('Class Emoji')
+
+                    ->options(LearningClass::emojiOptions())
+
+                    ->searchable()
+
+                    ->default(LearningClass::DEFAULT_EMOJI)
+
+                    ->helperText('This emoji is shown on the class card in the kids dashboard. Pick one that matches the subject.'),
 
                 Toggle::make('is_active')
 
