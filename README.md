@@ -127,4 +127,5 @@ class, the same as the other notifications.
 php artisan test
 vendor/bin/pint --test
 vendor/bin/phpstan analyse --memory-limit=512M
+
 ```
