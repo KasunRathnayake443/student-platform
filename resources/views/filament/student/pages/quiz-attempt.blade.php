@@ -3,6 +3,7 @@
     @php
         $orderedQuestions = $this->orderedQuestions();
         $optLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        $isTakeScreen = ! $finished && $attempt;
     @endphp
 
     <style>
@@ -36,6 +37,15 @@
         }
         .qa .qa-back:hover { border-color: var(--accent); background: #f8fafc; color: var(--accent); transform: translateX(-2px); }
         .qa .qa-brand { font-weight: 800; color: #0f172a; font-size: 0.98rem; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.4rem; }
+
+        /* Take screen top bar: quiz title + timer live here instead of a hero */
+        .qa .qa-topbar-take { padding: 0.65rem 1.5rem; gap: 0.85rem; flex-wrap: nowrap; }
+        .qa .qa-topbar-title { flex: 1 1 auto; min-width: 0; text-align: center; }
+        .qa .qa-topbar-title .qa-take-title {
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .qa .qa-topbar-take .qa-timer { flex-shrink: 0; }
+        .qa .qa-topbar-take .qa-back { flex-shrink: 0; }
 
         .qa .qa-hero {
             padding: 2.5rem 2rem 2rem; text-align: center;
@@ -153,6 +163,84 @@
         .qa .qa-dot.qa-dot-answered { background: #eef2ff; border-color: #c7d2fe; color: #4f46e5; font-weight: 900; }
         .qa .qa-dot.qa-dot-current { background: var(--accent); border-color: var(--accent); color: #ffffff; transform: scale(1.18); font-weight: 900; }
         .qa .qa-dot:disabled { opacity: 0.5; cursor: wait; }
+
+        /* ── TAKE SCREEN SHELL: question rail on the left, card keeps its width ── */
+        .qa .qa-take-shell {
+            flex: 1; width: 100%; display: flex; align-items: flex-start; gap: 1rem;
+            padding: 1rem 1rem 2rem;
+        }
+        .qa .qa-body.qa-body-take {
+            flex: 1; margin: 0 auto; padding: 0.75rem 0.25rem 2rem; min-width: 0;
+        }
+        /* Single-media questions should fit on screen without scrolling. */
+        .qa .qa-body-take.qa-single-media .qa-split-layout { gap: 1.5rem; }
+        .qa .qa-body-take.qa-single-media .qa-media-col .qa-media-wrapper,
+        .qa .qa-body-take.qa-single-media .qa-media-col .qa-media,
+        .qa .qa-body-take.qa-single-media .qa-media-col .qa-media img,
+        .qa .qa-body-take.qa-single-media .qa-media-col .qa-media video {
+            max-height: min(60vh, calc(100vh - 21rem));
+        }
+        .qa .qa-body-take.qa-single-media .qa-media-col .qa-media-wrapper { min-height: 180px; }
+
+        /* With two media items the column can be taller than the viewport,
+           so let it scroll naturally instead of sticking. */
+        .qa .qa-body-take.qa-both-media .qa-media-col { position: static; }
+
+        /* Short viewports (e.g. 1080p at 125% scaling): tighten the take
+           screen so a single-media question fits without scrolling. */
+        @media (max-height: 900px) {
+            .qa .qa-topbar-take { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            .qa .qa-topbar-take .qa-take-title { font-size: 1rem; }
+            .qa .qa-topbar-take .qa-take-sub { font-size: 0.75rem; }
+            .qa .qa-take-shell { padding-top: 0.6rem; padding-bottom: 1rem; }
+            .qa .qa-body.qa-body-take { padding-bottom: 1rem; }
+            .qa .qa-body-take .qa-card { padding: 1rem 1.25rem; }
+            .qa .qa-body-take .qa-qnum { margin-bottom: 0.3rem; }
+            .qa .qa-body-take .qa-qtext { font-size: 1.15rem; line-height: 1.35; margin-bottom: 0.9rem; }
+            .qa .qa-body-take .qa-opts { gap: 0.55rem; margin-top: 0.25rem; }
+            .qa .qa-body-take .qa-opt { padding: 0.7rem 1rem; }
+            .qa .qa-body-take .qa-nav { margin-top: 1rem; }
+        }
+
+        .qa .qa-progress.qa-progress-rail {
+            --rail-dot: 1.75rem;
+            --rail-gap: 0.35rem;
+            --rail-pad: 0.5rem;
+            display: grid; grid-auto-flow: column;
+            grid-template-rows: repeat(auto-fill, var(--rail-dot));
+            grid-auto-columns: var(--rail-dot);
+            justify-content: center; align-content: start;
+            gap: var(--rail-gap); margin: 0; padding: var(--rail-pad);
+            position: sticky; top: 4.75rem; align-self: flex-start; flex-shrink: 0;
+            height: min(
+                calc(100vh - 8rem),
+                calc(var(--qa-dots) * (var(--rail-dot) + var(--rail-gap)) + var(--rail-pad) * 2 + 2px)
+            );
+            background: rgba(255,255,255,0.92); border: 1px solid var(--border-color);
+            border-radius: 1rem; box-shadow: 0 6px 18px -10px rgba(15,23,42,0.25);
+        }
+        .qa .qa-progress.qa-progress-rail .qa-dot {
+            width: var(--rail-dot); height: var(--rail-dot);
+            font-size: 0.78rem; border-width: 2px;
+        }
+        .qa .qa-progress.qa-progress-rail .qa-dot.qa-dot-current { transform: scale(1.12); }
+
+        @media (max-width: 640px) {
+            .qa .qa-topbar-take { padding: 0.55rem 0.75rem; gap: 0.55rem; flex-wrap: nowrap; }
+            .qa .qa-topbar-take .qa-back { padding: 0.5rem 0.7rem; }
+            .qa .qa-topbar-take .qa-back span:last-child { display: none; }
+            .qa .qa-topbar-title { text-align: left; }
+            .qa .qa-topbar-title .qa-take-title { font-size: 0.98rem; }
+            .qa .qa-topbar-title .qa-take-sub { font-size: 0.72rem; }
+            .qa .qa-topbar-take .qa-timer { font-size: 1rem; padding: 0.42rem 0.75rem; }
+            .qa .qa-take-shell { padding: 0.75rem 0.5rem 1.5rem; gap: 0.6rem; }
+            .qa .qa-body-take .qa-card { padding: 1rem 1.05rem; }
+            .qa .qa-progress.qa-progress-rail {
+                --rail-dot: 1.45rem; --rail-gap: 0.28rem; --rail-pad: 0.4rem;
+                padding: var(--rail-pad); border-radius: 0.85rem; top: 4rem;
+            }
+            .qa .qa-progress.qa-progress-rail .qa-dot { font-size: 0.66rem; }
+        }
 
         .qa .qa-qcard { margin: 0; }
         .qa .qa-qnum { font-size: 0.82rem; font-weight: 800; color: var(--accent); margin-bottom: 0.45rem; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -548,23 +636,40 @@
     </style>
 
     {{-- Top bar --}}
-    <div class="qa-topbar">
+    <div class="qa-topbar {{ $isTakeScreen ? 'qa-topbar-take' : '' }}">
         <a href="{{ \App\Filament\Student\Pages\Dashboard::getUrl(['tab' => 'quizzes']) }}" class="qa-back">
             <span>◀</span>
             <span>Back to My Quizzes</span>
         </a>
-        <div class="qa-brand">
-            @if($tier === 'kids')
-                <span>🌟</span>
-                <span>Student Fun Zone</span>
-            @elseif($tier === 'junior')
-                <span>⚡</span>
-                <span>Student Hub</span>
-            @else
-                <span>🎓</span>
-                <span>Academic Portal</span>
+
+        @if($isTakeScreen)
+            <div class="qa-topbar-title">
+                <div class="qa-take-title">🧠 {{ $quiz->title }}</div>
+                <div class="qa-take-sub">Attempt #{{ $attemptNumber }} · Question {{ $currentIndex + 1 }} of {{ $questionCount }}<span class="qa-saving-chip" wire:loading.delay.inline-flex wire:target="selectAnswer">💾 Saving…</span></div>
+            </div>
+            @if($remainingSeconds !== null)
+                <div class="qa-timer"
+                     x-data="qaTimer({{ $remainingSeconds }})"
+                     x-init="qaStart()"
+                     :class="clock !== null && clock <= 60 ? 'qa-timer-low' : ''">
+                    <span class="qa-timer-glyph">⏱️</span>
+                    <span x-text="qaClock"></span>
+                </div>
             @endif
-        </div>
+        @else
+            <div class="qa-brand">
+                @if($tier === 'kids')
+                    <span>🌟</span>
+                    <span>Student Fun Zone</span>
+                @elseif($tier === 'junior')
+                    <span>⚡</span>
+                    <span>Student Hub</span>
+                @else
+                    <span>🎓</span>
+                    <span>Academic Portal</span>
+                @endif
+            </div>
+        @endif
     </div>
 
     {{-- ====================== RESULT SCREEN ====================== --}}
@@ -760,6 +865,7 @@
             $hasImg = !empty($visibleQuestion?->question_image_url);
             $hasVid = !empty($visibleQuestion?->question_video_url);
             $hasMedia = $hasImg || $hasVid;
+            $mediaCount = ($hasImg ? 1 : 0) + ($hasVid ? 1 : 0);
             $currentOptions = $visibleQuestion ? $this->orderedOptions($visibleQuestion) : collect();
             $correctOption = $currentOptions->firstWhere('is_correct', true);
             $correctIndex = $correctOption
@@ -770,25 +876,21 @@
             $showCheckButton = $visibleQuestion && $this->isInstantFeedback() && ! $isRevealed;
         @endphp
 
-        <header class="qa-hero" style="padding: 1.4rem 2.25rem;">
-            <div class="qa-take-head" style="margin-bottom: 0;">
-                <div>
-                    <div class="qa-take-title">🧠 {{ $quiz->title }}</div>
-                    <div class="qa-take-sub">Attempt #{{ $attemptNumber }} · Question {{ $currentIndex + 1 }} of {{ $questionCount }}<span class="qa-saving-chip" wire:loading.delay.inline-flex wire:target="selectAnswer">💾 Saving…</span></div>
-                </div>
-                @if($remainingSeconds !== null)
-                    <div class="qa-timer"
-                         x-data="qaTimer({{ $remainingSeconds }})"
-                         x-init="qaStart()"
-                         :class="clock !== null && clock <= 60 ? 'qa-timer-low' : ''">
-                        <span class="qa-timer-glyph">⏱️</span>
-                        <span x-text="qaClock"></span>
-                    </div>
-                @endif
-            </div>
-        </header>
+        <div class="qa-take-shell">
 
-        <div class="qa-body {{ $hasMedia ? 'qa-body-has-media' : '' }}">
+            {{-- Slim vertical question rail --}}
+            <aside class="qa-progress qa-progress-rail" style="--qa-dots: {{ $orderedQuestions->count() }};" aria-label="Question navigation">
+                @foreach($orderedQuestions as $qIndex => $_q)
+                    <button type="button"
+                            class="qa-dot {{ ($this->answers[$_q->id] ?? null) !== null ? 'qa-dot-answered' : '' }} {{ $qIndex === $currentIndex ? 'qa-dot-current' : '' }}"
+                            wire:click="goToQuestion({{ $qIndex }})"
+                            title="Question {{ $qIndex + 1 }}">
+                        {{ $qIndex + 1 }}
+                    </button>
+                @endforeach
+            </aside>
+
+            <div class="qa-body qa-body-take {{ $hasMedia ? 'qa-body-has-media' : '' }} {{ $mediaCount === 1 ? 'qa-single-media' : ($mediaCount > 1 ? 'qa-both-media' : '') }}">
 
             @if($notice)
                 <div class="qa-alert {{ (str_contains($notice, 'run out') || str_contains($notice, 'not available')) ? 'qa-alert-err' : 'qa-alert-info' }}">
@@ -801,22 +903,10 @@
                  wire:key="question-box-{{ $visibleQuestion->id }}-{{ $currentIndex }}"
                  x-data="qaQuestionState({
                      qId: {{ $visibleQuestion->id }},
-                     hasMedia: {{ $hasMedia ? 'true' : 'false' }}
+                     hasMedia: {{ $hasMedia ? 'true' : 'false' }},
+                     hasImage: {{ $hasImg ? 'true' : 'false' }}
                  })"
                  x-init="initQuestion()">
-
-                {{-- Question Progress Stepper --}}
-                <div class="qa-progress">
-                    <span class="qa-progress-label">Question:</span>
-                    @foreach($orderedQuestions as $qIndex => $_q)
-                        <button type="button"
-                                class="qa-dot {{ ($this->answers[$_q->id] ?? null) !== null ? 'qa-dot-answered' : '' }} {{ $qIndex === $currentIndex ? 'qa-dot-current' : '' }}"
-                                wire:click="goToQuestion({{ $qIndex }})"
-                                title="Question {{ $qIndex + 1 }}">
-                            {{ $qIndex + 1 }}
-                        </button>
-                    @endforeach
-                </div>
 
                 @if($visibleQuestion)
                     @if($hasMedia)
@@ -824,40 +914,47 @@
                         <div class="qa-split-layout">
                             {{-- LEFT COLUMN: MEDIA (Sticky, framed, instant clear & loading indicator) --}}
                             <div class="qa-media-col">
-                                <div class="qa-media-wrapper" wire:key="media-wrap-{{ $visibleQuestion->id }}">
-                                    {{-- Dedicated Loading Spinner Overlay --}}
-                                    <div class="qa-media-loader" x-show="isMediaLoading" x-transition.opacity>
-                                        <div class="qa-spinner"></div>
-                                        <span class="qa-loader-text">
-                                            @if($tier === 'kids')
-                                                Loading picture... 🎨
-                                            @elseif($tier === 'junior')
-                                                Loading media... ⏳
-                                            @else
-                                                Loading question media...
-                                            @endif
-                                        </span>
-                                    </div>
+                                {{-- Question Image --}}
+                                @if($hasImg)
+                                    <div class="qa-media-wrapper" wire:key="media-image-{{ $visibleQuestion->id }}">
+                                        {{-- Dedicated Loading Spinner Overlay --}}
+                                        <div class="qa-media-loader" x-show="isMediaLoading" x-transition.opacity>
+                                            <div class="qa-spinner"></div>
+                                            <span class="qa-loader-text">
+                                                @if($tier === 'kids')
+                                                    Loading picture... 🎨
+                                                @elseif($tier === 'junior')
+                                                    Loading media... ⏳
+                                                @else
+                                                    Loading question media...
+                                                @endif
+                                            </span>
+                                        </div>
 
-                                    {{-- Question Image --}}
-                                    @if($hasImg)
                                         <div class="qa-media" x-show="!isMediaLoading" x-transition.opacity>
                                             <img src="{{ $visibleQuestion->question_image_url }}"
                                                  alt="Question visual"
                                                  x-on:load="onMediaLoaded()"
                                                  x-on:error="onMediaError()">
                                         </div>
-                                    @elseif($hasVid)
-                                        <div class="qa-media" x-show="!isMediaLoading" x-transition.opacity>
+                                    </div>
+                                @endif
+
+                                {{-- Question Video (always visible so the browser can play it immediately) --}}
+                                @if($hasVid)
+                                    <div class="qa-media-wrapper qa-video-wrapper" wire:key="media-video-{{ $visibleQuestion->id }}">
+                                        <div class="qa-media">
                                             <video controls
-                                                   preload="metadata"
+                                                   playsinline
+                                                   preload="auto"
                                                    src="{{ $visibleQuestion->question_video_url }}"
+                                                   x-on:loadedmetadata="onMediaLoaded()"
                                                    x-on:loadeddata="onMediaLoaded()"
                                                    x-on:canplay="onMediaLoaded()"
                                                    x-on:error="onMediaError()"></video>
                                         </div>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- RIGHT COLUMN: QUESTION TEXT, OPTIONS & NAV --}}
@@ -970,6 +1067,7 @@
                         </div>
                     @endif
                 @endif
+            </div>
             </div>
         </div>
 
@@ -1091,22 +1189,24 @@
         return {
             qId: config.qId,
             hasMedia: config.hasMedia,
-            isMediaLoading: config.hasMedia,
+            hasImage: config.hasImage,
+            isMediaLoading: config.hasMedia && config.hasImage,
             timeoutId: null,
 
             initQuestion() {
-                if (!this.hasMedia) {
+                // Videos are shown immediately; the loading overlay only
+                // guards images so it can never block video playback.
+                if (!this.hasImage) {
                     this.isMediaLoading = false;
 
                     return;
                 }
 
                 const img = this.$el.querySelector('img');
-                const video = this.$el.querySelector('video');
 
-                // Cached media is already complete before Alpine attaches its
+                // Cached image is already complete before Alpine attaches its
                 // load listeners, so unlock instantly instead of waiting.
-                if ((img && img.complete && img.naturalWidth > 0) || (video && video.readyState >= 2)) {
+                if (img && img.complete && img.naturalWidth > 0) {
                     clearTimeout(this.timeoutId);
                     this.isMediaLoading = false;
 
