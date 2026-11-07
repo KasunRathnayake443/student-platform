@@ -2943,10 +2943,158 @@
         }
     }
 
+    /* ── Tab switch loading feedback (kids / junior / senior) ── */
+    @keyframes student-tab-spin {
+        to { transform: rotate(360deg); }
+    }
+    @keyframes student-tab-progress-slide {
+        0% { left: -45%; }
+        100% { left: 100%; }
+    }
+
+    .student-tab-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        z-index: 10000;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .student-tab-progress::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -45%;
+        width: 45%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+        animation: student-tab-progress-slide 1s ease-in-out infinite;
+    }
+
+    .student-tab-loading-pill {
+        position: fixed;
+        left: 50%;
+        bottom: 1.5rem;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.55rem 1rem;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid #e0e7ff;
+        border-radius: 999px;
+        color: #4338ca;
+        font-size: 0.82rem;
+        font-weight: 800;
+        box-shadow: 0 12px 30px -12px rgba(79, 70, 229, 0.5);
+        z-index: 10000;
+        pointer-events: none;
+        backdrop-filter: blur(6px);
+    }
+    .kids-mode .student-tab-loading-pill {
+        color: #7c3aed;
+        border-color: #e9d5ff;
+        box-shadow: 0 12px 30px -12px rgba(168, 85, 247, 0.55);
+    }
+
+    .student-tab-spinner {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: student-tab-spin 0.65s linear infinite;
+        flex-shrink: 0;
+    }
+
+    /* Show a spinner on the exact tab/button that was clicked */
+    .nav-link[data-loading="true"]::after,
+    .mobile-tab-pill[data-loading="true"]::after,
+    .class-action-btn[data-loading="true"]::after {
+        content: '';
+        display: inline-block;
+        width: 13px;
+        height: 13px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: student-tab-spin 0.65s linear infinite;
+        flex-shrink: 0;
+        opacity: 0.85;
+    }
+    .nav-link[data-loading="true"]::after {
+        margin-left: auto;
+    }
+    .mobile-tab-pill[data-loading="true"]::after {
+        width: 10px;
+        height: 10px;
+        border-width: 1.5px;
+        margin-left: 0.1rem;
+    }
+    .class-action-btn {
+        position: relative;
+    }
+    .class-action-btn[data-loading="true"] {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    .class-action-btn[data-loading="true"]::after {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.4rem;
+        width: 11px;
+        height: 11px;
+        display: block;
+    }
+
+    /* Prevent double-clicks while a tab request is in flight */
+    .nav-menu.tabs-busy .nav-link,
+    .mobile-tab-strip.tabs-busy .mobile-tab-pill {
+        pointer-events: none;
+        opacity: 0.72;
+    }
+
+    /* Gently dim the outgoing tab content so it is obvious a new tab is loading */
+    .workspace-content {
+        transition: opacity 0.15s ease;
+    }
+    .workspace-content.tab-content-loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .student-tab-progress::before,
+        .student-tab-spinner,
+        .nav-link[data-loading="true"]::after,
+        .mobile-tab-pill[data-loading="true"]::after,
+        .class-action-btn[data-loading="true"]::after {
+            animation-duration: 2.4s;
+        }
+    }
+
     /* ── Notifications are styled in Livewire NotificationPanel and NotificationsView components ── */
     </style>
 
     <div class="custom-app-container {{ $tier === 'kids' ? 'kids-mode' : '' }}">
+
+        {{-- Tab-switch loading feedback (shared by kids, junior and senior dashboards) --}}
+        <div class="student-tab-progress"
+             wire:loading.delay.shortest
+             wire:target="setTab,openTab,openTabFromEvent"
+             aria-hidden="true"></div>
+        <div class="student-tab-loading-pill"
+             wire:loading.delay.short
+             wire:target="setTab,openTab,openTabFromEvent"
+             role="status"
+             aria-live="polite">
+            <span class="student-tab-spinner" aria-hidden="true"></span>
+            <span>Loading…</span>
+        </div>
 
         <!-- ── MOBILE TOP NAVIGATION BAR & QUICK TAB STRIP (<= 860px) ── -->
         <div class="mobile-nav-header">
@@ -2963,7 +3111,10 @@
             </button>
         </div>
 
-        <nav class="mobile-tab-strip" aria-label="Quick navigation">
+        <nav class="mobile-tab-strip"
+             aria-label="Quick navigation"
+             wire:loading.class="tabs-busy"
+             wire:target="setTab,openTab,openTabFromEvent">
             <button wire:click="setTab('dashboard')" type="button" class="mobile-tab-pill {{ $activeTab === 'dashboard' ? 'active' : '' }}">
                 <span>📊</span><span>Dashboard</span>
             </button>
@@ -3012,7 +3163,9 @@
 
                 <!-- Navigation Links -->
                 <div class="nav-group-label">Navigation</div>
-                <nav class="nav-menu">
+                <nav class="nav-menu"
+                     wire:loading.class="tabs-busy"
+                     wire:target="setTab,openTab,openTabFromEvent">
                     <button wire:click="setTab('dashboard')" @click="mobileMenuOpen = false" type="button" class="nav-link {{ $activeTab === 'dashboard' ? 'active' : '' }}">
                         <span class="nav-icon">📊</span>
                         <span>Dashboard</span>
@@ -3143,7 +3296,9 @@
             </header>
 
             <!-- Workspace Main Content by Selected Tab -->
-            <div class="workspace-content {{ $tier === 'kids' && $activeTab !== 'dashboard' ? 'kids-tab-space' : '' }} {{ $tier !== 'kids' && $activeTab === 'dashboard' ? 'self-contained-content' : '' }}">
+            <div class="workspace-content {{ $tier === 'kids' && $activeTab !== 'dashboard' ? 'kids-tab-space' : '' }} {{ $tier !== 'kids' && $activeTab === 'dashboard' ? 'self-contained-content' : '' }}"
+                 wire:loading.class="tab-content-loading"
+                 wire:target="setTab,openTab,openTabFromEvent">
                 
                 {{-- ── TAB 1: DASHBOARD OVERVIEW (BY AGE CATEGORY) ── --}}
                 @if($activeTab === 'dashboard')
