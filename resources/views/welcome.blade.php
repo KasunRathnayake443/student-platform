@@ -6,9 +6,8 @@
         <title>{{ \App\Services\PlatformSettings::name() }} — Modern School Learning Hub</title>
         <meta name="description" content="{{ \App\Services\PlatformSettings::name() }} is a modern LMS for schools — interactive courses, progress tracking, and digital tools for students, teachers, and administrators.">
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="icon" href="{{ \App\Services\PlatformSettings::logoUrl() }}">
+        <link rel="apple-touch-icon" href="{{ \App\Services\PlatformSettings::logoUrl() }}">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

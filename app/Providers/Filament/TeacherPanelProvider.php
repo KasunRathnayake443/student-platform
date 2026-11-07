@@ -30,6 +30,7 @@ class TeacherPanelProvider extends PanelProvider
             ->path('teacher')
             ->brandName(fn (): string => PlatformSettings::name())
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
+            ->favicon(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->colors([

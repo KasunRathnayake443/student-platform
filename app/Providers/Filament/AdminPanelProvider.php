@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->brandName(fn (): string => \App\Services\PlatformSettings::name())
             ->brandLogo(fn (): string => \App\Services\PlatformSettings::logoUrl())
+            ->favicon(fn (): string => \App\Services\PlatformSettings::logoUrl())
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->profile(isSimple: false)

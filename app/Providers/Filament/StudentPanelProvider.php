@@ -34,6 +34,7 @@ class StudentPanelProvider extends PanelProvider
             ->path('student')
             ->brandName(fn (): string => PlatformSettings::name())
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
+            ->favicon(fn (): string => PlatformSettings::logoUrl())
             ->login(StudentLogin::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->profile(isSimple: false)

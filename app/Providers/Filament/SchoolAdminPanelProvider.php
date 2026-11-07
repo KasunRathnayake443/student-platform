@@ -30,6 +30,7 @@ class SchoolAdminPanelProvider extends PanelProvider
             ->path('school-admin')
             ->brandName(fn (): string => PlatformSettings::name())
             ->brandLogo(fn (): string => PlatformSettings::logoUrl())
+            ->favicon(fn (): string => PlatformSettings::logoUrl())
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->colors([

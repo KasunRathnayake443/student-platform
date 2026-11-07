@@ -5,9 +5,8 @@
     {{ filled($title ?? null) ? $title.' - '.\App\Services\PlatformSettings::name() : \App\Services\PlatformSettings::name() }}
 </title>
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="{{ \App\Services\PlatformSettings::logoUrl() }}">
+<link rel="apple-touch-icon" href="{{ \App\Services\PlatformSettings::logoUrl() }}">
 
 @fonts
 
