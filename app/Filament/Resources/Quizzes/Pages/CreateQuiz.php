@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Pages;
 
+use App\Filament\Concerns\HasPaginatedQuestions;
 use App\Filament\Resources\Quizzes\QuizResource;
 use App\Models\Quiz;
 use App\Services\QuizImportService;
@@ -10,10 +11,13 @@ use App\Services\SchoolEmailNotificationService;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class CreateQuiz extends CreateRecord
 {
+    use HasPaginatedQuestions;
+
     protected static string $resource = QuizResource::class;
 
     /** @var array<int, array<string, mixed>>|null */
@@ -51,6 +55,17 @@ class CreateQuiz extends CreateRecord
     protected function getHeaderActions(): array
     {
         return [];
+    }
+
+    public function create(bool $another = false): void
+    {
+        try {
+            parent::create($another);
+        } catch (ValidationException $exception) {
+            $this->focusFirstInvalidQuestion($exception);
+
+            throw $exception;
+        }
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

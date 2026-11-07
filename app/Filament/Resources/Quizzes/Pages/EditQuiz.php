@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Pages;
 
+use App\Filament\Concerns\HasPaginatedQuestions;
 use App\Filament\Resources\Quizzes\QuizResource;
 use App\Models\Quiz;
 use App\Services\QuizImportService;
@@ -20,6 +21,8 @@ use Throwable;
 
 class EditQuiz extends EditRecord
 {
+    use HasPaginatedQuestions;
+
     protected static string $resource = QuizResource::class;
 
     /** @var array<int, array<string, mixed>>|null */
@@ -40,6 +43,17 @@ class EditQuiz extends EditRecord
             ViewAction::make(),
             DeleteAction::make(),
         ];
+    }
+
+    public function save(bool $shouldRedirect = true, bool $shouldSendSavedNotification = true): void
+    {
+        try {
+            parent::save($shouldRedirect, $shouldSendSavedNotification);
+        } catch (ValidationException $exception) {
+            $this->focusFirstInvalidQuestion($exception);
+
+            throw $exception;
+        }
     }
 
     protected function submitAndEmailStudentsAction(): Action

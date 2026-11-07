@@ -1,4 +1,4 @@
-<div class="qa qa-{{ $tier }}" style="min-height:100vh; display: flex; flex-direction: column;">
+<div class="qa qa-{{ $tier }}" wire:loading.class="qa-busy" style="min-height:100vh; display: flex; flex-direction: column;">
 
     @php
         $orderedQuestions = $this->orderedQuestions();
@@ -46,6 +46,18 @@
         }
         .qa .qa-topbar-take .qa-timer { flex-shrink: 0; }
         .qa .qa-topbar-take .qa-back { flex-shrink: 0; }
+
+        /* Block extra taps while answers are saving or a navigation request is running */
+        .qa.qa-busy .qa-opt,
+        .qa.qa-busy .qa-nav-btn,
+        .qa.qa-busy .qa-progress-rail .qa-dot { pointer-events: none; }
+        .qa.qa-busy .qa-nav-btn,
+        .qa.qa-busy .qa-progress-rail .qa-dot { opacity: 0.55; cursor: wait; }
+
+        /* Lock answers/navigation until the question image has fully loaded */
+        .qa-take-shell.qa-media-loading .qa-opt,
+        .qa-take-shell.qa-media-loading .qa-nav-btn,
+        .qa-take-shell.qa-media-loading .qa-dot { pointer-events: none; opacity: 0.55; cursor: wait; }
 
         .qa .qa-hero {
             padding: 2.5rem 2rem 2rem; text-align: center;
@@ -728,7 +740,7 @@
 
                 <div class="qa-cta-wrap" style="margin-top: 1.6rem; display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap;">
                     @if($canTryAgain)
-                        <button type="button" class="qa-start-btn" wire:click="startAttempt">
+                        <button type="button" class="qa-start-btn" wire:click="startAttempt" wire:loading.attr="disabled">
                             <span>🔁</span>
                             <span>{{ $tier === 'kids' ? 'Try Again!' : 'Retake Quiz' }}</span>
                         </button>
@@ -876,7 +888,15 @@
             $showCheckButton = $visibleQuestion && $this->isInstantFeedback() && ! $isRevealed;
         @endphp
 
-        <div class="qa-take-shell">
+        <div class="qa-take-shell"
+             wire:key="take-shell-{{ $visibleQuestion->id }}-{{ $currentIndex }}"
+             x-bind:class="{ 'qa-media-loading': isMediaLoading }"
+             x-data="qaQuestionState({
+                 qId: {{ $visibleQuestion->id }},
+                 hasMedia: {{ $hasMedia ? 'true' : 'false' }},
+                 hasImage: {{ $hasImg ? 'true' : 'false' }}
+             })"
+             x-init="initQuestion()">
 
             {{-- Slim vertical question rail --}}
             <aside class="qa-progress qa-progress-rail" style="--qa-dots: {{ $orderedQuestions->count() }};" aria-label="Question navigation">
@@ -900,13 +920,7 @@
 
             {{-- Question Card with Alpine Media Preloading --}}
             <div class="qa-card qa-qcard"
-                 wire:key="question-box-{{ $visibleQuestion->id }}-{{ $currentIndex }}"
-                 x-data="qaQuestionState({
-                     qId: {{ $visibleQuestion->id }},
-                     hasMedia: {{ $hasMedia ? 'true' : 'false' }},
-                     hasImage: {{ $hasImg ? 'true' : 'false' }}
-                 })"
-                 x-init="initQuestion()">
+                 wire:key="question-box-{{ $visibleQuestion->id }}-{{ $currentIndex }}">
 
                 @if($visibleQuestion)
                     @if($hasMedia)
@@ -947,11 +961,7 @@
                                             <video controls
                                                    playsinline
                                                    preload="auto"
-                                                   src="{{ $visibleQuestion->question_video_url }}"
-                                                   x-on:loadedmetadata="onMediaLoaded()"
-                                                   x-on:loadeddata="onMediaLoaded()"
-                                                   x-on:canplay="onMediaLoaded()"
-                                                   x-on:error="onMediaError()"></video>
+                                                   src="{{ $visibleQuestion->question_video_url }}"></video>
                                         </div>
                                     </div>
                                 @endif
@@ -993,14 +1003,14 @@
                                     <button type="button"
                                             class="qa-nav-btn"
                                             wire:click="previousQuestion"
-                                            :disabled="{{ $currentIndex === 0 ? 'true' : 'false' }}">
+                                            @disabled($currentIndex === 0)>
                                         ◀ Prev
                                     </button>
 
                                     <button type="button"
                                             class="qa-nav-btn qa-nav-primary {{ ! $showCheckButton && $this->isLastQuestion() ? 'qa-nav-submit' : '' }}"
                                             wire:click="nextOrSubmit"
-                                            @disabled($showCheckButton && $selectedOptionId === null)">
+                                            @disabled($showCheckButton && $selectedOptionId === null)>
                                         @if($showCheckButton)
                                             🔍 Check Answer
                                         @elseif($this->isLastQuestion())
@@ -1048,14 +1058,14 @@
                             <button type="button"
                                     class="qa-nav-btn"
                                     wire:click="previousQuestion"
-                                    :disabled="{{ $currentIndex === 0 ? 'true' : 'false' }}">
+                                    @disabled($currentIndex === 0)>
                                 ◀ Prev
                             </button>
 
                             <button type="button"
                                     class="qa-nav-btn qa-nav-primary {{ ! $showCheckButton && $this->isLastQuestion() ? 'qa-nav-submit' : '' }}"
                                     wire:click="nextOrSubmit"
-                                    @disabled($showCheckButton && $selectedOptionId === null)">
+                                    @disabled($showCheckButton && $selectedOptionId === null)>
                                 @if($showCheckButton)
                                     🔍 Check Answer
                                 @elseif($this->isLastQuestion())
@@ -1137,7 +1147,7 @@
                         <li><span>💾</span> Your chosen answers are saved automatically as you go.</li>
                     </ul>
                     <div class="qa-cta-wrap">
-                        <button type="button" class="qa-start-btn" wire:click="startAttempt">
+                        <button type="button" class="qa-start-btn" wire:click="startAttempt" wire:loading.attr="disabled">
                             <span>▶️</span>
                             <span>{{ $tier === 'kids' ? 'Start the Quiz!' : 'Begin Assessment' }}</span>
                         </button>
@@ -1215,10 +1225,11 @@
 
                 this.isMediaLoading = true;
                 clearTimeout(this.timeoutId);
-                // Safety timeout: auto-unlock if media fails or takes too long so student isn't locked out
+                // Safety net for a stalled image request. The normal load/error
+                // events unlock instantly, so this only matters on bad networks.
                 this.timeoutId = setTimeout(() => {
                     this.isMediaLoading = false;
-                }, 3000);
+                }, 15000);
             },
 
             onMediaLoaded() {
@@ -1229,6 +1240,10 @@
             onMediaError() {
                 clearTimeout(this.timeoutId);
                 this.isMediaLoading = false;
+            },
+
+            destroy() {
+                clearTimeout(this.timeoutId);
             },
 
             // Optimistic UI: highlight the chosen option (and its progress dot)

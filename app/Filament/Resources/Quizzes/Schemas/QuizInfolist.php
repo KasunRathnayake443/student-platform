@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Schemas;
 
+use App\Filament\Infolists\Components\PaginatedRepeatableEntry;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Teacher;
@@ -10,6 +11,7 @@ use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
 
@@ -174,7 +176,19 @@ class QuizInfolist
                     ->icon('heroicon-o-list-bullet')
                     ->schema([
 
-                        RepeatableEntry::make('questions')
+                        View::make('filament.components.quiz-questions-pagination')
+                            ->key('questions-pagination-top')
+                            ->viewData(function ($record, $livewire): array {
+                                return [
+                                    'total' => $record instanceof Quiz ? $record->questions()->count() : 0,
+                                    'perPage' => (int) ($livewire->questionsPerPage ?? 10),
+                                    'currentPage' => (int) ($livewire->questionsPage ?? 1),
+                                    'withOverlay' => true,
+                                ];
+                            })
+                            ->columnSpanFull(),
+
+                        PaginatedRepeatableEntry::make('questions')
                             ->label('')
                             ->schema([
 
@@ -196,6 +210,10 @@ class QuizInfolist
                                     ->hidden(fn ($state): bool => blank($state))
                                     ->imageHeight(220)
                                     ->checkFileExistence(false)
+                                    ->extraImgAttributes([
+                                        'loading' => 'lazy',
+                                        'decoding' => 'async',
+                                    ])
                                     ->columnSpan(2),
 
                                 TextEntry::make('question_video_url')
@@ -241,6 +259,18 @@ class QuizInfolist
 
                             ])
                             ->columns(4)
+                            ->columnSpanFull(),
+
+                        View::make('filament.components.quiz-questions-pagination')
+                            ->key('questions-pagination-bottom')
+                            ->viewData(function ($record, $livewire): array {
+                                return [
+                                    'total' => $record instanceof Quiz ? $record->questions()->count() : 0,
+                                    'perPage' => (int) ($livewire->questionsPerPage ?? 10),
+                                    'currentPage' => (int) ($livewire->questionsPage ?? 1),
+                                    'withOverlay' => false,
+                                ];
+                            })
                             ->columnSpanFull(),
 
                     ])

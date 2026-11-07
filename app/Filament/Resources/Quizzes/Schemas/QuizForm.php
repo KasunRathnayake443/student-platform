@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Schemas;
 
+use App\Filament\Forms\Components\PaginatedRepeater;
 use App\Filament\Rules\InScope;
 use App\Models\LearningClass;
 use App\Models\Quiz;
@@ -21,6 +22,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\HtmlString;
@@ -423,7 +425,21 @@ class QuizForm
                     ->icon('heroicon-o-list-bullet')
                     ->schema([
 
-                        Repeater::make('questions')
+                        View::make('filament.components.quiz-questions-pagination')
+                            ->key('questions-pagination-top')
+                            ->viewData(function (Get $get, $livewire): array {
+                                $questions = $get('questions');
+
+                                return [
+                                    'total' => is_array($questions) ? count($questions) : 0,
+                                    'perPage' => (int) ($livewire->questionsPerPage ?? 10),
+                                    'currentPage' => (int) ($livewire->questionsPage ?? 1),
+                                    'withOverlay' => true,
+                                ];
+                            })
+                            ->columnSpanFull(),
+
+                        PaginatedRepeater::make('questions')
                             ->label('')
                             ->schema([
 
@@ -542,6 +558,20 @@ class QuizForm
                             })
                             ->minItems(1)
                             ->live()
+                            ->columnSpanFull(),
+
+                        View::make('filament.components.quiz-questions-pagination')
+                            ->key('questions-pagination-bottom')
+                            ->viewData(function (Get $get, $livewire): array {
+                                $questions = $get('questions');
+
+                                return [
+                                    'total' => is_array($questions) ? count($questions) : 0,
+                                    'perPage' => (int) ($livewire->questionsPerPage ?? 10),
+                                    'currentPage' => (int) ($livewire->questionsPage ?? 1),
+                                    'withOverlay' => false,
+                                ];
+                            })
                             ->columnSpanFull(),
 
                     ])

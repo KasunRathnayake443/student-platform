@@ -318,6 +318,23 @@ class QuizAttempt extends Page
             return;
         }
 
+        // Guard against rapid double clicks creating duplicate attempts.
+        $inProgress = $student->quizAttempts()
+            ->where('quiz_id', $quiz->id)
+            ->where('status', 'in_progress')
+            ->latest('id')
+            ->first();
+
+        if ($inProgress) {
+            if ($inProgress->autoSubmitIfExpired()) {
+                $this->loadFinished($inProgress->refresh());
+            } else {
+                $this->loadActive($inProgress);
+            }
+
+            return;
+        }
+
         if (! $quiz->isAvailable() || $quiz->isExpired()) {
             $this->notice = 'This quiz is not available to take right now.';
 
