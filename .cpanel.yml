@@ -1,0 +1,5 @@
+deployment:
+  tasks:
+    - export DeploymentPath=/home/beesxhxy/exam.beesmart.ltd
+    - /bin/cp -r * $DeploymentPath
+    - php /home/beesxhxy/repositories/exam/artisan config:cache
