@@ -24,14 +24,14 @@
             </button>
         </div>
     </div>
-
-    <div id="mobile-menu" class="md:hidden fixed inset-0 top-20 backdrop-blur-xl flex flex-col items-center justify-center gap-8 px-6">
-        <a href="#features" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">Features</a>
-        <a href="#portals" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">Portals</a>
-        <a href="#social-proof" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">About</a>
-        <div class="flex flex-col gap-4 w-full max-w-xs mt-4">
-            <a href="/student/login" class="text-center py-3.5 border border-white/30 rounded-lg text-white font-medium text-lg hover:border-teal-300 hover:text-teal-300 transition-colors duration-200">Sign In</a>
-            <a href="#portals" class="text-center py-3.5 bg-teal-500 rounded-lg text-ink font-semibold text-lg hover:bg-teal-400 transition-colors duration-200">Get Started</a>
-        </div>
-    </div>
 </header>
+
+<div id="mobile-menu" class="md:hidden fixed inset-0 top-20 z-50 backdrop-blur-xl flex flex-col items-center gap-8 px-6 py-10 overflow-y-auto">
+    <a href="#features" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">Features</a>
+    <a href="#portals" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">Portals</a>
+    <a href="#social-proof" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">About</a>
+    <div class="flex flex-col gap-4 w-full max-w-xs mt-4">
+        <a href="/student/login" class="text-center py-3.5 border border-white/30 rounded-lg text-white font-medium text-lg hover:border-teal-300 hover:text-teal-300 transition-colors duration-200">Sign In</a>
+        <a href="#portals" class="text-center py-3.5 bg-teal-500 rounded-lg text-ink font-semibold text-lg hover:bg-teal-400 transition-colors duration-200">Get Started</a>
+    </div>
+</div>
