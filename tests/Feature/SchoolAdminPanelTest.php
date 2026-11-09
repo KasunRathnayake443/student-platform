@@ -615,23 +615,68 @@ test('creating a teacher reuses an existing account without breaking other roles
     $this->actingAs(spSchoolAdmin());
     Filament::setCurrentPanel('school-admin');
 
+    $existingUser = User::where('email', 'student6@example.com')->firstOrFail();
+
     Livewire::test(CreateTeacher::class)
         ->fillForm([
-            'name' => 'Emma Charlotte Taylor',
+            'name' => 'Changed Student Name',
             'email' => 'student6@example.com',
             'employee_no' => 'EMP-T-2002',
             'schools' => [spSchool('HIA-2026')->getKey()],
         ])
         ->call('create')
+        ->assertActionMounted('confirmExistingTeacher')
+        ->callMountedAction()
         ->assertHasNoFormErrors();
 
     $user = User::where('email', 'student6@example.com')->firstOrFail();
 
-    expect($user->hasRole('student'))->toBeTrue()
+    expect($user->name)->toBe($existingUser->name)
+        ->and($user->hasRole('student'))->toBeTrue()
         ->and($user->hasRole('teacher'))->toBeTrue()
         ->and($user->student)->not->toBeNull()
         ->and($user->teacher)->not->toBeNull()
         ->and($user->teacher->schools()->pluck('schools.id')->all())->toBe([spSchool('HIA-2026')->getKey()]);
+});
+
+test('adding an existing teacher to a school does not update their details or classes', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $teacher = spUser('teacher3@example.com')->teacher;
+    $originalName = $teacher->user->name;
+    $originalEmployeeNo = $teacher->employee_no;
+    $originalPhone = $teacher->phone;
+    $originalAddress = $teacher->address;
+    $originalClasses = $teacher->classes()->pluck('learning_classes.id')->all();
+
+    $class = spClass(spSchool('HIA-2026'), '10-A Mathematics');
+
+    Livewire::test(CreateTeacher::class)
+        ->fillForm([
+            'name' => 'Overwritten Teacher Name',
+            'email' => 'teacher3@example.com',
+            'employee_no' => 'EMP-T-NEW-9999',
+            'phone' => '+94 11 000 0000',
+            'address' => 'Overwritten Address',
+            'schools' => [spSchool('HIA-2026')->getKey()],
+            'classes' => [$class->getKey()],
+        ])
+        ->call('create')
+        ->assertActionMounted('confirmExistingTeacher')
+        ->callMountedAction()
+        ->assertHasNoFormErrors();
+
+    $teacher->refresh();
+    $user = $teacher->user->refresh();
+
+    expect($user->name)->toBe($originalName)
+        ->and($teacher->employee_no)->toBe($originalEmployeeNo)
+        ->and($teacher->phone)->toBe($originalPhone)
+        ->and($teacher->address)->toBe($originalAddress)
+        ->and($teacher->classes()->pluck('learning_classes.id')->all())->toBe($originalClasses)
+        ->and($teacher->schools()->pluck('schools.id')->all())->toContain(spSchool('HIA-2026')->getKey());
 });
 
 test('school admin can create a new student account with an enrollment', function () {

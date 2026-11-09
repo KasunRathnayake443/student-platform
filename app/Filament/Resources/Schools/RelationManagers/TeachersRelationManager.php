@@ -6,7 +6,6 @@ use App\Filament\Resources\Teachers\TeacherResource;
 use App\Models\LearningClass;
 use App\Models\Teacher;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
@@ -248,7 +247,7 @@ class TeachersRelationManager extends RelationManager
 
                 EditAction::make(),
 
-                DeleteAction::make(),
+                TeacherResource::deleteFromSystemAction(),
 
             ]);
 
