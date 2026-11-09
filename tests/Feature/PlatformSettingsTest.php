@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\PlatformSettings as PlatformSettingsService;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -98,6 +99,22 @@ test('blank smtp password keeps the stored password', function () {
         ->call('save');
 
     expect(PlatformSetting::settings()->mail_password)->toBe('keep-me');
+});
+
+test('an undecryptable smtp password does not break applying platform settings', function () {
+    PlatformSetting::settings()->update([
+        'mail_host' => 'smtp.example.com',
+        'mail_username' => 'smtp@example.com',
+        'mail_password' => 'initial-password',
+    ]);
+
+    // Simulate a value encrypted with a different APP_KEY, for example after
+    // an environment change or importing a database from another install.
+    DB::table('platform_settings')->update(['mail_password' => 'invalid-encrypted-payload']);
+
+    PlatformSettingsService::flushCache();
+
+    expect(fn () => PlatformSettingsService::apply())->not->toThrow(Throwable::class);
 });
 
 test('empty email settings do not override the default mail configuration', function () {

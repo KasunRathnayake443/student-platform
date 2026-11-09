@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PlatformSetting;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 final class PlatformSettings
 {
@@ -32,11 +33,21 @@ final class PlatformSettings
 
         $overrides = [];
 
+        try {
+            $mailPassword = $settings->mail_password;
+        } catch (DecryptException) {
+            // The stored password was encrypted with a different APP_KEY (for
+            // example after an environment change or database import), so it
+            // can no longer be decrypted. Ignore it instead of failing every
+            // request that applies the platform settings.
+            $mailPassword = null;
+        }
+
         foreach ([
             'host' => $settings->mail_host,
             'port' => $settings->mail_port,
             'username' => $settings->mail_username,
-            'password' => $settings->mail_password,
+            'password' => $mailPassword,
         ] as $key => $value) {
             if (filled($value)) {
                 $overrides[$key] = $value;
