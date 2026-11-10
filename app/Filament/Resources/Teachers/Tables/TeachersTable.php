@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Teachers\Tables;
 
-use Filament\Actions\DeleteAction;
+use App\Filament\Resources\Teachers\TeacherResource;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables;
@@ -10,7 +11,7 @@ use Filament\Tables\Table;
 
 class TeachersTable
 {
-    public static function configure(Table $table): Table
+    public static function configure(Table $table, ?Action $recordAction = null): Table
     {
 
         return $table
@@ -53,7 +54,7 @@ class TeachersTable
 
                 EditAction::make(),
 
-                DeleteAction::make(),
+                $recordAction ?? TeacherResource::deleteFromSystemAction(),
 
             ]);
 

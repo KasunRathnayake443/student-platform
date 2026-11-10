@@ -5,6 +5,7 @@ use App\Filament\SchoolAdmin\Resources\Assignments\Pages\ListAssignments;
 use App\Filament\SchoolAdmin\Resources\Grades\Pages\CreateGrade;
 use App\Filament\SchoolAdmin\Resources\Grades\Pages\ListGrades;
 use App\Filament\SchoolAdmin\Resources\LearningClasses\Pages\CreateLearningClass;
+use App\Filament\SchoolAdmin\Resources\LearningClasses\Pages\EditLearningClass;
 use App\Filament\SchoolAdmin\Resources\LearningClasses\Pages\ListLearningClasses;
 use App\Filament\SchoolAdmin\Resources\Lessons\Pages\ListLessons;
 use App\Filament\SchoolAdmin\Resources\Quizzes\Pages\ListQuizzes;
@@ -202,6 +203,61 @@ test('learning classes are scoped to the assigned schools', function () {
         ->assertSuccessful()
         ->assertSee('10-B Science & Physics')
         ->assertDontSee('8-A General Science');
+});
+
+test('creating a learning class from a school tab only offers that school\'s grades', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+
+    $component = Livewire::withQueryParams(['school_id' => $school->getKey()])
+        ->test(CreateLearningClass::class)
+        ->assertSuccessful();
+
+    expect((int) $component->get('data.school_id'))->toBe($school->getKey());
+
+    $gradeSelect = $component->instance()->getSchema('form')->getComponent('grade_id');
+
+    $expected = Grade::where('school_id', $school->getKey())
+        ->orderBy('name')
+        ->pluck('name', 'id')
+        ->all();
+
+    expect($gradeSelect->getOptions())->toBe($expected);
+});
+
+test('the create class action carries the selected school tab into the form', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+
+    Livewire::test(ListLearningClasses::class)
+        ->set('activeTab', 'school_'.$school->getKey())
+        ->assertActionHasUrl('create', CreateLearningClass::getUrl([
+            'school_id' => $school->getKey(),
+        ]));
+});
+
+test('editing a learning class preselects its school and keeps its grade selectable', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $class = spClass(spSchool('HIA-2026'), '10-A Mathematics');
+
+    $component = Livewire::test(EditLearningClass::class, ['record' => $class->getKey()])
+        ->assertSuccessful();
+
+    expect((int) $component->get('data.school_id'))->toBe($class->grade->school_id)
+        ->and((int) $component->get('data.grade_id'))->toBe($class->grade_id);
+
+    $gradeSelect = $component->instance()->getSchema('form')->getComponent('grade_id');
+
+    expect($gradeSelect->getOptions())->toHaveKey($class->grade_id);
 });
 
 test('teachers are scoped to the assigned schools', function () {
@@ -615,23 +671,68 @@ test('creating a teacher reuses an existing account without breaking other roles
     $this->actingAs(spSchoolAdmin());
     Filament::setCurrentPanel('school-admin');
 
+    $existingUser = User::where('email', 'student6@example.com')->firstOrFail();
+
     Livewire::test(CreateTeacher::class)
         ->fillForm([
-            'name' => 'Emma Charlotte Taylor',
+            'name' => 'Changed Student Name',
             'email' => 'student6@example.com',
             'employee_no' => 'EMP-T-2002',
             'schools' => [spSchool('HIA-2026')->getKey()],
         ])
         ->call('create')
+        ->assertActionMounted('confirmExistingTeacher')
+        ->callMountedAction()
         ->assertHasNoFormErrors();
 
     $user = User::where('email', 'student6@example.com')->firstOrFail();
 
-    expect($user->hasRole('student'))->toBeTrue()
+    expect($user->name)->toBe($existingUser->name)
+        ->and($user->hasRole('student'))->toBeTrue()
         ->and($user->hasRole('teacher'))->toBeTrue()
         ->and($user->student)->not->toBeNull()
         ->and($user->teacher)->not->toBeNull()
         ->and($user->teacher->schools()->pluck('schools.id')->all())->toBe([spSchool('HIA-2026')->getKey()]);
+});
+
+test('adding an existing teacher to a school does not update their details or classes', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $teacher = spUser('teacher3@example.com')->teacher;
+    $originalName = $teacher->user->name;
+    $originalEmployeeNo = $teacher->employee_no;
+    $originalPhone = $teacher->phone;
+    $originalAddress = $teacher->address;
+    $originalClasses = $teacher->classes()->pluck('learning_classes.id')->all();
+
+    $class = spClass(spSchool('HIA-2026'), '10-A Mathematics');
+
+    Livewire::test(CreateTeacher::class)
+        ->fillForm([
+            'name' => 'Overwritten Teacher Name',
+            'email' => 'teacher3@example.com',
+            'employee_no' => 'EMP-T-NEW-9999',
+            'phone' => '+94 11 000 0000',
+            'address' => 'Overwritten Address',
+            'schools' => [spSchool('HIA-2026')->getKey()],
+            'classes' => [$class->getKey()],
+        ])
+        ->call('create')
+        ->assertActionMounted('confirmExistingTeacher')
+        ->callMountedAction()
+        ->assertHasNoFormErrors();
+
+    $teacher->refresh();
+    $user = $teacher->user->refresh();
+
+    expect($user->name)->toBe($originalName)
+        ->and($teacher->employee_no)->toBe($originalEmployeeNo)
+        ->and($teacher->phone)->toBe($originalPhone)
+        ->and($teacher->address)->toBe($originalAddress)
+        ->and($teacher->classes()->pluck('learning_classes.id')->all())->toBe($originalClasses)
+        ->and($teacher->schools()->pluck('schools.id')->all())->toContain(spSchool('HIA-2026')->getKey());
 });
 
 test('school admin can create a new student account with an enrollment', function () {

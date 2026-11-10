@@ -181,7 +181,7 @@ class EditTeacher extends EditRecord
 
             Actions\ViewAction::make(),
 
-            Actions\DeleteAction::make(),
+            TeacherResource::deleteFromSystemAction(),
 
         ];
 

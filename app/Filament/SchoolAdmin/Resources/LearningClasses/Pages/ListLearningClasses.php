@@ -17,7 +17,10 @@ class ListLearningClasses extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->url(fn (): string => static::getResource()::getUrl('create', array_filter([
+                    'school_id' => $this->getActiveSchoolId(),
+                ]))),
         ];
     }
 
@@ -38,6 +41,21 @@ class ListLearningClasses extends ListRecords
         }
 
         return $tabs;
+    }
+
+    protected function getActiveSchoolId(): ?int
+    {
+        if (! preg_match('/^school_(\d+)$/', (string) $this->activeTab, $matches)) {
+            return null;
+        }
+
+        $schoolId = (int) $matches[1];
+
+        if (! in_array($schoolId, SchoolAdminScopes::schoolIds(), true)) {
+            return null;
+        }
+
+        return $schoolId;
     }
 
     public function getLayout(): string
