@@ -1,5 +1,7 @@
 <?php
 
+use App\Filament\Resources\Schools\Pages\ViewSchool as AdminViewSchool;
+use App\Filament\Resources\Schools\RelationManagers\TeachersRelationManager as AdminSchoolTeachersRelationManager;
 use App\Filament\Resources\Teachers\Pages\ListTeachers as AdminListTeachers;
 use App\Filament\SchoolAdmin\Resources\Teachers\Pages\EditTeacher as SchoolEditTeacher;
 use App\Filament\SchoolAdmin\Resources\Teachers\Pages\ListTeachers as SchoolListTeachers;
@@ -84,6 +86,43 @@ test('a school admin removing a teacher only detaches the selected school and it
         ->and($teacher->schools()->where('schools.id', $osc->getKey())->exists())->toBeTrue()
         ->and($teacher->classes()->where('learning_classes.id', $hiaClass->getKey())->exists())->toBeFalse()
         ->and($teacher->classes()->where('learning_classes.id', $oscClass->getKey())->exists())->toBeTrue();
+});
+
+test('a super admin removing a teacher from a school keeps their teaching content', function () {
+    $this->seed();
+    $this->actingAs(tmUser('admin1@example.com'));
+    Filament::setCurrentPanel('admin');
+
+    $hia = tmSchool('HIA-2026');
+    $teacher = tmUser('teacher5@example.com')->teacher;
+
+    $lessonIds = Lesson::where('teacher_id', $teacher->getKey())->pluck('id')->all();
+    $assignmentIds = Assignment::where('teacher_id', $teacher->getKey())->pluck('id')->all();
+    $quizIds = Quiz::where('teacher_id', $teacher->getKey())->pluck('id')->all();
+
+    expect($lessonIds)->not->toBeEmpty()
+        ->and($assignmentIds)->not->toBeEmpty()
+        ->and($quizIds)->not->toBeEmpty();
+
+    Livewire::test(AdminSchoolTeachersRelationManager::class, [
+        'ownerRecord' => $hia,
+        'pageClass' => AdminViewSchool::class,
+    ])
+        ->assertTableActionExists('removeFromSchool', null, $teacher)
+        ->assertTableActionDoesNotExist('delete', null, $teacher)
+        ->callTableAction('removeFromSchool', $teacher);
+
+    $teacher->refresh();
+
+    expect($teacher->schools()->where('schools.id', $hia->getKey())->exists())->toBeFalse()
+        ->and($teacher->classes()->whereHas(
+            'grade',
+            fn ($query) => $query->where('school_id', $hia->getKey()),
+        )->exists())->toBeFalse()
+        ->and(Teacher::find($teacher->getKey()))->not->toBeNull()
+        ->and(Lesson::whereKey($lessonIds)->count())->toBe(count($lessonIds))
+        ->and(Assignment::whereKey($assignmentIds)->count())->toBe(count($assignmentIds))
+        ->and(Quiz::whereKey($quizIds)->count())->toBe(count($quizIds));
 });
 
 test('a school admin cannot remove a teacher from a school outside their scope', function () {

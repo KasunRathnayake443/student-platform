@@ -5,6 +5,7 @@ use App\Filament\SchoolAdmin\Resources\Assignments\Pages\ListAssignments;
 use App\Filament\SchoolAdmin\Resources\Grades\Pages\CreateGrade;
 use App\Filament\SchoolAdmin\Resources\Grades\Pages\ListGrades;
 use App\Filament\SchoolAdmin\Resources\LearningClasses\Pages\CreateLearningClass;
+use App\Filament\SchoolAdmin\Resources\LearningClasses\Pages\EditLearningClass;
 use App\Filament\SchoolAdmin\Resources\LearningClasses\Pages\ListLearningClasses;
 use App\Filament\SchoolAdmin\Resources\Lessons\Pages\ListLessons;
 use App\Filament\SchoolAdmin\Resources\Quizzes\Pages\ListQuizzes;
@@ -202,6 +203,61 @@ test('learning classes are scoped to the assigned schools', function () {
         ->assertSuccessful()
         ->assertSee('10-B Science & Physics')
         ->assertDontSee('8-A General Science');
+});
+
+test('creating a learning class from a school tab only offers that school\'s grades', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+
+    $component = Livewire::withQueryParams(['school_id' => $school->getKey()])
+        ->test(CreateLearningClass::class)
+        ->assertSuccessful();
+
+    expect((int) $component->get('data.school_id'))->toBe($school->getKey());
+
+    $gradeSelect = $component->instance()->getSchema('form')->getComponent('grade_id');
+
+    $expected = Grade::where('school_id', $school->getKey())
+        ->orderBy('name')
+        ->pluck('name', 'id')
+        ->all();
+
+    expect($gradeSelect->getOptions())->toBe($expected);
+});
+
+test('the create class action carries the selected school tab into the form', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $school = spSchool('HIA-2026');
+
+    Livewire::test(ListLearningClasses::class)
+        ->set('activeTab', 'school_'.$school->getKey())
+        ->assertActionHasUrl('create', CreateLearningClass::getUrl([
+            'school_id' => $school->getKey(),
+        ]));
+});
+
+test('editing a learning class preselects its school and keeps its grade selectable', function () {
+    $this->seed();
+    $this->actingAs(spSchoolAdmin());
+    Filament::setCurrentPanel('school-admin');
+
+    $class = spClass(spSchool('HIA-2026'), '10-A Mathematics');
+
+    $component = Livewire::test(EditLearningClass::class, ['record' => $class->getKey()])
+        ->assertSuccessful();
+
+    expect((int) $component->get('data.school_id'))->toBe($class->grade->school_id)
+        ->and((int) $component->get('data.grade_id'))->toBe($class->grade_id);
+
+    $gradeSelect = $component->instance()->getSchema('form')->getComponent('grade_id');
+
+    expect($gradeSelect->getOptions())->toHaveKey($class->grade_id);
 });
 
 test('teachers are scoped to the assigned schools', function () {

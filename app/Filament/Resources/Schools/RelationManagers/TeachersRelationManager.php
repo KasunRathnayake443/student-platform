@@ -5,11 +5,13 @@ namespace App\Filament\Resources\Schools\RelationManagers;
 use App\Filament\Resources\Teachers\TeacherResource;
 use App\Models\LearningClass;
 use App\Models\Teacher;
+use App\Services\TeacherService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -247,7 +249,30 @@ class TeachersRelationManager extends RelationManager
 
                 EditAction::make(),
 
-                TeacherResource::deleteFromSystemAction(),
+                Action::make('removeFromSchool')
+
+                    ->label('Remove from School')
+
+                    ->icon(Heroicon::OutlinedBuildingOffice2)
+
+                    ->color('danger')
+
+                    ->requiresConfirmation()
+
+                    ->modalHeading(fn (Teacher $record): string => 'Remove '.$record->user->name.' from this school')
+
+                    ->modalDescription('This only removes the teacher from this school and the classes that belong to it. Their account and teaching content are kept.')
+
+                    ->action(function (Teacher $record): void {
+
+                        app(TeacherService::class)->removeFromSchools(
+                            $record,
+                            [$this->getOwnerRecord()->getKey()],
+                        );
+
+                    })
+
+                    ->successNotificationTitle('Teacher removed from school'),
 
             ]);
 
