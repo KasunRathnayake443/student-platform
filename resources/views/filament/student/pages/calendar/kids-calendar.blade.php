@@ -11,6 +11,7 @@
     flex-direction: column;
     gap: 1.75rem;
     width: 100%;
+    min-width: 0;
 }
 
 /* Hero Header */
@@ -111,9 +112,10 @@
 /* Calendar Main Layout */
 .kids-cal-grid-layout {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: minmax(0, 1fr) 380px;
     gap: 1.75rem;
     align-items: stretch;
+    min-width: 0;
 }
 @media (max-width: 1050px) {
     .kids-cal-grid-layout {
@@ -128,6 +130,7 @@
     padding: 2rem;
     border: 4px solid #ede9fe;
     box-shadow: 0 10px 32px rgba(124, 58, 237, 0.12);
+    min-width: 0;
 }
 
 /* Month Navigation */
@@ -138,11 +141,15 @@
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
+    min-width: 0;
 }
 .kids-cal-nav-center {
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 0.75rem;
+    min-width: 0;
 }
 .kids-cal-month-pill {
     background: linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%);
@@ -153,6 +160,8 @@
     align-items: center;
     gap: 0.65rem;
     box-shadow: 0 4px 16px rgba(168, 85, 247, 0.15);
+    min-width: 0;
+    max-width: 100%;
 }
 .kids-cal-month-title {
     font-size: 1.45rem;
@@ -218,7 +227,7 @@
 /* Weekdays Row */
 .kids-cal-weekdays {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.5rem;
     margin-bottom: 0.75rem;
 }
@@ -242,7 +251,7 @@
 /* Days Grid */
 .kids-cal-days {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.5rem;
 }
 .kids-cal-day {
@@ -256,6 +265,8 @@
     justify-content: space-between;
     cursor: pointer;
     position: relative;
+    min-width: 0;
+    overflow: hidden;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .kids-cal-day:hover {
@@ -652,25 +663,49 @@
     .kids-cal-drawer { max-height: none; }
 }
 @media (max-width: 640px) {
-    .kids-cal-hero { padding: 1.25rem; border-radius: 1.35rem; gap: 0.85rem; }
-    .kids-cal-hero-mascot { font-size: 2.5rem; }
-    .kids-cal-hero-text h2 { font-size: 1.3rem; }
-    .kids-cal-hero-text p { font-size: 0.85rem; }
-    .kids-cal-hero-stats { width: 100%; justify-content: flex-start; gap: 0.5rem; }
-    .kids-cal-stat-pill { padding: 0.4rem 0.75rem; font-size: 0.78rem; }
-    .kids-cal-board { padding: 1rem 0.65rem; border-radius: 1.35rem; }
-    .kids-cal-header { gap: 0.65rem; margin-bottom: 1rem; }
-    .kids-cal-month-title { font-size: 1.25rem; min-width: 0; }
-    .kids-cal-btn-nav { width: 2.4rem; height: 2.4rem; font-size: 1.15rem; }
-    .kids-cal-btn-today { padding: 0.45rem 0.9rem; font-size: 0.82rem; }
-    .kids-cal-weekdays { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; margin-bottom: 0.4rem; }
-    .kids-cal-wd { font-size: 0.68rem; padding: 0.35rem 0.1rem; border-radius: 0.5rem; }
-    .kids-cal-days { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; }
-    .kids-cal-day { min-height: 3.6rem; padding: 0.3rem 0.25rem; border-radius: 0.75rem; border-width: 2px; }
-    .kids-cal-day-num { font-size: 0.85rem; }
+    .kids-cal-container { gap: 1.15rem; }
+    .kids-cal-hero { padding: 1.15rem; border-radius: 1.35rem; }
+    .kids-cal-hero-inner { gap: 0.85rem; }
+    .kids-cal-hero-left { gap: 0.7rem; align-items: flex-start; min-width: 0; }
+    .kids-cal-mascot { font-size: 2.4rem; }
+    .kids-cal-greeting { min-width: 0; }
+    .kids-cal-greeting h2 { font-size: 1.3rem; line-height: 1.2; }
+    .kids-cal-greeting p { font-size: 0.82rem; }
+    .kids-cal-stats-row { width: 100%; justify-content: flex-start; gap: 0.45rem; }
+    .kids-cal-stat-pill { padding: 0.4rem 0.75rem; font-size: 0.76rem; }
+
+    .kids-cal-card { padding: 0.9rem 0.65rem; border-radius: 1.35rem; border-width: 3px; }
+
+    .kids-cal-nav {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.9rem;
+    }
+    .kids-cal-nav-center { gap: 0.45rem; }
+    .kids-cal-month-pill { padding: 0.45rem 0.8rem; gap: 0.4rem; }
+    .kids-cal-month-pill > span:first-child { display: none; }
+    .kids-cal-month-title { font-size: 1.05rem; white-space: nowrap; }
+    .kids-cal-year-badge { font-size: 0.68rem; padding: 0.15rem 0.45rem; }
+    .kids-cal-btn-nav { width: 2.15rem; height: 2.15rem; font-size: 1.05rem; border-radius: 0.85rem; }
+    .kids-cal-btn-today { padding: 0.4rem 0.7rem; font-size: 0.74rem; gap: 0.25rem; }
+
+    .kids-cal-weekdays { gap: 0.22rem; margin-bottom: 0.4rem; }
+    .kids-cal-wd { font-size: 0.62rem; padding: 0.3rem 0; border-radius: 0.5rem; border-width: 1.5px; }
+    .kids-cal-days { gap: 0.22rem; }
+    .kids-cal-day { min-height: 3.3rem; padding: 0.28rem 0.22rem; border-radius: 0.7rem; border-width: 2px; }
+    .kids-cal-day-num { font-size: 0.8rem; }
     .kids-cal-day-today-tag { display: none; }
-    .kids-cal-badge-pill { font-size: 0.58rem; padding: 0.1rem 0.25rem; border-radius: 0.35rem; }
-    .kids-cal-drawer { padding: 1.15rem; border-radius: 1.35rem; }
+    .kids-cal-day-badges { gap: 0.15rem; margin-top: 0.2rem; }
+    .kids-cal-badge-pill { font-size: 0.54rem; padding: 0.08rem 0.2rem; border-radius: 0.3rem; border-width: 1px; }
+
+    .kids-cal-legend { gap: 0.5rem 0.9rem; margin-top: 1rem; padding-top: 0.9rem; }
+    .kids-cal-legend-item { font-size: 0.74rem; }
+
+    .kids-cal-drawer { padding: 1.1rem; border-radius: 1.35rem; border-width: 3px; }
+    .kids-event-card { padding: 0.9rem; border-radius: 1.1rem; }
+    .kids-event-emoji { font-size: 2rem; }
     .kids-btn-save-note { width: 100%; text-align: center; }
 }
 </style>
