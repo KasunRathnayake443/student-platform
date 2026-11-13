@@ -577,6 +577,101 @@
     .t-gd-graded { background: #ecfdf5; color: #059669; }
     .t-gd-submitted { background: #fffbeb; color: #b45309; }
     .t-gd-pending { background: #f1f5f9; color: #64748b; }
+
+    /* Quiz attempt review (per attempt) */
+    .t-ad-quiz-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+    .t-ad-toggle {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 0; border: 0; background: none; cursor: pointer;
+        font-family: inherit; font-size: 11px; font-weight: 700; color: #4f46e5;
+    }
+    .t-ad-toggle:hover { color: #4338ca; text-decoration: underline; }
+    .t-ad-toggle:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 4px; }
+    .t-ad-toggle svg { width: 12px; height: 12px; transition: transform .16s ease; }
+    .t-ad-toggle.is-open svg { transform: rotate(180deg); }
+
+    .t-ad-detail-row { display: none; }
+    .t-ad-detail-row.is-open { display: table-row; }
+    .t-ad-detail-row > td.t-ad-detail-cell {
+        padding: 0 !important; border-bottom: 0 !important; background: #fbfcfe;
+    }
+    .t-ad-panel { display: flex; flex-direction: column; gap: 14px; padding: 16px; }
+    .t-ad-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .t-ad-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .t-ad-pill {
+        display: inline-flex; align-items: center;
+        padding: 3px 10px; border-radius: 999px;
+        font-size: 10.5px; font-weight: 700; background: #f1f5f9; color: #64748b;
+    }
+    .t-ad-pill.is-correct { background: #ecfdf5; color: #059669; }
+    .t-ad-pill.is-wrong { background: #fef2f2; color: #dc2626; }
+    .t-ad-pill.is-skipped { background: #f1f5f9; color: #64748b; }
+    .t-ad-pill.is-score { background: #eef2ff; color: #4f46e5; }
+    .t-ad-hint { margin: 0; font-size: 11.5px; font-weight: 500; color: #94a3b8; }
+
+    .t-ad-section { padding: 14px; background: #ffffff; border: 1px solid #eef1f7; border-radius: 12px; }
+    .t-ad-section-title {
+        display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+        font-size: 12.5px; font-weight: 700; color: #0f172a;
+    }
+    .t-ad-ai-badge {
+        padding: 1px 7px; border-radius: 999px;
+        font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+        color: #059669; background: #ecfdf5; border: 1px solid #d1fae5;
+    }
+    .t-ad-ai-summary {
+        margin: 0 0 10px; padding: 10px 12px; border-radius: 10px;
+        background: #f5f3ff; border: 1px solid #ede9fe;
+        color: #5b21b6; font-size: 12px; line-height: 1.6; font-weight: 600;
+    }
+    .t-ad-ai-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .t-ad-ai-panel { padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; }
+    .t-ad-ai-panel.is-strength { background: #f0fdf4; border-color: #d1fae5; }
+    .t-ad-ai-panel.is-focus { background: #fffbeb; border-color: #fde68a; }
+    .t-ad-ai-panel h4 { margin: 0 0 6px; font-size: 11.5px; font-weight: 700; color: #0f172a; }
+    .t-ad-ai-area { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0; }
+    .t-ad-ai-area:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+    .t-ad-ai-area strong { display: block; font-size: 11.5px; color: #1e293b; }
+    .t-ad-ai-area span { font-size: 10.5px; font-weight: 700; color: #4f46e5; }
+    .t-ad-ai-area p { margin: 2px 0 0; font-size: 11.5px; line-height: 1.5; font-weight: 500; color: #475569; }
+    .t-ad-steps { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
+    .t-ad-steps h4 { margin: 0 0 4px; font-size: 11.5px; font-weight: 700; color: #0f172a; }
+    .t-ad-steps ul { margin: 0; padding-left: 16px; font-size: 11.5px; line-height: 1.55; font-weight: 500; color: #475569; }
+    .t-ad-muted { margin: 0; font-size: 11.5px; font-weight: 500; color: #94a3b8; }
+
+    .t-ad-questions { display: flex; flex-direction: column; gap: 10px; }
+    .t-ad-question { padding: 12px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; }
+    .t-ad-question.is-correct { background: #f0fdf4; border-color: #bbf7d0; }
+    .t-ad-question.is-wrong { background: #fef2f2; border-color: #fecaca; }
+    .t-ad-question.is-skipped { background: #f8fafc; border-color: #e2e8f0; }
+    .t-ad-question-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .t-ad-question-num { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+    .t-ad-question-badge { padding: 2px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700; }
+    .t-ad-question-badge.is-correct { background: #dcfce7; color: #15803d; }
+    .t-ad-question-badge.is-wrong { background: #fee2e2; color: #991b1b; }
+    .t-ad-question-badge.is-skipped { background: #e2e8f0; color: #64748b; }
+    .t-ad-question-points { margin-left: auto; font-size: 10.5px; font-weight: 700; color: #64748b; }
+    .t-ad-question-text { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; font-weight: 600; color: #0f172a; }
+    .t-ad-media { margin: 0 0 8px; border-radius: 10px; overflow: hidden; background: #f1f5f9; }
+    .t-ad-media img { display: block; width: 100%; max-height: 240px; object-fit: contain; }
+    .t-ad-media video { display: block; width: 100%; max-height: 240px; }
+    .t-ad-answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .t-ad-answer { padding: 8px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; }
+    .t-ad-answer.is-correct { background: #f0fdf4; border-color: #bbf7d0; }
+    .t-ad-answer.is-wrong { background: #fef2f2; border-color: #fecaca; }
+    .t-ad-answer-label {
+        display: block; margin-bottom: 2px;
+        font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8;
+    }
+    .t-ad-answer.is-correct .t-ad-answer-label { color: #059669; }
+    .t-ad-answer.is-wrong .t-ad-answer-label { color: #dc2626; }
+    .t-ad-answer-text { display: block; font-size: 12px; line-height: 1.45; font-weight: 600; color: #0f172a; word-break: break-word; }
+    .t-ad-explanation {
+        margin-top: 8px; padding: 8px 10px; border-radius: 9px;
+        background: #fffbeb; border: 1px solid #fde68a;
+        color: #92400e; font-size: 11.5px; line-height: 1.55; font-weight: 500;
+    }
+
     @media (max-width: 1080px) {
         .t-gd-grid { grid-template-columns: 1fr; }
         .t-grade-stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
@@ -666,6 +761,19 @@
             text-align: left;
             flex-shrink: 0;
         }
+
+        /* Attempt review rows stack as full-width panels */
+        .t-gd-table tr.t-ad-detail-row { background: #ffffff; padding: 0; border-bottom: 0; }
+        .t-gd-table tr.t-ad-detail-row.is-open { display: block; }
+        .t-gd-table tr.t-ad-detail-row > td.t-ad-detail-cell {
+            display: block; padding: 0; border: 0; text-align: left;
+        }
+        .t-gd-table tr.t-ad-detail-row > td.t-ad-detail-cell::before { content: none; }
+        .t-ad-panel { padding: 12px; }
+        .t-ad-ai-grid, .t-ad-answers { grid-template-columns: 1fr; }
+        .t-ad-quiz-cell { align-items: flex-end; width: 100%; }
+        .t-ad-question-head { align-items: flex-start; }
+        .t-ad-question-points { margin-left: 0; width: 100%; }
     }
     @media (max-width: 380px) {
         .t-hero-actions { grid-template-columns: 1fr; }
@@ -1107,7 +1215,7 @@
         <div class="t-grades-head">
             <div>
                 <h2 style="font-size:16px;font-weight:700;color:#0f172a;">Student Grades</h2>
-                <p style="font-size:12.5px;color:#64748b;margin-top:2px;">Full score profile for every student in your classes. Click a student to expand the details.</p>
+                <p style="font-size:12.5px;color:#64748b;margin-top:2px;">Full score profile for every student in your classes. Click a student, then <strong>Review answers</strong> on a quiz attempt to see correct/wrong answers and AI feedback.</p>
             </div>
             <span class="t-grades-count">{{ $studentGrades->count() }} {{ Str::plural('student', $studentGrades->count()) }}</span>
         </div>
@@ -1215,8 +1323,29 @@
                                             </thead>
                                             <tbody>
                                                 @foreach($g['attempts'] as $attempt)
+                                                    @php
+                                                        $detail = $g['attemptDetails'][$attempt->id] ?? null;
+                                                        $hasDetail = $detail && ($detail['total_questions'] ?? 0) > 0;
+                                                    @endphp
                                                     <tr>
-                                                        <td data-label="Quiz"><span class="t-gd-title">{{ $attempt->quiz?->title ?? 'Quiz' }}</span></td>
+                                                        <td data-label="Quiz">
+                                                            <div class="t-ad-quiz-cell">
+                                                                <span class="t-gd-title">{{ $attempt->quiz?->title ?? 'Quiz' }}</span>
+                                                                @if($hasDetail)
+                                                                    <button type="button"
+                                                                            class="t-ad-toggle"
+                                                                            data-toggle="attempt-detail-{{ $attempt->id }}"
+                                                                            onclick="toggleAttemptDetail(this)"
+                                                                            aria-expanded="false"
+                                                                            aria-controls="attempt-detail-{{ $attempt->id }}">
+                                                                        <span>Review answers</span>
+                                                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                                                        </svg>
+                                                                    </button>
+                                                                @endif
+                                                            </div>
+                                                        </td>
                                                         <td data-label="Class" class="t-gd-muted">{{ $attempt->quiz?->learningClass?->name ?? '—' }}</td>
                                                         <td data-label="Score" class="t-gd-muted">{{ $attempt->score }} / {{ $attempt->quiz?->total_points }}</td>
                                                         <td data-label="Percentage"><span class="t-gp">{{ round((float) $attempt->percentage) }}%</span></td>
@@ -1229,6 +1358,143 @@
                                                         </td>
                                                         <td data-label="Completed" class="t-gd-muted">{{ $attempt->completed_at?->format('M d, Y') ?? '—' }}</td>
                                                     </tr>
+                                                    @if($hasDetail)
+                                                        @php $ai = $detail['ai_analysis']; @endphp
+                                                        <tr class="t-ad-detail-row" id="attempt-detail-{{ $attempt->id }}">
+                                                            <td colspan="6" class="t-ad-detail-cell">
+                                                                <div class="t-ad-panel">
+                                                                    <div class="t-ad-top">
+                                                                        <div class="t-ad-pills">
+                                                                            <span class="t-ad-pill is-correct">{{ $detail['correct_count'] }} correct</span>
+                                                                            <span class="t-ad-pill is-wrong">{{ $detail['wrong_count'] }} wrong</span>
+                                                                            @if($detail['unanswered_count'] > 0)
+                                                                                <span class="t-ad-pill is-skipped">{{ $detail['unanswered_count'] }} unanswered</span>
+                                                                            @endif
+                                                                            <span class="t-ad-pill is-score">{{ round((float) $attempt->percentage) }}%</span>
+                                                                        </div>
+                                                                        <p class="t-ad-hint">
+                                                                            Attempt #{{ $attempt->attempt_number }} ·
+                                                                            {{ $detail['total_questions'] }} {{ Str::plural('question', $detail['total_questions']) }} ·
+                                                                            {{ $attempt->is_passed ? 'Passed' : 'Not passed' }}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    <div class="t-ad-section">
+                                                                        <div class="t-ad-section-title">
+                                                                            <span>✨ AI Feedback</span>
+                                                                            @if($ai)
+                                                                                <span class="t-ad-ai-badge">Generated</span>
+                                                                            @endif
+                                                                        </div>
+
+                                                                        @if($ai)
+                                                                            @if(! empty($ai['summary']))
+                                                                                <p class="t-ad-ai-summary">{{ $ai['summary'] }}</p>
+                                                                            @endif
+
+                                                                            <div class="t-ad-ai-grid">
+                                                                                <div class="t-ad-ai-panel is-strength">
+                                                                                    <h4>💪 Strongest areas</h4>
+                                                                                    @forelse($ai['strengths'] ?? [] as $area)
+                                                                                        <div class="t-ad-ai-area">
+                                                                                            <strong>{{ $area['area'] ?? 'Strength' }}</strong>
+                                                                                            <span>{{ (int) ($area['score'] ?? 0) }}%</span>
+                                                                                            @if(! empty($area['comment']))
+                                                                                                <p>{{ $area['comment'] }}</p>
+                                                                                            @endif
+                                                                                        </div>
+                                                                                    @empty
+                                                                                        <p class="t-ad-muted">No standout strengths detected for this attempt.</p>
+                                                                                    @endforelse
+                                                                                </div>
+
+                                                                                <div class="t-ad-ai-panel is-focus">
+                                                                                    <h4>🎯 Areas to focus on</h4>
+                                                                                    @forelse($ai['focus_areas'] ?? [] as $area)
+                                                                                        <div class="t-ad-ai-area">
+                                                                                            <strong>{{ $area['area'] ?? 'Focus area' }}</strong>
+                                                                                            <span>{{ (int) ($area['score'] ?? 0) }}%</span>
+                                                                                            @if(! empty($area['comment']))
+                                                                                                <p>{{ $area['comment'] }}</p>
+                                                                                            @endif
+                                                                                            @if(! empty($area['suggestion']))
+                                                                                                <p><strong>Try this:</strong> {{ $area['suggestion'] }}</p>
+                                                                                            @endif
+                                                                                        </div>
+                                                                                    @empty
+                                                                                        <p class="t-ad-muted">No weak areas detected — excellent work!</p>
+                                                                                    @endforelse
+                                                                                </div>
+                                                                            </div>
+
+                                                                            @if(! empty($ai['next_steps']))
+                                                                                <div class="t-ad-steps">
+                                                                                    <h4>🚀 Next steps</h4>
+                                                                                    <ul>
+                                                                                        @foreach($ai['next_steps'] as $step)
+                                                                                            <li>{{ $step }}</li>
+                                                                                        @endforeach
+                                                                                    </ul>
+                                                                                </div>
+                                                                            @endif
+                                                                        @else
+                                                                            <p class="t-ad-muted">
+                                                                                AI feedback is not available for this attempt{{ $detail['ai_analysis_status'] === 'failed' ? ' (generation failed)' : ' yet' }}.
+                                                                            </p>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    <div class="t-ad-questions">
+                                                                        @foreach($detail['questions'] as $question)
+                                                                            @php
+                                                                                $questionState = ! $question['is_answered']
+                                                                                    ? 'is-skipped'
+                                                                                    : ($question['is_correct'] ? 'is-correct' : 'is-wrong');
+                                                                            @endphp
+                                                                            <article class="t-ad-question {{ $questionState }}">
+                                                                                <div class="t-ad-question-head">
+                                                                                    <span class="t-ad-question-num">Question {{ $question['number'] }}</span>
+                                                                                    <span class="t-ad-question-badge {{ $questionState }}">
+                                                                                        {{ ! $question['is_answered'] ? '— Not answered' : ($question['is_correct'] ? '✓ Correct' : '✗ Wrong') }}
+                                                                                    </span>
+                                                                                    <span class="t-ad-question-points">{{ $question['points_awarded'] }} / {{ $question['points_possible'] }} pts</span>
+                                                                                </div>
+
+                                                                                <p class="t-ad-question-text">{{ $question['question'] }}</p>
+
+                                                                                @if($question['question_image_url'])
+                                                                                    <div class="t-ad-media">
+                                                                                        <img src="{{ $question['question_image_url'] }}" alt="Question image">
+                                                                                    </div>
+                                                                                @elseif($question['question_video_url'])
+                                                                                    <div class="t-ad-media">
+                                                                                        <video controls preload="metadata" src="{{ $question['question_video_url'] }}"></video>
+                                                                                    </div>
+                                                                                @endif
+
+                                                                                <div class="t-ad-answers">
+                                                                                    <div class="t-ad-answer {{ $question['is_answered'] ? ($question['is_correct'] ? 'is-correct' : 'is-wrong') : '' }}">
+                                                                                        <span class="t-ad-answer-label">Student's answer</span>
+                                                                                        <span class="t-ad-answer-text">{{ $question['selected_answer'] ?? 'Not answered' }}</span>
+                                                                                    </div>
+                                                                                    <div class="t-ad-answer is-correct">
+                                                                                        <span class="t-ad-answer-label">Correct answer</span>
+                                                                                        <span class="t-ad-answer-text">{{ $question['correct_answer'] ?? 'Not set' }}</span>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                @if($question['explanation'])
+                                                                                    <div class="t-ad-explanation">
+                                                                                        <strong>💡 Explanation:</strong> {{ $question['explanation'] }}
+                                                                                    </div>
+                                                                                @endif
+                                                                            </article>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endif
                                                 @endforeach
                                             </tbody>
                                         </table>
@@ -1371,6 +1637,16 @@
         const chevron = el.querySelector('.t-grade-chevron');
         if (chevron) chevron.classList.toggle('open', !open);
         el.setAttribute('aria-expanded', String(!open));
+    }
+
+    /* Grades: expand / collapse a quiz attempt review */
+    function toggleAttemptDetail(el) {
+        const id = el.getAttribute('data-toggle');
+        const row = document.getElementById(id);
+        if (!row) return;
+        const open = row.classList.toggle('is-open');
+        el.classList.toggle('is-open', open);
+        el.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
 
     const gradesCounter = document.getElementById('grades-result-count');

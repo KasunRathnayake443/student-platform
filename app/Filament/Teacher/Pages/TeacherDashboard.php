@@ -80,7 +80,7 @@ class TeacherDashboard extends BaseDashboard
                 ->whereIn('student_id', $classStudentIds)
                 ->whereIn('status', ['submitted', 'time_expired'])
                 ->whereHas('quiz', fn ($q) => $q->whereIn('learning_class_id', $classIds))
-                ->with(['quiz.learningClass'])
+                ->with(['quiz.learningClass', 'quiz.questions.options', 'answers'])
                 ->get()
                 ->groupBy('student_id');
 
@@ -109,6 +109,9 @@ class TeacherDashboard extends BaseDashboard
                     'student' => $student,
                     'classes' => $student->classes,
                     'attempts' => $attempts,
+                    'attemptDetails' => $attempts->mapWithKeys(
+                        fn (QuizAttempt $attempt) => [$attempt->id => $this->buildAttemptDetail($attempt)]
+                    ),
                     'submissions' => $submissions,
                     'quizCount' => $attempts->count(),
                     'quizPassed' => $attempts->where('is_passed', true)->count(),
@@ -197,6 +200,57 @@ class TeacherDashboard extends BaseDashboard
             'recentNotifications' => $recentNotifications,
             'unreadNotificationsCount' => $unreadNotificationsCount,
             'studentGrades' => $studentGrades,
+        ];
+    }
+
+    /**
+     * Normalize a quiz attempt into a view-ready question breakdown.
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildAttemptDetail(QuizAttempt $attempt): array
+    {
+        $quiz = $attempt->quiz;
+        $questions = $quiz?->questions ?? collect();
+
+        $answers = $attempt->answers->keyBy('quiz_question_id');
+
+        $questionDetails = $questions->values()->map(function ($question, $index) use ($answers): array {
+            $answer = $answers->get($question->id);
+            $selectedId = (int) ($answer?->quiz_question_option_id ?? 0);
+            $selectedOption = $selectedId > 0
+                ? $question->options->firstWhere('id', $selectedId)
+                : null;
+            $correctOption = $question->options->firstWhere('is_correct', true);
+            $isAnswered = $selectedOption !== null;
+
+            return [
+                'number' => $index + 1,
+                'question' => $question->question_text,
+                'question_image_url' => $question->question_image_url,
+                'question_video_url' => $question->question_video_url,
+                'selected_answer' => $selectedOption?->option_text,
+                'correct_answer' => $correctOption?->option_text,
+                'is_answered' => $isAnswered,
+                'is_correct' => (bool) ($answer?->is_correct ?? false),
+                'points_awarded' => (float) ($answer?->points_awarded ?? 0),
+                'points_possible' => (float) $question->points,
+                'explanation' => $question->explanation,
+            ];
+        })->all();
+
+        return [
+            'questions' => $questionDetails,
+            'correct_count' => collect($questionDetails)->where('is_correct', true)->count(),
+            'wrong_count' => collect($questionDetails)
+                ->filter(fn (array $question) => $question['is_answered'] && ! $question['is_correct'])
+                ->count(),
+            'unanswered_count' => collect($questionDetails)
+                ->reject(fn (array $question) => $question['is_answered'])
+                ->count(),
+            'total_questions' => count($questionDetails),
+            'ai_analysis' => is_array($attempt->ai_analysis) ? $attempt->ai_analysis : null,
+            'ai_analysis_status' => $attempt->ai_analysis_status,
         ];
     }
 }
