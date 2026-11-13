@@ -301,13 +301,17 @@
     #t-content .fi-fo-field-label { font-size: 12.5px !important; font-weight: 600 !important; color: #334155 !important; }
     #t-content .fi-input-wrp {
         border-radius: 10px !important;
-        border-color: #e2e8f0 !important;
-        box-shadow: 0 1px 2px rgba(15,23,42,.02) !important;
-        transition: border-color .15s ease, box-shadow .15s ease !important;
+        box-shadow: 0 0 0 1px #d8e0ea, 0 1px 2px rgba(15,23,42,.02) !important;
+        transition: box-shadow .15s ease !important;
     }
     #t-content .fi-input-wrp:focus-within {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 3px rgba(99,102,241,.12) !important;
+        box-shadow: 0 0 0 1px #6366f1, 0 0 0 4px rgba(99,102,241,.12) !important;
+    }
+    #t-content .fi-input-wrp.fi-invalid {
+        box-shadow: 0 0 0 1px #ef4444, 0 1px 2px rgba(15,23,42,.02) !important;
+    }
+    #t-content .fi-input-wrp.fi-invalid:focus-within {
+        box-shadow: 0 0 0 1px #ef4444, 0 0 0 4px rgba(239,68,68,.15) !important;
     }
     #t-content .fi-input, #t-content .fi-select-input { font-size: 13.5px !important; }
     #t-content .fi-fo-field { gap: 6px !important; }
