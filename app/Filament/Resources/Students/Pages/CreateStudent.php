@@ -63,6 +63,8 @@ class CreateStudent extends CreateRecord
 
                 'user_id' => $user->id,
 
+                'parent_id' => $this->resolveParentAccountId($data),
+
                 'profile_photo' => $data['profile_photo'] ?? null,
 
                 'admission_no' => $data['admission_no'],
@@ -204,6 +206,59 @@ class CreateStudent extends CreateRecord
         }
 
         return $data;
+
+    }
+
+    /**
+     * Resolve the parent account selected or created in the student form.
+     */
+    protected function resolveParentAccountId(array $data): ?int
+    {
+
+        return match ($data['parent_account_mode'] ?? 'none') {
+
+            'existing' => User::role('parent')
+
+                ->whereKey($data['parent_id'] ?? 0)
+
+                ->value('id'),
+
+            'new' => $this->createParentAccount($data),
+
+            default => null,
+
+        };
+
+    }
+
+    protected function createParentAccount(array $data): int
+    {
+
+        $parent = User::create([
+
+            'name' => $data['parent_account_name'],
+
+            'email' => $data['parent_account_email'],
+
+            'password' => Hash::make(
+                $data['parent_account_password']
+            ),
+
+            'must_change_password' => true,
+
+        ]);
+
+        $parentRole = Role::firstOrCreate([
+
+            'name' => 'parent',
+
+            'guard_name' => 'web',
+
+        ]);
+
+        $parent->assignRole($parentRole);
+
+        return $parent->id;
 
     }
 }

@@ -31,7 +31,9 @@ class StudentResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return StudentForm::configure($schema);
+        return StudentForm::configure($schema, [
+            'manageParentAccount' => true,
+        ]);
     }
 
     public static function infolist(Schema $schema): Schema

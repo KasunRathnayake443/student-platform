@@ -16,6 +16,8 @@ class Student extends Model
 
         'user_id',
 
+        'parent_id',
+
         'profile_photo',
 
         'admission_no',
@@ -50,6 +52,16 @@ class Student extends Model
 
         return $this->belongsTo(User::class);
 
+    }
+
+    /**
+     * The parent account linked to this student, if one exists.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'parent_id');
     }
 
     public function getProfilePhotoUrlAttribute(): ?string

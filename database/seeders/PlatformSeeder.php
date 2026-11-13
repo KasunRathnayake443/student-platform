@@ -38,6 +38,7 @@ class PlatformSeeder extends Seeder
             $schoolAdminRole = Role::firstOrCreate(['name' => 'school_admin', 'guard_name' => 'web']);
             $teacherRole = Role::firstOrCreate(['name' => 'teacher', 'guard_name' => 'web']);
             $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
+            $parentRole = Role::firstOrCreate(['name' => 'parent', 'guard_name' => 'web']);
 
             /*
             |--------------------------------------------------------------------------

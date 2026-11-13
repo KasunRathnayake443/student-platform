@@ -24,6 +24,7 @@ class User extends Authenticatable implements FilamentUser
      * - school-admin panel: school_admin role
      * - student panel: student role (has a linked Student record)
      * - teacher panel: teacher role (has a linked Teacher record)
+     * - parent panel: parent role (has one or more linked Student records)
      */
     public function canAccessPanel(Panel $panel): bool
     {
@@ -32,6 +33,7 @@ class User extends Authenticatable implements FilamentUser
             'school-admin' => $this->hasRole('school_admin'),
             'student' => $this->hasRole('student') || $this->student()->exists(),
             'teacher' => $this->hasRole('teacher') || $this->teacher()->exists(),
+            'parent' => $this->hasRole('parent'),
             default => false,
         };
     }
@@ -74,6 +76,16 @@ class User extends Authenticatable implements FilamentUser
     public function student(): HasOne
     {
         return $this->hasOne(Student::class);
+    }
+
+    /**
+     * Students linked to this parent account.
+     *
+     * @return HasMany<Student, $this>
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Student::class, 'parent_id');
     }
 
     public function schoolAdmin(): HasOne

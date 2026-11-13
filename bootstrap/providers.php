@@ -2,6 +2,7 @@
 
 use App\Providers\AppServiceProvider;
 use App\Providers\Filament\AdminPanelProvider;
+use App\Providers\Filament\ParentPanelProvider;
 use App\Providers\Filament\SchoolAdminPanelProvider;
 use App\Providers\Filament\StudentPanelProvider;
 use App\Providers\Filament\TeacherPanelProvider;
@@ -14,6 +15,7 @@ return [
     SchoolAdminPanelProvider::class,
     StudentPanelProvider::class,
     TeacherPanelProvider::class,
+    ParentPanelProvider::class,
     FortifyServiceProvider::class,
     NotificationBellServiceProvider::class,
 ];

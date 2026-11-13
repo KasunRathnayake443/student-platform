@@ -6,11 +6,13 @@ use App\Filament\Resources\Students\StudentResource;
 use App\Models\Grade;
 use App\Models\LearningClass;
 use App\Models\StudentEnrollment;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class EditStudent extends EditRecord
 {
@@ -32,6 +34,18 @@ class EditStudent extends EditRecord
 
         $data['email'] =
             $student->user?->email;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Parent Account
+        |--------------------------------------------------------------------------
+        */
+
+        $data['parent_account_mode'] =
+            $student->parent_id ? 'existing' : 'none';
+
+        $data['parent_id'] =
+            $student->parent_id;
 
         /*
         |--------------------------------------------------------------------------
@@ -111,6 +125,10 @@ class EditStudent extends EditRecord
 
         return DB::transaction(function () use ($record, $data) {
 
+            $parentId = array_key_exists('parent_account_mode', $data)
+                ? $this->resolveParentAccountId($data)
+                : $record->parent_id;
+
             /*
             |--------------------------------------------------------------------------
             | Update User
@@ -142,6 +160,8 @@ class EditStudent extends EditRecord
                 'profile_photo' => $data['profile_photo']
                     ??
                     $record->profile_photo,
+
+                'parent_id' => $parentId,
 
                 'admission_no' => $data['admission_no'],
 
@@ -272,6 +292,59 @@ class EditStudent extends EditRecord
             return $record;
 
         });
+
+    }
+
+    /**
+     * Resolve the parent account selected or created in the student form.
+     */
+    protected function resolveParentAccountId(array $data): ?int
+    {
+
+        return match ($data['parent_account_mode'] ?? 'none') {
+
+            'existing' => User::role('parent')
+
+                ->whereKey($data['parent_id'] ?? 0)
+
+                ->value('id'),
+
+            'new' => $this->createParentAccount($data),
+
+            default => null,
+
+        };
+
+    }
+
+    protected function createParentAccount(array $data): int
+    {
+
+        $parent = User::create([
+
+            'name' => $data['parent_account_name'],
+
+            'email' => $data['parent_account_email'],
+
+            'password' => Hash::make(
+                $data['parent_account_password']
+            ),
+
+            'must_change_password' => true,
+
+        ]);
+
+        $parentRole = Role::firstOrCreate([
+
+            'name' => 'parent',
+
+            'guard_name' => 'web',
+
+        ]);
+
+        $parent->assignRole($parentRole);
+
+        return $parent->id;
 
     }
 
