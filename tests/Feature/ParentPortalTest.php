@@ -133,6 +133,74 @@ test('switching children updates the dashboard data', function () {
         ->assertDontSee('Quadratic Functions & Algebra Mastery Quiz');
 });
 
+test('the parent dashboard supports tabs, profile details and child shortcuts', function () {
+    $this->seed();
+
+    $parent = ppParentUser('Parent One', 'parent.one@example.com');
+    $studentOne = ppStudent('student1@example.com');
+    $studentFive = ppStudent('student5@example.com');
+
+    $studentOne->update(['parent_id' => $parent->id]);
+    $studentFive->update(['parent_id' => $parent->id]);
+
+    $admin = User::where('email', 'admin1@example.com')->firstOrFail();
+
+    app(NotificationService::class)->send($admin, [
+        'title' => 'A note for Liam',
+        'body' => 'Please check the latest quiz result.',
+    ], [$studentOne->user_id]);
+
+    Filament::setCurrentPanel('parent');
+
+    Livewire::actingAs($parent)
+        ->test(ParentDashboard::class)
+        ->assertSet('activeTab', 'overview')
+        ->assertSee('Overview')
+        ->assertSee('Quadratic Functions & Algebra Mastery Quiz')
+        ->call('setTab', 'quizzes')
+        ->assertSet('activeTab', 'quizzes')
+        ->assertSee('Quiz results')
+        ->assertSee('Quadratic Functions & Algebra Mastery Quiz')
+        ->call('setTab', 'assignments')
+        ->assertSet('activeTab', 'assignments')
+        ->assertSee('Assignment progress')
+        ->call('setTab', 'lessons')
+        ->assertSet('activeTab', 'lessons')
+        ->assertSee('Published lessons')
+        ->assertSee('Quadratic Equations & Parabolic Functions')
+        ->call('setTab', 'notifications')
+        ->assertSet('activeTab', 'notifications')
+        ->assertSee('School notifications')
+        ->assertSee('A note for Liam')
+        ->call('setTab', 'profile')
+        ->assertSet('activeTab', 'profile')
+        ->assertSee('Your parent account')
+        ->assertSee('parent.one@example.com')
+        ->assertSee('Linked children')
+        ->assertSee('Liam Ethan Miller')
+        ->assertSee('Ethan Alexander Brown')
+        ->call('viewChild', $studentFive->id)
+        ->assertSet('activeTab', 'overview')
+        ->assertSet('activeChildId', $studentFive->id)
+        ->assertSee('Newton\'s Laws of Motion Assessment')
+        ->assertDontSee('Quadratic Functions & Algebra Mastery Quiz');
+});
+
+test('the parent dashboard can open a tab from the url', function () {
+    $this->seed();
+
+    $parent = ppParentUser('Parent One', 'parent.one@example.com');
+    $studentOne = ppStudent('student1@example.com');
+    $studentOne->update(['parent_id' => $parent->id]);
+
+    $this->actingAs($parent)
+        ->get('/parent?tab=profile')
+        ->assertOk()
+        ->assertSee('Your parent account')
+        ->assertSee('parent.one@example.com')
+        ->assertSee('Linked children');
+});
+
 test('a parent with no linked children sees a helpful empty state', function () {
     $this->seed();
 

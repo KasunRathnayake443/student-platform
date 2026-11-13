@@ -13,11 +13,18 @@ use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
 {
+    /**
+     * @var array<int, string>
+     */
+    public const TABS = ['overview', 'quizzes', 'assignments', 'lessons', 'notifications', 'profile'];
+
     protected string $view = 'filament.parent.pages.dashboard';
 
     protected static ?string $title = 'Parent Dashboard';
 
     public ?int $activeChildId = null;
+
+    public string $activeTab = 'overview';
 
     public function mount(): void
     {
@@ -33,6 +40,12 @@ class Dashboard extends BaseDashboard
             ->whereKey($requested)
             ->value('id')
             ?? $user->children()->orderBy('id')->value('id');
+
+        $tab = request()->query('tab');
+
+        if (is_string($tab) && in_array($tab, self::TABS, true)) {
+            $this->activeTab = $tab;
+        }
     }
 
     public function selectChild(int $childId): void
@@ -54,6 +67,24 @@ class Dashboard extends BaseDashboard
         $this->activeChildId = $childId;
     }
 
+    public function setTab(string $tab): void
+    {
+        if (! in_array($tab, self::TABS, true)) {
+            return;
+        }
+
+        $this->activeTab = $tab;
+    }
+
+    /**
+     * Open a child's progress from the profile tab.
+     */
+    public function viewChild(int $childId): void
+    {
+        $this->selectChild($childId);
+        $this->activeTab = 'overview';
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -65,8 +96,14 @@ class Dashboard extends BaseDashboard
             return $this->emptyViewData(collect());
         }
 
+        $childRelations = ['user', 'enrollments.school', 'enrollments.grade'];
+
+        if ($this->activeTab === 'profile') {
+            $childRelations[] = 'classes.grade.school';
+        }
+
         $children = $user->children()
-            ->with(['user', 'enrollments.school', 'enrollments.grade'])
+            ->with($childRelations)
             ->orderBy('id')
             ->get();
 
@@ -92,10 +129,15 @@ class Dashboard extends BaseDashboard
             'passed' => (clone $quizQuery)->where('is_passed', true)->count(),
         ];
 
-        $quizAttempts = $quizQuery
-            ->orderByDesc('completed_at')
-            ->orderByDesc('id')
-            ->get();
+        $quizAttempts = collect();
+
+        if (in_array($this->activeTab, ['overview', 'quizzes'], true)) {
+            $quizAttempts = $quizQuery
+                ->orderByDesc('completed_at')
+                ->orderByDesc('id')
+                ->when($this->activeTab === 'overview', fn ($query) => $query->limit(4))
+                ->get();
+        }
 
         [$assignments, $assignmentStats] = $this->assignmentProgress($student, $classIds);
 
@@ -110,10 +152,13 @@ class Dashboard extends BaseDashboard
 
             $lessonCount = (clone $lessonQuery)->count();
 
-            $lessons = $lessonQuery
-                ->orderBy('sort_order')
-                ->orderByDesc('created_at')
-                ->get();
+            if (in_array($this->activeTab, ['overview', 'lessons'], true)) {
+                $lessons = $lessonQuery
+                    ->orderBy('sort_order')
+                    ->orderByDesc('created_at')
+                    ->when($this->activeTab === 'overview', fn ($query) => $query->limit(4))
+                    ->get();
+            }
         }
 
         $notifications = collect();
@@ -123,21 +168,27 @@ class Dashboard extends BaseDashboard
         ];
 
         if ($student->user) {
-            $notifications = $student->user
-                ->receivedNotifications()
-                ->with('sender')
-                ->orderByDesc('notifications.created_at')
-                ->get();
+            $notificationQuery = $student->user->receivedNotifications();
 
             $notificationStats = [
-                'total' => $notifications->count(),
-                'unread' => $notifications
-                    ->filter(fn ($notification) => ! $notification->pivot->is_read)
+                'total' => (clone $notificationQuery)->count(),
+                'unread' => (clone $notificationQuery)
+                    ->wherePivot('is_read', false)
                     ->count(),
             ];
+
+            if (in_array($this->activeTab, ['overview', 'notifications'], true)) {
+                $notifications = $notificationQuery
+                    ->with('sender')
+                    ->orderByDesc('notifications.created_at')
+                    ->when($this->activeTab === 'overview', fn ($query) => $query->limit(4))
+                    ->get();
+            }
         }
 
         return [
+            'activeTab' => $this->activeTab,
+            'parentUser' => $user,
             'parentName' => $user->name,
             'children' => $children,
             'totalChildren' => $children->count(),
@@ -238,6 +289,8 @@ class Dashboard extends BaseDashboard
     protected function emptyViewData(Collection $children): array
     {
         return [
+            'activeTab' => $this->activeTab,
+            'parentUser' => Auth::user(),
             'parentName' => Auth::user()?->name ?? 'Parent',
             'children' => $children,
             'totalChildren' => $children->count(),
