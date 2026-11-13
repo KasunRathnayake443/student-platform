@@ -6,32 +6,14 @@
 
     /* ── Hero Banner ─────────────────────────── */
     .t-hero {
-        background: linear-gradient(135deg, #312e81 0%, #4338ca 45%, #4f46e5 80%, #6366f1 100%);
-        border-radius: 20px;
-        padding: 28px 32px;
+        background: linear-gradient(120deg, #4338ca 0%, #4f46e5 55%, #6366f1 100%);
+        border-radius: 18px;
+        padding: 26px 30px;
         color: #ffffff;
         position: relative;
         overflow: hidden;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px -8px rgba(79, 70, 229, 0.35);
-    }
-    .t-hero::before {
-        content: '';
-        position: absolute;
-        top: -60px; right: -40px;
-        width: 240px; height: 240px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
-        pointer-events: none;
-    }
-    .t-hero::after {
-        content: '';
-        position: absolute;
-        bottom: -80px; right: 180px;
-        width: 200px; height: 200px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 70%);
-        pointer-events: none;
+        margin-bottom: 22px;
+        box-shadow: 0 6px 20px -10px rgba(79, 70, 229, 0.45);
     }
     .t-hero-inner {
         position: relative;
@@ -96,9 +78,8 @@
         transition: all .16s ease;
     }
     .t-btn-hero-primary:hover {
-        background: #f8fafc;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        background: #eef2ff;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
         color: #3730a3;
     }
     .t-btn-hero-secondary {
@@ -119,7 +100,6 @@
     .t-btn-hero-secondary:hover {
         background: rgba(255, 255, 255, 0.26);
         color: #ffffff;
-        transform: translateY(-2px);
     }
 
     /* ── Stat cards (3 required by tests) ───── */
@@ -131,13 +111,12 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+        transition: border-color .16s ease, box-shadow .16s ease;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
     .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
-        border-color: #cbd5e1;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        border-color: #e2e8f0;
     }
     .stat-icon {
         width: 48px; height: 48px; flex-shrink: 0;
@@ -328,7 +307,6 @@
     .t-list-card:hover {
         border-color: #cbd5e1;
         background: #ffffff;
-        transform: translateX(3px);
         box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
     }
     .t-list-main { min-width: 0; }
@@ -446,9 +424,8 @@
         position: relative;
     }
     .class-card:hover {
-        border-color: #818cf8;
-        box-shadow: 0 10px 24px rgba(99, 102, 241, 0.12);
-        transform: translateY(-2px);
+        border-color: #a5b4fc;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
     }
     .class-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .class-grade-badge {
@@ -493,22 +470,22 @@
 
     /* ── Dashboard tabs ──────────────────────────── */
     .t-tabs {
-        display: flex; gap: 8px; margin-bottom: 24px;
-        background: #f8fafc; border: 1px solid #eef1f7; border-radius: 14px;
-        padding: 6px; width: 100%; max-width: 100%; flex-wrap: wrap;
+        display: inline-flex; gap: 4px; margin-bottom: 22px;
+        background: #eef1f6; border: 1px solid #eef1f7; border-radius: 12px;
+        padding: 4px; max-width: 100%; flex-wrap: wrap;
     }
     .t-tab {
         display: inline-flex; align-items: center; gap: 8px;
-        padding: 9px 16px; border-radius: 10px;
+        padding: 8px 16px; border-radius: 9px;
         border: 1px solid transparent; background: transparent;
         font: inherit; font-size: 13px; font-weight: 600; color: #64748b;
         cursor: pointer; transition: all .15s ease;
     }
     .t-tab svg { width: 16px; height: 16px; flex-shrink: 0; }
-    .t-tab:hover { color: #0f172a; background: #ffffff; }
+    .t-tab:hover { color: #0f172a; }
     .t-tab-active, .t-tab-active:hover {
-        background: #4f46e5; color: #ffffff;
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        background: #ffffff; color: #4f46e5;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
     }
     .t-tab-panel { display: block; }
 
