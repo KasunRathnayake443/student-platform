@@ -173,7 +173,8 @@ test('quiz results generate and store AI learning insights', function () {
             && str_contains($prompt, '3/4')
             && str_contains($prompt, 'How many sides does a triangle have?')
             && str_contains($prompt, '"student_answer": "4"')
-            && str_contains($systemPrompt, 'Never repeat or reveal');
+            && str_contains($systemPrompt, 'Never repeat or reveal')
+            && str_contains($systemPrompt, 'same language');
     });
 });
 

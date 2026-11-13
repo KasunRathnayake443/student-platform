@@ -120,6 +120,7 @@ Return ONLY a valid JSON object with exactly this shape:
 }
 
 Rules:
+- Detect the language used in the quiz questions and write every part of your response (summary, area labels, comments, suggestions, and next_steps) in that same language. For example, if the questions are in Sinhala, respond entirely in Sinhala. Keep the JSON keys in English.
 - score is an integer from 0 to 100 representing the student's accuracy in that area.
 - Return 1 to 3 strengths and 1 to 3 focus areas.
 - If the student answered every question correctly, focus_areas may be an empty array.
