@@ -20,6 +20,10 @@ class QuizAttempt extends Model
         'percentage',
         'is_passed',
         'status',
+        'ai_analysis',
+        'ai_analysis_status',
+        'ai_analysis_error',
+        'ai_analysis_generated_at',
     ];
 
     protected $casts = [
@@ -30,6 +34,8 @@ class QuizAttempt extends Model
         'score' => 'decimal:2',
         'percentage' => 'decimal:2',
         'is_passed' => 'boolean',
+        'ai_analysis' => 'array',
+        'ai_analysis_generated_at' => 'datetime',
     ];
 
     /*
@@ -92,6 +98,11 @@ class QuizAttempt extends Model
     public function isFinished(): bool
     {
         return in_array($this->status, ['submitted', 'time_expired', 'abandoned'], true);
+    }
+
+    public function hasAiAnalysis(): bool
+    {
+        return is_array($this->ai_analysis) && $this->ai_analysis !== [];
     }
 
     public function autoSubmitIfExpired(): bool

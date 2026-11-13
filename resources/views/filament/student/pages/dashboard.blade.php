@@ -295,6 +295,7 @@
                 'grader_name' => null,
                 'model_id' => $qr->id,
                 'quiz_id' => $qr->quiz_id,
+                'only_shows_score' => (bool) ($qr->quiz?->onlyShowsScore() ?? false),
             ];
             $allGrades->push($item);
 
@@ -382,9 +383,55 @@
     foreach ($allClasses as $class) {
         $classHasGrades[$class->id] = ! empty($gradesByClassId[$class->id]);
     }
+
+    // Group quiz attempts so one quiz expands into all of its attempts.
+    $gradeDisplayItems = collect($filteredGrades)
+        ->groupBy(fn ($grade) => $grade['type'] === 'quiz'
+            ? 'quiz-'.$grade['quiz_id']
+            : 'assignment-'.$grade['model_id'])
+        ->map(function ($items) {
+            $first = $items->first();
+
+            if (($first['type'] ?? null) !== 'quiz') {
+                return $first;
+            }
+
+            $attempts = $items
+                ->sortByDesc(fn ($attempt) => $attempt['date']?->timestamp ?? 0)
+                ->values();
+            $latest = $attempts->first();
+            $best = $attempts
+                ->sortByDesc(fn ($attempt) => (float) ($attempt['score'] ?? 0))
+                ->first();
+
+            return [
+                'type' => 'quiz',
+                'title' => $first['title'],
+                'class_name' => $first['class_name'],
+                'class_id' => $first['class_id'],
+                'teacher' => $first['teacher'],
+                'school' => $first['school'],
+                'grade_level' => $first['grade_level'],
+                'score' => (float) ($best['score'] ?? 0),
+                'latest_score' => (float) ($latest['score'] ?? 0),
+                'is_passed' => (bool) ($latest['is_passed'] ?? false),
+                'status' => $latest['status'] ?? 'submitted',
+                'status_label' => $latest['status_label'] ?? '✅ Completed',
+                'date' => $latest['date'] ?? null,
+                'attempt_count' => $attempts->count(),
+                'attempts' => $attempts->all(),
+                'quiz_id' => $first['quiz_id'],
+                'only_shows_score' => (bool) ($first['only_shows_score'] ?? false),
+                'has_feedback' => false,
+                'feedback' => null,
+                'grader_name' => null,
+            ];
+        })
+        ->sortByDesc(fn ($item) => $item['date']?->timestamp ?? 0)
+        ->values();
 @endphp
 
-<div x-data="{ openClassId: null, openAssignmentId: null, mobileMenuOpen: false }" @keydown.escape.window="mobileMenuOpen = false">
+<div x-data="{ openClassId: null, openAssignmentId: null, openGradeQuizId: null, mobileMenuOpen: false }" @keydown.escape.window="mobileMenuOpen = false">
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -1885,6 +1932,167 @@
     }
     .grades-feedback-meta {
         font-size: 0.82rem; font-weight: 700; color: #94a3b8;
+    }
+
+    /* ═══ GRADES: EXPANDABLE QUIZ ATTEMPTS + DETAIL MODAL ═══ */
+    [x-cloak] { display: none !important; }
+
+    .grade-quiz-toggle {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        background: transparent; border: 0; padding: 0; cursor: pointer;
+        color: #0f172a; font: inherit; font-weight: 800; text-align: left;
+    }
+    .grade-quiz-toggle:hover { color: #4f46e5; }
+    .grade-quiz-toggle-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1.25rem; height: 1.25rem; border-radius: 9999px;
+        background: #eef2ff; color: #4f46e5; font-size: 0.75rem; font-weight: 900;
+        transition: transform 0.15s ease;
+    }
+    .grade-quiz-toggle[aria-expanded="true"] .grade-quiz-toggle-icon { transform: rotate(90deg); }
+    .grade-quiz-attempt-count {
+        display: inline-flex; align-items: center; margin-left: 0.35rem;
+        padding: 0.12rem 0.5rem; border-radius: 9999px;
+        background: #f1f5f9; color: #64748b; font-size: 0.7rem; font-weight: 800;
+    }
+    .grade-attempt-sub {
+        display: block; margin-top: 0.2rem;
+        color: #64748b; font-size: 0.74rem; font-weight: 700;
+    }
+    .grade-attempts-row > td {
+        padding: 0 0 0.9rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .grade-attempts-panel {
+        margin-top: 0.65rem; padding: 0.75rem;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.95rem;
+    }
+    .kids-grade-card .grade-attempts-panel { margin-top: 0.9rem; }
+    .grade-attempt-row {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 0.75rem 1rem; flex-wrap: wrap;
+        padding: 0.7rem 0.85rem;
+        background: #ffffff; border: 1px solid #eef2ff; border-radius: 0.8rem;
+    }
+    .grade-attempt-row + .grade-attempt-row { margin-top: 0.55rem; }
+    .grade-attempt-info { display: flex; flex-direction: column; gap: 0.15rem; }
+    .grade-attempt-info strong { color: #0f172a; font-size: 0.86rem; font-weight: 800; }
+    .grade-attempt-meta { color: #64748b; font-size: 0.76rem; font-weight: 700; }
+    .grade-attempt-side { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
+    .grade-attempt-score { color: #4f46e5; font-size: 1rem; font-weight: 900; }
+    .grade-attempt-status {
+        padding: 0.22rem 0.6rem; border-radius: 9999px;
+        font-size: 0.7rem; font-weight: 800;
+    }
+    .grade-attempt-status.is-pass { background: #dcfce7; color: #15803d; }
+    .grade-attempt-status.is-fail { background: #fee2e2; color: #991b1b; }
+    .grade-attempt-view {
+        border: 0; border-radius: 9999px; cursor: pointer;
+        background: #4f46e5; color: #ffffff;
+        padding: 0.42rem 0.85rem; font-size: 0.74rem; font-weight: 800;
+        transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .grade-attempt-view:hover { background: #4338ca; transform: translateY(-1px); }
+    .grade-attempt-hidden { color: #94a3b8; font-size: 0.74rem; font-weight: 700; }
+
+    .grade-detail-overlay {
+        position: fixed; inset: 0; z-index: 3000;
+        display: flex; align-items: center; justify-content: center;
+        padding: 1.25rem;
+        background: rgba(15, 23, 42, 0.58);
+        backdrop-filter: blur(5px);
+    }
+    .grade-detail-modal {
+        width: min(920px, 100%); max-height: 90vh; overflow-y: auto;
+        background: #ffffff; border-radius: 1.35rem;
+        padding: 1.5rem;
+        box-shadow: 0 28px 70px -18px rgba(15, 23, 42, 0.55);
+    }
+    .grade-detail-header {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 1rem; margin-bottom: 1rem;
+    }
+    .grade-detail-kicker {
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        color: #6d28d9; background: #f5f3ff; border: 1px solid #ede9fe;
+        border-radius: 9999px; padding: 0.2rem 0.6rem;
+        font-size: 0.72rem; font-weight: 800; margin-bottom: 0.4rem;
+    }
+    .grade-detail-header h2 { margin: 0 0 0.3rem; color: #0f172a; font-size: 1.25rem; font-weight: 900; }
+    .grade-detail-header p { margin: 0; color: #64748b; font-size: 0.86rem; font-weight: 700; }
+    .grade-detail-close {
+        width: 2.25rem; height: 2.25rem; flex-shrink: 0;
+        border: 1px solid #e2e8f0; border-radius: 9999px;
+        background: #ffffff; color: #475569; cursor: pointer;
+        font-size: 1.15rem; font-weight: 800; line-height: 1;
+    }
+    .grade-detail-close:hover { background: #f8fafc; color: #0f172a; }
+    .grade-detail-ai {
+        margin-bottom: 1rem; padding: 1rem 1.1rem;
+        border: 1px solid #ddd6fe; border-radius: 1rem;
+        background: linear-gradient(180deg, #ffffff 0%, #faf8ff 100%);
+    }
+    .grade-detail-ai h3 { margin: 0 0 0.5rem; color: #0f172a; font-size: 0.95rem; font-weight: 900; }
+    .grade-detail-ai-summary {
+        margin: 0 0 0.8rem; padding: 0.75rem 0.9rem;
+        border-radius: 0.8rem; background: #f5f3ff; border: 1px solid #e9d5ff;
+        color: #4c1d95; font-size: 0.86rem; line-height: 1.6; font-weight: 600;
+    }
+    .grade-detail-ai-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+    .grade-detail-ai-panel { padding: 0.75rem 0.85rem; border-radius: 0.8rem; background: #ffffff; border: 1px solid #e2e8f0; }
+    .grade-detail-ai-panel.is-strength { border-color: #a7f3d0; background: #f0fdf4; }
+    .grade-detail-ai-panel.is-focus { border-color: #fed7aa; background: #fff7ed; }
+    .grade-detail-ai-panel h4 { margin: 0 0 0.45rem; color: #0f172a; font-size: 0.8rem; font-weight: 900; }
+    .grade-detail-ai-area { padding-top: 0.4rem; margin-top: 0.4rem; border-top: 1px dashed #e2e8f0; }
+    .grade-detail-ai-area:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
+    .grade-detail-ai-area strong { display: block; color: #1e293b; font-size: 0.8rem; }
+    .grade-detail-ai-area span { color: #4f46e5; font-size: 0.72rem; font-weight: 900; }
+    .grade-detail-ai-area p { margin: 0.2rem 0 0; color: #475569; font-size: 0.78rem; line-height: 1.5; font-weight: 600; }
+    .grade-detail-next { margin-top: 0.75rem; padding: 0.75rem 0.9rem; border-radius: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; }
+    .grade-detail-next h4 { margin: 0 0 0.35rem; color: #0f172a; font-size: 0.8rem; font-weight: 900; }
+    .grade-detail-next ul { margin: 0; padding-left: 1rem; color: #475569; font-size: 0.78rem; font-weight: 600; line-height: 1.5; }
+    .grade-detail-ai-empty { margin: 0; color: #64748b; font-size: 0.82rem; font-weight: 600; }
+    .grade-detail-questions { display: flex; flex-direction: column; gap: 0.8rem; }
+    .grade-detail-question { padding: 0.95rem 1rem; border: 1px solid #e2e8f0; border-radius: 1rem; background: #ffffff; }
+    .grade-detail-question.is-correct { border-color: #bbf7d0; background: #f0fdf4; }
+    .grade-detail-question.is-wrong { border-color: #fecaca; background: #fef2f2; }
+    .grade-detail-question.is-skipped { background: #f8fafc; }
+    .grade-detail-question-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .grade-detail-question-num { color: #64748b; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .grade-detail-question-badge { padding: 0.16rem 0.55rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 800; }
+    .grade-detail-question-badge.is-correct { background: #dcfce7; color: #15803d; }
+    .grade-detail-question-badge.is-wrong { background: #fee2e2; color: #991b1b; }
+    .grade-detail-question-badge.is-skipped { background: #e2e8f0; color: #64748b; }
+    .grade-detail-question-points { margin-left: auto; color: #64748b; font-size: 0.72rem; font-weight: 800; }
+    .grade-detail-question-text { margin: 0 0 0.55rem; color: #0f172a; font-size: 0.9rem; line-height: 1.55; font-weight: 700; }
+    .grade-detail-media { margin: 0 0 0.6rem; border-radius: 0.75rem; overflow: hidden; background: #f1f5f9; }
+    .grade-detail-media img { display: block; width: 100%; max-height: 260px; object-fit: contain; }
+    .grade-detail-media video { display: block; width: 100%; max-height: 260px; }
+    .grade-detail-options { display: flex; flex-direction: column; gap: 0.35rem; }
+    .grade-detail-option {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.65rem;
+        padding: 0.42rem 0.65rem; border-radius: 0.6rem;
+        color: #475569; font-size: 0.82rem; font-weight: 600;
+    }
+    .grade-detail-option.is-correct { background: #dcfce7; color: #166534; }
+    .grade-detail-option.is-selected:not(.is-correct) { background: #fee2e2; color: #991b1b; }
+    .grade-detail-option em { font-size: 0.7rem; font-style: normal; font-weight: 800; white-space: nowrap; }
+    .grade-detail-explanation {
+        margin-top: 0.55rem; padding: 0.6rem 0.75rem; border-radius: 0.7rem;
+        background: #fffbeb; border: 1px solid #fde68a;
+        color: #92400e; font-size: 0.8rem; line-height: 1.55; font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .custom-table tr.grade-attempts-row { padding: 0; background: transparent; border: 0; }
+        .custom-table tr.grade-attempts-row > td.grade-attempts-cell { display: block; padding: 0; border: 0; text-align: left; }
+        .custom-table tr.grade-attempts-row > td.grade-attempts-cell::before { content: none; }
+    }
+    @media (max-width: 640px) {
+        .grade-detail-overlay { padding: 0; align-items: flex-end; }
+        .grade-detail-modal { max-height: 94vh; border-radius: 1.25rem 1.25rem 0 0; padding: 1rem; }
+        .grade-detail-ai-grid { grid-template-columns: 1fr; }
+        .grade-attempt-side { width: 100%; justify-content: space-between; }
     }
 
     /* ── Assignment filter buttons (simple single-row strip) ── */
@@ -4076,7 +4284,7 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                             {{-- Grades list --}}
                             @if($tier === 'kids')
                                 {{-- Kids: colorful grade cards --}}
-                                @foreach($filteredGrades as $grade)
+                                @foreach($gradeDisplayItems as $grade)
                                     @php
                                         $kidsGradeIdx++;
                                         $colorClass = 'kidc-' . ['red','blue','purple','green','orange','pink'][($kidsGradeIdx - 1) % 6];
@@ -4101,6 +4309,9 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                             <span>📘 {{ $grade['class_name'] }}</span>
                                             <span>👤 {{ $grade['teacher'] }}</span>
                                             <span>📅 {{ $grade['date']?->format('M j, Y') ?? '—' }}</span>
+                                            @if($isQuiz)
+                                                <span>🔁 {{ $grade['attempt_count'] }} attempt(s)</span>
+                                            @endif
                                         </div>
 
                                         <div class="kids-grade-status">
@@ -4113,6 +4324,51 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                                 </span>
                                             @endif
                                         </div>
+
+                                        @if($isQuiz)
+                                            <div style="margin-top: 0.85rem;">
+                                                <button
+                                                    type="button"
+                                                    class="grade-quiz-toggle"
+                                                    @click="openGradeQuizId = openGradeQuizId === {{ (int) $grade['quiz_id'] }} ? null : {{ (int) $grade['quiz_id'] }}"
+                                                    :aria-expanded="openGradeQuizId === {{ (int) $grade['quiz_id'] }}">
+                                                    <span class="grade-quiz-toggle-icon">›</span>
+                                                    <span>View attempts</span>
+                                                    <span class="grade-quiz-attempt-count">{{ $grade['attempt_count'] }}</span>
+                                                </button>
+                                            </div>
+                                            <div
+                                                class="grade-attempts-panel"
+                                                x-show="openGradeQuizId === {{ (int) $grade['quiz_id'] }}"
+                                                x-cloak>
+                                                @foreach($grade['attempts'] as $attempt)
+                                                    <div class="grade-attempt-row">
+                                                        <div class="grade-attempt-info">
+                                                            <strong>Attempt #{{ $attempt['attempt_number'] }}</strong>
+                                                            <span class="grade-attempt-meta">
+                                                                {{ $attempt['date']?->format('M j, Y') ?? '—' }} · {{ $attempt['status_label'] }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="grade-attempt-side">
+                                                            <span class="grade-attempt-score">{{ $attempt['score'] }}%</span>
+                                                            <span class="grade-attempt-status {{ $attempt['is_passed'] ? 'is-pass' : 'is-fail' }}">
+                                                                {{ $attempt['is_passed'] ? 'Passed' : 'Not passed' }}
+                                                            </span>
+                                                            @if($grade['only_shows_score'])
+                                                                <span class="grade-attempt-hidden">🔒 Answers hidden</span>
+                                                            @else
+                                                                <button
+                                                                    type="button"
+                                                                    class="grade-attempt-view"
+                                                                    wire:click="openQuizAttemptDetail({{ (int) $attempt['model_id'] }})">
+                                                                    See answers
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
 
                                         @if($grade['has_feedback'] && $grade['feedback'])
                                             <div class="kids-grade-feedback">
@@ -4143,7 +4399,7 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($filteredGrades as $grade)
+                                        @foreach($gradeDisplayItems as $grade)
                                             @php
                                                 $isQuiz = $grade['type'] === 'quiz';
                                                 $scorePct = $grade['score'] ?? 0;
@@ -4155,12 +4411,33 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                                         {{ $isQuiz ? '🧠 Quiz' : '📋 Assignment' }}
                                                     </span>
                                                 </td>
-                                                <td data-label="Title" class="class-title">{{ $grade['title'] }}</td>
+                                                <td data-label="Title" class="class-title">
+                                                    @if($isQuiz)
+                                                        <button
+                                                            type="button"
+                                                            class="grade-quiz-toggle"
+                                                            @click="openGradeQuizId = openGradeQuizId === {{ (int) $grade['quiz_id'] }} ? null : {{ (int) $grade['quiz_id'] }}"
+                                                            :aria-expanded="openGradeQuizId === {{ (int) $grade['quiz_id'] }}">
+                                                            <span class="grade-quiz-toggle-icon">›</span>
+                                                            <span>{{ $grade['title'] }}</span>
+                                                            <span class="grade-quiz-attempt-count">{{ $grade['attempt_count'] }}</span>
+                                                        </button>
+                                                    @else
+                                                        {{ $grade['title'] }}
+                                                    @endif
+                                                </td>
                                                 <td data-label="Class" style="color: #64748b; font-weight: 600;">{{ $grade['class_name'] }}</td>
                                                 <td data-label="Teacher" class="teacher-name">{{ $grade['teacher'] }}</td>
                                                 <td data-label="Score" style="font-size: 1.15rem; font-weight: 800; color: {{ $scoreColor }};">
+                                                    @if($isQuiz && $grade['attempt_count'] > 1)
+                                                        <span style="display: block; font-size: 0.68rem; color: #64748b; font-weight: 800; letter-spacing: 0.04em;">BEST</span>
+                                                    @endif
                                                     {{ $scorePct }}%
-                                                    @if(! $isQuiz && $grade['points'] !== null)
+                                                    @if($isQuiz)
+                                                        <span class="grade-attempt-sub">
+                                                            {{ $grade['attempt_count'] }} attempt(s) · Latest {{ $grade['latest_score'] }}%
+                                                        </span>
+                                                    @elseif($grade['points'] !== null)
                                                         <span style="font-size: 0.8rem; color: #64748b;">({{ $grade['points'] }}/{{ $grade['max_points'] }})</span>
                                                     @endif
                                                 </td>
@@ -4171,7 +4448,11 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                                 </td>
                                                 <td data-label="Date" style="color: #64748b;">{{ $grade['date']?->format('M j, Y') ?? '—' }}</td>
                                                 <td data-label="Feedback">
-                                                    @if($grade['has_feedback'] && $grade['feedback'])
+                                                    @if($isQuiz)
+                                                        <span class="status-pill status-pending" style="font-size: 0.8rem;">
+                                                            🔎 {{ $grade['attempt_count'] }} attempt(s)
+                                                        </span>
+                                                    @elseif($grade['has_feedback'] && $grade['feedback'])
                                                         <span class="status-pill status-ok" style="font-size: 0.8rem;" title="{{ $grade['feedback'] }}">
                                                             💬 Feedback
                                                             @if($grade['grader_name'])
@@ -4183,6 +4464,43 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                                     @endif
                                                 </td>
                                             </tr>
+                                            @if($isQuiz)
+                                                <tr
+                                                    class="grade-attempts-row"
+                                                    x-show="openGradeQuizId === {{ (int) $grade['quiz_id'] }}"
+                                                    x-cloak>
+                                                    <td colspan="8" class="grade-attempts-cell">
+                                                        <div class="grade-attempts-panel">
+                                                            @foreach($grade['attempts'] as $attempt)
+                                                                <div class="grade-attempt-row">
+                                                                    <div class="grade-attempt-info">
+                                                                        <strong>Attempt #{{ $attempt['attempt_number'] }}</strong>
+                                                                        <span class="grade-attempt-meta">
+                                                                            {{ $attempt['date']?->format('M j, Y · g:i A') ?? '—' }} · {{ $attempt['status_label'] }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="grade-attempt-side">
+                                                                        <span class="grade-attempt-score">{{ $attempt['score'] }}%</span>
+                                                                        <span class="grade-attempt-status {{ $attempt['is_passed'] ? 'is-pass' : 'is-fail' }}">
+                                                                            {{ $attempt['is_passed'] ? 'Passed' : 'Not passed' }}
+                                                                        </span>
+                                                                        @if($grade['only_shows_score'])
+                                                                            <span class="grade-attempt-hidden">🔒 Answers hidden</span>
+                                                                        @else
+                                                                            <button
+                                                                                type="button"
+                                                                                class="grade-attempt-view"
+                                                                                wire:click="openQuizAttemptDetail({{ (int) $attempt['model_id'] }})">
+                                                                                See answers & AI insights
+                                                                            </button>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -4217,6 +4535,154 @@ $submission = $studentSubmissionMap[$assignment->id] ?? null;
                                     @endforeach
                                 </div>
                             @endif
+                        @endif
+
+                        @if($gradeDetailOpen && $gradeDetail)
+                            <div
+                                class="grade-detail-overlay"
+                                @click.self="$wire.closeQuizAttemptDetail()"
+                                @keydown.escape.window="$wire.closeQuizAttemptDetail()">
+                                <div class="grade-detail-modal" role="dialog" aria-modal="true" aria-label="Quiz attempt details">
+                                    <div class="grade-detail-header">
+                                        <div>
+                                            <span class="grade-detail-kicker">
+                                                Attempt #{{ $gradeDetail['attempt_number'] }} · {{ $gradeDetail['date'] }}
+                                            </span>
+                                            <h2>{{ $gradeDetail['quiz_title'] }}</h2>
+                                            <p>
+                                                Score: <strong>{{ $gradeDetail['percentage'] }}%</strong>
+                                                · {{ $gradeDetail['correct_count'] }} / {{ $gradeDetail['total_questions'] }} correct
+                                                · {{ $gradeDetail['passed'] ? 'Passed' : 'Not passed' }}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="grade-detail-close"
+                                            wire:click="closeQuizAttemptDetail"
+                                            aria-label="Close details">
+                                            ×
+                                        </button>
+                                    </div>
+
+                                    @php
+                                        $ai = $gradeDetail['ai_analysis'];
+                                    @endphp
+
+                                    <div class="grade-detail-ai">
+                                        <h3>✨ AI Learning Insights</h3>
+                                        @if($ai)
+                                            @if(! empty($ai['summary']))
+                                                <p class="grade-detail-ai-summary">{{ $ai['summary'] }}</p>
+                                            @endif
+
+                                            <div class="grade-detail-ai-grid">
+                                                <section class="grade-detail-ai-panel is-strength">
+                                                    <h4>💪 Strongest areas</h4>
+                                                    @forelse($ai['strengths'] ?? [] as $area)
+                                                        <div class="grade-detail-ai-area">
+                                                            <strong>{{ $area['area'] }}</strong>
+                                                            <span>{{ (int) ($area['score'] ?? 0) }}%</span>
+                                                            @if(! empty($area['comment']))
+                                                                <p>{{ $area['comment'] }}</p>
+                                                            @endif
+                                                        </div>
+                                                    @empty
+                                                        <p class="grade-detail-ai-empty">No standout strengths were detected for this attempt.</p>
+                                                    @endforelse
+                                                </section>
+
+                                                <section class="grade-detail-ai-panel is-focus">
+                                                    <h4>🎯 Areas to focus on</h4>
+                                                    @forelse($ai['focus_areas'] ?? [] as $area)
+                                                        <div class="grade-detail-ai-area">
+                                                            <strong>{{ $area['area'] }}</strong>
+                                                            <span>{{ (int) ($area['score'] ?? 0) }}%</span>
+                                                            @if(! empty($area['comment']))
+                                                                <p>{{ $area['comment'] }}</p>
+                                                            @endif
+                                                            @if(! empty($area['suggestion']))
+                                                                <p><strong>Try this:</strong> {{ $area['suggestion'] }}</p>
+                                                            @endif
+                                                        </div>
+                                                    @empty
+                                                        <p class="grade-detail-ai-empty">No weak areas were detected — excellent work!</p>
+                                                    @endforelse
+                                                </section>
+                                            </div>
+
+                                            @if(! empty($ai['next_steps']))
+                                                <div class="grade-detail-next">
+                                                    <h4>🚀 Next steps</h4>
+                                                    <ul>
+                                                        @foreach($ai['next_steps'] as $step)
+                                                            <li>{{ $step }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                            @endif
+                                        @else
+                                            <p class="grade-detail-ai-empty">
+                                                AI learning insights are not available for this attempt yet.
+                                            </p>
+                                        @endif
+                                    </div>
+
+                                    <div class="grade-detail-questions">
+                                        @foreach($gradeDetail['questions'] as $question)
+                                            @php
+                                                $questionState = ! $question['is_answered']
+                                                    ? 'is-skipped'
+                                                    : ($question['is_correct'] ? 'is-correct' : 'is-wrong');
+                                            @endphp
+                                            <article class="grade-detail-question {{ $questionState }}">
+                                                <div class="grade-detail-question-head">
+                                                    <span class="grade-detail-question-num">Question {{ $question['number'] }}</span>
+                                                    <span class="grade-detail-question-badge {{ $questionState }}">
+                                                        {{ ! $question['is_answered'] ? '— Not answered' : ($question['is_correct'] ? '✓ Correct' : '✗ Incorrect') }}
+                                                    </span>
+                                                    <span class="grade-detail-question-points">
+                                                        {{ $question['points_awarded'] }} / {{ $question['points_possible'] }} pts
+                                                    </span>
+                                                </div>
+
+                                                <p class="grade-detail-question-text">{{ $question['question'] }}</p>
+
+                                                @if($question['question_image_url'])
+                                                    <div class="grade-detail-media">
+                                                        <img src="{{ $question['question_image_url'] }}" alt="Question image">
+                                                    </div>
+                                                @elseif($question['question_video_url'])
+                                                    <div class="grade-detail-media">
+                                                        <video controls preload="metadata" src="{{ $question['question_video_url'] }}"></video>
+                                                    </div>
+                                                @endif
+
+                                                <div class="grade-detail-options">
+                                                    @foreach($question['options'] as $option)
+                                                        <div class="grade-detail-option {{ $option['is_correct'] ? 'is-correct' : '' }} {{ $option['is_selected'] ? 'is-selected' : '' }}">
+                                                            <span>
+                                                                {{ $option['is_correct'] ? '✓' : ($option['is_selected'] ? '✗' : '·') }}
+                                                                {{ $option['text'] }}
+                                                            </span>
+                                                            @if($option['is_correct'])
+                                                                <em>Correct answer</em>
+                                                            @elseif($option['is_selected'])
+                                                                <em>Your choice</em>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                @if($question['explanation'])
+                                                    <div class="grade-detail-explanation">
+                                                        <strong>💡 Explanation:</strong> {{ $question['explanation'] }}
+                                                    </div>
+                                                @endif
+                                            </article>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         @endif
                     </div>
 

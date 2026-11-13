@@ -7,6 +7,7 @@ use App\Models\QuizAttempt as QuizAttemptModel;
 use App\Models\QuizQuestion;
 use App\Models\QuizQuestionOption;
 use App\Models\Student;
+use App\Services\QuizAnalysisService;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -73,6 +74,10 @@ class QuizAttempt extends Page
     public bool $showCorrect = false;
 
     public bool $canTryAgain = false;
+
+    public bool $aiAnalysisLoading = false;
+
+    public ?string $aiAnalysisError = null;
 
     #[Locked]
     public ?QuizAttemptModel $attempt = null;
@@ -246,6 +251,8 @@ class QuizAttempt extends Page
             ->all();
 
         $this->canTryAgain = $this->quiz->canStudentAttempt($this->student);
+        $this->aiAnalysisLoading = false;
+        $this->aiAnalysisError = null;
     }
 
     /*
@@ -492,6 +499,55 @@ class QuizAttempt extends Page
         }
 
         $this->loadFinished($this->attempt->refresh());
+    }
+
+    public function generateQuizAnalysis(): void
+    {
+        if (! $this->attempt || ! $this->finished) {
+            return;
+        }
+
+        $attempt = $this->attempt->fresh();
+
+        if (! $attempt || ($attempt->quiz?->onlyShowsScore() ?? false)) {
+            return;
+        }
+
+        if ($attempt->hasAiAnalysis()) {
+            $this->attempt = $attempt;
+            $this->aiAnalysisError = null;
+
+            return;
+        }
+
+        $this->aiAnalysisLoading = true;
+        $this->aiAnalysisError = null;
+
+        try {
+            $analysis = app(QuizAnalysisService::class)->generate($attempt);
+
+            $attempt->update([
+                'ai_analysis' => $analysis,
+                'ai_analysis_status' => 'completed',
+                'ai_analysis_error' => null,
+                'ai_analysis_generated_at' => now(),
+            ]);
+
+            $this->attempt = $attempt->refresh();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            $attempt->update([
+                'ai_analysis_status' => 'failed',
+                'ai_analysis_error' => 'We could not generate a learning analysis for this attempt.',
+                'ai_analysis_generated_at' => null,
+            ]);
+
+            $this->attempt = $attempt->refresh();
+            $this->aiAnalysisError = 'We could not generate your learning insights right now. Please try again.';
+        } finally {
+            $this->aiAnalysisLoading = false;
+        }
     }
 
     public function getTitle(): string

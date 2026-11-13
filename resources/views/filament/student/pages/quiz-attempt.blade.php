@@ -645,6 +645,79 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .qa-senior .qa-start-btn:hover { background: #0f172a !important; color: #ffffff !important; }
+
+        /* ══════════════════════════════════════════════════════════════════
+           AI LEARNING INSIGHTS (shown on the result screen)
+           ══════════════════════════════════════════════════════════════════ */
+        .qa .qa-ai-card {
+            overflow: hidden;
+            border-color: #ddd6fe;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
+        }
+        .qa .qa-ai-card::before {
+            content: ''; position: absolute; inset: 0 0 auto 0; height: 4px;
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 55%, #ec4899 100%);
+        }
+        .qa .qa-ai-header { display: flex; align-items: flex-start; gap: 0.9rem; margin-bottom: 1rem; }
+        .qa .qa-ai-badge {
+            width: 2.75rem; height: 2.75rem; flex-shrink: 0; border-radius: 0.9rem;
+            display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+            background: linear-gradient(135deg, #eef2ff 0%, #fae8ff 100%);
+            border: 1px solid #ddd6fe; box-shadow: 0 6px 16px -8px rgba(99, 102, 241, 0.55);
+        }
+        .qa .qa-ai-header h2 { margin: 0 0 0.2rem; }
+        .qa .qa-ai-sub { margin: 0; font-size: 0.88rem; line-height: 1.5; color: #64748b; font-weight: 600; }
+        .qa .qa-ai-summary {
+            margin: 0 0 1.25rem; padding: 1rem 1.15rem; border-radius: 0.9rem;
+            background: #f5f3ff; border: 1px solid #e9d5ff; color: #4c1d95;
+            font-size: 0.95rem; line-height: 1.65; font-weight: 600;
+        }
+        .qa .qa-ai-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+        .qa .qa-ai-panel {
+            border-radius: 0.95rem; border: 1px solid #e2e8f0; background: #ffffff;
+            padding: 1.1rem 1.15rem;
+        }
+        .qa .qa-ai-panel-strength { border-color: #a7f3d0; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); }
+        .qa .qa-ai-panel-focus { border-color: #fed7aa; background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%); }
+        .qa .qa-ai-panel h3 { margin: 0 0 0.75rem; font-size: 0.95rem; font-weight: 900; color: #0f172a; }
+        .qa .qa-ai-area { padding: 0.65rem 0; border-top: 1px dashed #e2e8f0; }
+        .qa .qa-ai-area:first-of-type { border-top: 0; padding-top: 0; }
+        .qa .qa-ai-area-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+        .qa .qa-ai-area-head strong { font-size: 0.9rem; line-height: 1.35; color: #1e293b; }
+        .qa .qa-ai-area-head span { font-size: 0.8rem; font-weight: 900; color: #4f46e5; }
+        .qa .qa-ai-meter {
+            height: 0.4rem; margin: 0.45rem 0 0.5rem; border-radius: 9999px;
+            background: #eef2ff; overflow: hidden;
+        }
+        .qa .qa-ai-meter span {
+            display: block; height: 100%; border-radius: inherit;
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+        }
+        .qa .qa-ai-panel-strength .qa-ai-meter span { background: linear-gradient(90deg, #10b981 0%, #34d399 100%); }
+        .qa .qa-ai-panel-focus .qa-ai-meter span { background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%); }
+        .qa .qa-ai-area p { margin: 0; font-size: 0.84rem; line-height: 1.55; color: #475569; font-weight: 600; }
+        .qa .qa-ai-tip { margin-top: 0.4rem !important; color: #9a3412 !important; }
+        .qa .qa-ai-empty { margin: 0; font-size: 0.88rem; line-height: 1.55; color: #64748b; font-weight: 600; }
+        .qa .qa-ai-next {
+            margin-top: 1rem; padding: 1rem 1.15rem; border-radius: 0.95rem;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+        }
+        .qa .qa-ai-next h3 { margin: 0 0 0.55rem; font-size: 0.92rem; font-weight: 900; color: #0f172a; }
+        .qa .qa-ai-next ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
+        .qa .qa-ai-next li { font-size: 0.86rem; line-height: 1.55; color: #475569; font-weight: 600; }
+        .qa .qa-ai-footnote { margin: 1rem 0 0; font-size: 0.72rem; line-height: 1.5; color: #94a3b8; font-weight: 600; }
+        .qa .qa-ai-loading { display: flex; align-items: center; gap: 1rem; }
+        .qa .qa-ai-spinner {
+            width: 2.2rem; height: 2.2rem; flex-shrink: 0; border-radius: 9999px;
+            border: 3px solid #ddd6fe; border-top-color: #6366f1;
+            animation: qaAiSpin 0.9s linear infinite;
+        }
+        .qa .qa-ai-loading h2 { margin: 0 0 0.2rem; }
+        @keyframes qaAiSpin { to { transform: rotate(360deg); } }
+        @media (max-width: 640px) {
+            .qa .qa-ai-grid { grid-template-columns: 1fr; }
+            .qa .qa-ai-header { align-items: center; }
+        }
     </style>
 
     {{-- Top bar --}}
@@ -751,6 +824,129 @@
                     </a>
                 </div>
             </div>
+
+            {{-- Quizzes that hide correct answers do not show Learning Insights. --}}
+            @if(! ($this->attempt?->quiz?->onlyShowsScore() ?? false))
+                @php
+                    $aiAnalysis = $this->attempt?->ai_analysis;
+                    $aiFailed = $this->attempt?->ai_analysis_status === 'failed';
+                @endphp
+
+            @if($aiAnalysis)
+                <div class="qa-card qa-ai-card">
+                    <div class="qa-ai-header">
+                        <div class="qa-ai-badge">✨</div>
+                        <div>
+                            <h2>Your Learning Insights</h2>
+                            <p class="qa-ai-sub">A personalised look at your strengths and what to practise next.</p>
+                        </div>
+                    </div>
+
+                    @if(!empty($aiAnalysis['summary']))
+                        <p class="qa-ai-summary">{{ $aiAnalysis['summary'] }}</p>
+                    @endif
+
+                    <div class="qa-ai-grid">
+                        <section class="qa-ai-panel qa-ai-panel-strength">
+                            <h3>💪 Strongest areas</h3>
+                            @forelse($aiAnalysis['strengths'] ?? [] as $area)
+                                <div class="qa-ai-area">
+                                    <div class="qa-ai-area-head">
+                                        <strong>{{ $area['area'] }}</strong>
+                                        <span>{{ (int) ($area['score'] ?? 0) }}%</span>
+                                    </div>
+                                    <div class="qa-ai-meter">
+                                        <span style="width: {{ max(0, min(100, (int) ($area['score'] ?? 0))) }}%"></span>
+                                    </div>
+                                    @if(!empty($area['comment']))
+                                        <p>{{ $area['comment'] }}</p>
+                                    @endif
+                                </div>
+                            @empty
+                                <p class="qa-ai-empty">Every attempt builds skill. Keep practising and your strengths will show up here.</p>
+                            @endforelse
+                        </section>
+
+                        <section class="qa-ai-panel qa-ai-panel-focus">
+                            <h3>🎯 Areas to focus on</h3>
+                            @forelse($aiAnalysis['focus_areas'] ?? [] as $area)
+                                <div class="qa-ai-area">
+                                    <div class="qa-ai-area-head">
+                                        <strong>{{ $area['area'] }}</strong>
+                                        <span>{{ (int) ($area['score'] ?? 0) }}%</span>
+                                    </div>
+                                    <div class="qa-ai-meter">
+                                        <span style="width: {{ max(0, min(100, (int) ($area['score'] ?? 0))) }}%"></span>
+                                    </div>
+                                    @if(!empty($area['comment']))
+                                        <p>{{ $area['comment'] }}</p>
+                                    @endif
+                                    @if(!empty($area['suggestion']))
+                                        <p class="qa-ai-tip"><strong>Try this:</strong> {{ $area['suggestion'] }}</p>
+                                    @endif
+                                </div>
+                            @empty
+                                <p class="qa-ai-empty">No weak areas detected — excellent work! Keep challenging yourself.</p>
+                            @endforelse
+                        </section>
+                    </div>
+
+                    @if(!empty($aiAnalysis['next_steps']))
+                        <div class="qa-ai-next">
+                            <h3>🚀 Next steps</h3>
+                            <ul>
+                                @foreach($aiAnalysis['next_steps'] as $step)
+                                    <li>{{ $step }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <p class="qa-ai-footnote">Generated from this attempt's answers using AI. Scores are estimates based on this quiz.</p>
+                </div>
+            @elseif($aiAnalysisLoading)
+                <div class="qa-card qa-ai-card">
+                    <div class="qa-ai-loading">
+                        <span class="qa-ai-spinner" aria-hidden="true"></span>
+                        <div>
+                            <h2>Analysing your answers…</h2>
+                            <p class="qa-ai-sub">Our learning assistant is finding your strongest areas and what to focus on next.</p>
+                        </div>
+                    </div>
+                </div>
+            @elseif($aiFailed)
+                <div class="qa-card qa-ai-card">
+                    <div class="qa-ai-header">
+                        <div class="qa-ai-badge">✨</div>
+                        <div>
+                            <h2>Your Learning Insights</h2>
+                            <p class="qa-ai-sub">We couldn't prepare your personalised analysis this time.</p>
+                        </div>
+                    </div>
+
+                    <p class="qa-ai-summary">
+                        {{ $aiAnalysisError ?: 'Your quiz result is saved. You can try generating the learning insights again.' }}
+                    </p>
+
+                    <div class="qa-cta-wrap">
+                        <button type="button" class="qa-start-btn" wire:click="generateQuizAnalysis" wire:loading.attr="disabled" wire:target="generateQuizAnalysis">
+                            <span>✨</span>
+                            <span>{{ $tier === 'kids' ? 'Try Again!' : 'Try again' }}</span>
+                        </button>
+                    </div>
+                </div>
+            @else
+                <div class="qa-card qa-ai-card" wire:init="generateQuizAnalysis">
+                    <div class="qa-ai-loading">
+                        <span class="qa-ai-spinner" aria-hidden="true"></span>
+                        <div>
+                            <h2>Analysing your answers…</h2>
+                            <p class="qa-ai-sub">Our learning assistant is finding your strongest areas and what to focus on next.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            @endif
 
             @if($showCorrect)
                 <div class="qa-card">

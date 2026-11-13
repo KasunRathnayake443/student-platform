@@ -78,6 +78,11 @@ class Dashboard extends BaseDashboard
 
     public string $profileMessageType = 'success';
 
+    public bool $gradeDetailOpen = false;
+
+    /** @var array<string, mixed>|null */
+    public ?array $gradeDetail = null;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -205,16 +210,90 @@ class Dashboard extends BaseDashboard
     {
         $this->activeTab = $tab;
         $this->activeClassFilterId = null;
+        $this->closeQuizAttemptDetail();
     }
 
     public function openTab(string $tab, ?int $classId = null): void
     {
         $this->activeTab = $tab;
         $this->activeClassFilterId = $classId;
+        $this->closeQuizAttemptDetail();
         if ($tab === 'calendar') {
             $this->calendarSelectedDate = null;
             $this->calendarNoteText = '';
         }
+    }
+
+    public function openQuizAttemptDetail(int $attemptId): void
+    {
+        if (! $this->student instanceof Student) {
+            return;
+        }
+
+        $attempt = $this->student->quizAttempts()
+            ->with(['quiz.questions.options', 'answers'])
+            ->whereIn('status', ['submitted', 'time_expired'])
+            ->whereKey($attemptId)
+            ->first();
+
+        if (! $attempt || ! $attempt->quiz || $attempt->quiz->onlyShowsScore()) {
+            return;
+        }
+
+        $answers = $attempt->answers->keyBy('quiz_question_id');
+        $questions = $attempt->quiz->questions->values()->map(function ($question, $index) use ($answers): array {
+            $answer = $answers->get($question->id);
+            $selectedId = (int) ($answer?->quiz_question_option_id ?? 0);
+            $selectedOption = $selectedId > 0
+                ? $question->options->firstWhere('id', $selectedId)
+                : null;
+            $correctOption = $question->options->firstWhere('is_correct', true);
+            $isAnswered = $selectedOption !== null;
+
+            return [
+                'number' => $index + 1,
+                'question' => $question->question_text,
+                'question_image_url' => $question->question_image_url,
+                'question_video_url' => $question->question_video_url,
+                'options' => $question->options->map(fn ($option): array => [
+                    'text' => $option->option_text,
+                    'is_correct' => (bool) $option->is_correct,
+                    'is_selected' => $isAnswered && (int) $option->id === $selectedId,
+                ])->all(),
+                'selected_answer' => $selectedOption?->option_text,
+                'correct_answer' => $correctOption?->option_text,
+                'is_answered' => $isAnswered,
+                'is_correct' => (bool) ($answer?->is_correct ?? false),
+                'points_awarded' => (float) ($answer?->points_awarded ?? 0),
+                'points_possible' => (float) $question->points,
+                'explanation' => $question->explanation,
+            ];
+        })->all();
+
+        $correctCount = collect($questions)->where('is_correct', true)->count();
+
+        $this->gradeDetail = [
+            'id' => $attempt->id,
+            'quiz_title' => $attempt->quiz->title,
+            'attempt_number' => $attempt->attempt_number,
+            'score' => (float) ($attempt->score ?? 0),
+            'percentage' => (float) ($attempt->percentage ?? 0),
+            'passed' => (bool) $attempt->is_passed,
+            'status' => $attempt->status,
+            'date' => $attempt->completed_at?->format('M j, Y · g:i A'),
+            'questions' => $questions,
+            'correct_count' => $correctCount,
+            'total_questions' => count($questions),
+            'ai_analysis' => is_array($attempt->ai_analysis) ? $attempt->ai_analysis : null,
+        ];
+
+        $this->gradeDetailOpen = true;
+    }
+
+    public function closeQuizAttemptDetail(): void
+    {
+        $this->gradeDetailOpen = false;
+        $this->gradeDetail = null;
     }
 
     public function prevCalendarMonth(): void
