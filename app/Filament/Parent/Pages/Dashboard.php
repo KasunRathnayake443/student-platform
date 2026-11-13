@@ -18,6 +18,8 @@ class Dashboard extends BaseDashboard
      */
     public const TABS = ['overview', 'quizzes', 'assignments', 'lessons', 'notifications', 'profile'];
 
+    protected static string $layout = 'filament-panels::components.layout.base';
+
     protected string $view = 'filament.parent.pages.dashboard';
 
     protected static ?string $title = 'Parent Dashboard';
@@ -83,6 +85,15 @@ class Dashboard extends BaseDashboard
     {
         $this->selectChild($childId);
         $this->activeTab = 'overview';
+    }
+
+    public function logout(): void
+    {
+        Auth::guard('web')->logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        $this->redirect('/parent/login');
     }
 
     /**
