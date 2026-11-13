@@ -8,7 +8,9 @@ use App\Models\LearningClass;
 use App\Models\Quiz;
 use App\Models\Teacher;
 use App\Services\QuizImportService;
+use App\Services\QuizQuestionGeneratorService;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -19,6 +21,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -324,7 +327,160 @@ class QuizForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | 3. Quick CSV Import Banner (Prominent & Apparent)
+                | 3. AI Question Generator
+                |--------------------------------------------------------------------------
+                */
+
+                Section::make('✨ Generate Questions with AI')
+                    ->description('Describe what you need and AI will draft multiple-choice questions into the Question Builder below. Review and edit every question before saving.')
+                    ->icon('heroicon-o-sparkles')
+                    ->schema([
+                        Actions::make([
+                            Action::make('generateQuestionsWithAi')
+                                ->label('Generate Questions with AI')
+                                ->icon('heroicon-o-sparkles')
+                                ->color('primary')
+                                ->modalHeading('Generate quiz questions with AI')
+                                ->modalDescription('Tell AI what to create. The questions are added to the builder below for you to review and edit before saving.')
+                                ->modalSubmitActionLabel('Generate Questions')
+                                ->modalWidth('2xl')
+                                ->form([
+                                    Textarea::make('prompt')
+                                        ->label('What should the questions be about?')
+                                        ->placeholder('e.g. Photosynthesis, food chains, and the role of chlorophyll')
+                                        ->rows(3)
+                                        ->required()
+                                        ->columnSpanFull(),
+
+                                    TextInput::make('question_count')
+                                        ->label('How many questions?')
+                                        ->numeric()
+                                        ->integer()
+                                        ->minValue(1)
+                                        ->maxValue(QuizQuestionGeneratorService::MAX_QUESTIONS)
+                                        ->default(5)
+                                        ->required(),
+
+                                    TextInput::make('grade_level')
+                                        ->label('Grade / Level')
+                                        ->placeholder('e.g. Grade 10')
+                                        ->maxLength(100)
+                                        ->required(),
+
+                                    Select::make('language')
+                                        ->label('Language')
+                                        ->options([
+                                            'English' => 'English',
+                                            'Sinhala' => 'සිංහල',
+                                            'Tamil' => 'தமிழ்',
+                                        ])
+                                        ->default('English')
+                                        ->required(),
+
+                                    Select::make('difficulty')
+                                        ->label('Difficulty')
+                                        ->options([
+                                            'Easy' => 'Easy',
+                                            'Medium' => 'Medium',
+                                            'Hard' => 'Hard',
+                                            'Mixed' => 'Mixed',
+                                        ])
+                                        ->default('Medium')
+                                        ->required(),
+
+                                    TextInput::make('points_per_question')
+                                        ->label('Marks per question')
+                                        ->numeric()
+                                        ->integer()
+                                        ->minValue(1)
+                                        ->maxValue(100)
+                                        ->default(1)
+                                        ->suffix('marks')
+                                        ->required(),
+
+                                    Textarea::make('extra_instructions')
+                                        ->label('Extra instructions (optional)')
+                                        ->placeholder('e.g. Include one question on lab safety. Avoid trick questions.')
+                                        ->rows(2)
+                                        ->columnSpanFull(),
+                                ])
+                                ->fillForm(function (Get $get): array {
+                                    $class = LearningClass::query()
+                                        ->with('grade')
+                                        ->find((int) $get('learning_class_id'));
+
+                                    $language = in_array($class?->medium, ['English', 'Sinhala', 'Tamil'], true)
+                                        ? $class->medium
+                                        : 'English';
+
+                                    return [
+                                        'question_count' => 5,
+                                        'grade_level' => $class?->grade?->name,
+                                        'language' => $language,
+                                        'difficulty' => 'Medium',
+                                        'points_per_question' => 1,
+                                    ];
+                                })
+                                ->action(function (array $data, Get $get, Set $set, $livewire): void {
+                                    $class = LearningClass::query()
+                                        ->with('grade')
+                                        ->find((int) $get('learning_class_id'));
+
+                                    try {
+                                        $generated = app(QuizQuestionGeneratorService::class)->generate([
+                                            'prompt' => (string) ($data['prompt'] ?? ''),
+                                            'question_count' => (int) ($data['question_count'] ?? 5),
+                                            'grade_level' => (string) ($data['grade_level'] ?? ''),
+                                            'language' => (string) ($data['language'] ?? 'English'),
+                                            'difficulty' => (string) ($data['difficulty'] ?? 'Medium'),
+                                            'points_per_question' => (int) ($data['points_per_question'] ?? 1),
+                                            'extra_instructions' => $data['extra_instructions'] ?? null,
+                                            'class_name' => $class?->name,
+                                            'quiz_title' => $get('title'),
+                                        ]);
+                                    } catch (Throwable $e) {
+                                        report($e);
+
+                                        Notification::make()
+                                            ->title('Could not generate AI questions')
+                                            ->body($e->getMessage())
+                                            ->danger()
+                                            ->send();
+
+                                        return;
+                                    }
+
+                                    $existing = $get('questions');
+                                    $existing = is_array($existing) ? $existing : [];
+
+                                    $nonEmpty = array_values(array_filter($existing, function (mixed $question): bool {
+                                        return is_array($question)
+                                            && filled(trim((string) ($question['question_text'] ?? '')));
+                                    }));
+
+                                    $merged = array_merge($nonEmpty, $generated);
+                                    $set('questions', $merged);
+
+                                    if (is_object($livewire) && method_exists($livewire, 'gotoQuestionsPage')) {
+                                        $perPage = max(1, (int) ($livewire->questionsPerPage ?? 10));
+                                        $livewire->gotoQuestionsPage((int) ceil(count($merged) / $perPage));
+                                    }
+
+                                    Notification::make()
+                                        ->title('Added '.count($generated).' AI-generated '.Str::plural('question', count($generated)))
+                                        ->body('Review the questions and choices below, then edit anything you need before saving.')
+                                        ->success()
+                                        ->send();
+                                }),
+                        ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(1)
+                    ->columnSpanFull(),
+
+                /*
+                |--------------------------------------------------------------------------
+                | 4. Quick CSV Import Banner (Prominent & Apparent)
                 |--------------------------------------------------------------------------
                 */
 
@@ -416,7 +572,7 @@ class QuizForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | 4. Questions & Options Builder (Distinct Separation Between Questions)
+                | 5. Questions & Options Builder (Distinct Separation Between Questions)
                 |--------------------------------------------------------------------------
                 */
 
