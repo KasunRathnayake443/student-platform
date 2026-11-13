@@ -4,7 +4,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('the landing page renders portal selection for student, teacher and school admin', function () {
+test('the landing page renders portal selection for student, teacher, school admin and parent', function () {
     $response = $this->get(route('home'));
 
     $response->assertOk()
@@ -14,7 +14,9 @@ test('the landing page renders portal selection for student, teacher and school 
         ->assertSee('Teacher')
         ->assertSee('/teacher/login', false)
         ->assertSee('School Admin')
-        ->assertSee('/school-admin/login', false);
+        ->assertSee('/school-admin/login', false)
+        ->assertSee('Parent')
+        ->assertSee('/parent/login', false);
 });
 
 test('the landing page does not expose the super admin login', function () {

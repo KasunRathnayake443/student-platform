@@ -47,7 +47,9 @@ test('the parent login page renders and a parent can sign in', function () {
     $this->get('/parent/login')
         ->assertOk()
         ->assertSee('Parent Portal')
-        ->assertSee('Welcome back');
+        ->assertSee('Welcome back')
+        ->assertSee('always in view')
+        ->assertSee('For parents and guardians only');
 
     Filament::setCurrentPanel('parent');
 

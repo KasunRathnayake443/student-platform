@@ -33,20 +33,31 @@
             'gradient'    => 'from-slate-700 to-purple-800',
             'btnClass'    => 'bg-gradient-to-r from-slate-700 to-purple-800 hover:from-slate-700 hover:to-purple-900',
         ],
+        [
+            'role'        => 'Parent',
+            'tagline'     => 'Every milestone, within reach.',
+            'description' => "Follow your child's learning journey from one simple dashboard — see quiz scores, assignment progress, published lessons and school notifications in real time.",
+            'href'        => '/parent/login',
+            'icon'        => 'user-group',
+            'emoji'       => '👨‍👩‍👧',
+            'features'    => ['Quiz scores & results', 'Assignment progress', 'Published lessons', 'Student notifications'],
+            'gradient'    => 'from-emerald-500 to-teal-600',
+            'btnClass'    => 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700',
+        ],
     ];
 @endphp
 
 <section id="portals" class="py-24 bg-slate-100 scroll-mt-24">
     <div class="max-w-7xl mx-auto px-6">
         <div class="reveal text-center mb-14 max-w-2xl mx-auto">
-            <span class="inline-block mb-3 text-xs font-semibold tracking-[0.18em] uppercase text-purple-600">Choose Your Portal</span>
-            <h2 class="font-display text-section-title font-semibold mb-4">One platform. Three doors.</h2>
+            <span class="inline-block mb-3 text-xs font-semibold tracking-[0.18em] uppercase text-purple-600">Choose your portal</span>
+            <h2 class="font-display text-section-title font-semibold mb-4">One platform. Four doors.</h2>
             <p class="text-slate-500 text-lg leading-relaxed">
                 Every user type gets a tailored experience — sign in to the portal built for your role.
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             @foreach($portals as $idx => $p)
                 <div class="reveal reveal-delay-{{ $idx + 1 }} group relative bg-white rounded-2xl border border-slate-200 overflow-hidden card-hover-lift flex flex-col">
                     <div class="relative h-36 bg-gradient-to-br {{ $p['gradient'] }} flex items-center justify-center overflow-hidden">
