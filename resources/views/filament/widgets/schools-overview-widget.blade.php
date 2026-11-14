@@ -31,8 +31,329 @@
         .fi-schools-overview-widget .so-row {
             gap: 0.75rem;
         }
+        .fi-schools-overview-widget .so-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
         .fi-schools-overview-widget .so-modal {
-            overflow-x: hidden !important;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 700px;
+            max-height: 88vh;
+            overflow: hidden;
+            border: 1px solid rgba(156, 163, 175, 0.22);
+            border-radius: 0.85rem;
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 25px 60px -20px rgba(15, 23, 42, 0.35);
+        }
+
+        .dark .fi-schools-overview-widget .so-modal {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: #18181b;
+            color: #f4f4f5;
+            box-shadow: 0 25px 60px -20px rgba(0, 0, 0, 0.65);
+        }
+
+        .fi-schools-overview-widget .so-modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-shrink: 0;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(156, 163, 175, 0.18);
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-header {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .fi-schools-overview-widget .so-modal-title-wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+        }
+
+        .fi-schools-overview-widget .so-modal-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.35rem;
+            height: 2.35rem;
+            flex-shrink: 0;
+            border-radius: 0.65rem;
+            background: rgba(217, 119, 6, 0.12);
+            color: #d97706;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-icon {
+            background: rgba(251, 191, 36, 0.16);
+            color: #fbbf24;
+        }
+
+        .fi-schools-overview-widget .so-modal-icon--blue {
+            background: rgba(59, 130, 246, 0.12);
+            color: #2563eb;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-icon--blue {
+            background: rgba(96, 165, 250, 0.16);
+            color: #93c5fd;
+        }
+
+        .fi-schools-overview-widget .so-modal-icon--green {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-icon--green {
+            background: rgba(52, 211, 153, 0.16);
+            color: #6ee7b7;
+        }
+
+        .fi-schools-overview-widget .so-modal-icon--cyan {
+            background: rgba(6, 182, 212, 0.12);
+            color: #0891b2;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-icon--cyan {
+            background: rgba(34, 211, 238, 0.16);
+            color: #67e8f9;
+        }
+
+        .fi-schools-overview-widget .so-modal-icon--purple {
+            background: rgba(168, 85, 247, 0.12);
+            color: #9333ea;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-icon--purple {
+            background: rgba(192, 132, 252, 0.16);
+            color: #d8b4fe;
+        }
+
+        .fi-schools-overview-widget .so-modal-title-wrap h3 {
+            margin: 0;
+            color: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .fi-schools-overview-widget .so-modal-title-wrap p {
+            margin: 0.2rem 0 0;
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 500;
+            line-height: 1.45;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-title-wrap p {
+            color: #a1a1aa;
+        }
+
+        .fi-schools-overview-widget .so-modal-close {
+            flex-shrink: 0;
+        }
+
+        .fi-schools-overview-widget .so-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+            padding: 1.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-body {
+            scrollbar-color: #52525b transparent;
+        }
+
+        .fi-schools-overview-widget .so-modal-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .fi-schools-overview-widget .so-modal-section-title {
+            margin: 0;
+            color: #475569;
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-section-title {
+            color: #d4d4d8;
+        }
+
+        .fi-schools-overview-widget .so-modal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.7rem;
+            padding: 1rem;
+            border: 1px solid rgba(156, 163, 175, 0.16);
+            border-radius: 0.65rem;
+            background: rgba(156, 163, 175, 0.08);
+            color: inherit;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-grid {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .fi-schools-overview-widget .so-modal-grid > div {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .fi-schools-overview-widget .so-modal-grid strong {
+            color: #334155;
+            font-weight: 700;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-grid strong {
+            color: #e4e4e7;
+        }
+
+        .fi-schools-overview-widget .so-modal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .fi-schools-overview-widget .so-modal-list-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-width: 0;
+            padding: 0.7rem 0.85rem;
+            border: 1px solid rgba(156, 163, 175, 0.14);
+            border-radius: 0.55rem;
+            background: rgba(156, 163, 175, 0.06);
+            color: inherit;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-list-row {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .fi-schools-overview-widget .so-modal-list-row > div {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .fi-schools-overview-widget .so-modal-list-title {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-list-title {
+            color: #f4f4f5;
+        }
+
+        .fi-schools-overview-widget .so-modal-list-meta {
+            margin-top: 0.16rem;
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 500;
+            line-height: 1.45;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-list-meta {
+            color: #a1a1aa;
+        }
+
+        .fi-schools-overview-widget .so-modal-empty {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-empty {
+            color: #a1a1aa;
+        }
+
+        .fi-schools-overview-widget .so-modal-content-box {
+            padding: 0.9rem 1rem;
+            border: 1px solid rgba(156, 163, 175, 0.14);
+            border-radius: 0.6rem;
+            background: rgba(156, 163, 175, 0.06);
+            color: #334155;
+            font-size: 0.84rem;
+            line-height: 1.55;
+            overflow-wrap: anywhere;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-content-box {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: #d4d4d8;
+        }
+
+        .fi-schools-overview-widget .so-modal-content-box > :first-child {
+            margin-top: 0;
+        }
+
+        .fi-schools-overview-widget .so-modal-content-box > :last-child {
+            margin-bottom: 0;
+        }
+
+        .fi-schools-overview-widget .so-modal-feedback {
+            border-color: rgba(234, 179, 8, 0.24);
+            background: rgba(234, 179, 8, 0.08);
+            color: #854d0e;
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-feedback {
+            border-color: rgba(234, 179, 8, 0.24);
+            background: rgba(234, 179, 8, 0.1);
+            color: #fef08a;
+        }
+
+        .fi-schools-overview-widget .so-text-success {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .dark .fi-schools-overview-widget .so-text-success {
+            color: #34d399;
+        }
+
+        .fi-schools-overview-widget .so-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            flex-shrink: 0;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(156, 163, 175, 0.18);
+        }
+
+        .dark .fi-schools-overview-widget .so-modal-footer {
+            border-top-color: rgba(255, 255, 255, 0.1);
         }
 
         @media (max-width: 768px) {
@@ -88,12 +409,16 @@
             }
             .fi-schools-overview-widget .so-modal {
                 max-height: 92vh !important;
-                padding: 1rem !important;
+                padding: 0 !important;
                 border-radius: 0.65rem !important;
             }
             .fi-schools-overview-widget .so-modal-header {
                 align-items: flex-start !important;
                 gap: 0.5rem;
+                padding: 1rem !important;
+            }
+            .fi-schools-overview-widget .so-modal-body {
+                padding: 1rem !important;
             }
             .fi-schools-overview-widget .so-modal-grid {
                 grid-template-columns: 1fr !important;
@@ -103,6 +428,7 @@
                 align-items: flex-start !important;
                 gap: 0.5rem !important;
             }
+            .fi-schools-overview-widget .so-modal-list-row > .fi-btn,
             .fi-schools-overview-widget .so-modal-list-row > button,
             .fi-schools-overview-widget .so-modal-list-row > a {
                 width: 100%;
@@ -111,7 +437,9 @@
             }
             .fi-schools-overview-widget .so-modal-footer {
                 text-align: left !important;
+                padding: 1rem !important;
             }
+            .fi-schools-overview-widget .so-modal-footer > .fi-btn,
             .fi-schools-overview-widget .so-modal-footer > button {
                 width: 100%;
             }
@@ -348,27 +676,9 @@
                                             </div>
                                         </div>
                                         <div class="so-row-action">
-                                            <!-- View Lessons & Materials Button -->
-                                            <button
-                                                class="so-row-button"
-                                                type="button"
-                                                wire:click.stop="selectLesson({{ $lesson->id }})"
-                                                style="
-                                                    padding: 0.3rem 0.65rem;
-                                                    border-radius: 0.375rem;
-                                                    background: linear-gradient(135deg, #06b6d4, #3b82f6);
-                                                    color: white;
-                                                    border: none;
-                                                    font-size: 0.75rem;
-                                                    font-weight: 700;
-                                                    cursor: pointer;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    gap: 0.25rem;
-                                                "
-                                            >
-                                                View Lessons & Materials 📚
-                                            </button>
+                                            <x-filament::badge size="xs" color="info" icon="heroicon-m-book-open">
+                                                View Materials
+                                            </x-filament::badge>
                                         </div>
                                     </div>
                                 @empty
@@ -441,96 +751,117 @@
 
             <!-- CLASS DETAILS MODAL / POPUP OVERLAY (z-index: 99999) -->
             @if($selectedClass && !$selectedSubmission && !$selectedLesson)
-                <div class="so-modal-overlay" style="position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); padding: 1rem;" wire:click.self="closeDetails">
-                    <div class="so-modal" style="background: #18181b; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.75rem; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); color: #f4f4f5;" @click.stop>
-                        
-                        <div class="so-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem; margin-bottom: 1rem;">
-                            <div class="so-modal-title-wrap" style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; display: flex; align-items: center; justify-content: center;">
-                                    <x-filament::icon icon="heroicon-o-building-library" style="width: 1.5rem; height: 1.5rem;" />
+                <div class="so-modal-overlay" wire:click.self="closeDetails">
+                    <div class="so-modal" @click.stop>
+                        <div class="so-modal-header">
+                            <div class="so-modal-title-wrap">
+                                <div class="so-modal-icon so-modal-icon--blue">
+                                    <x-filament::icon icon="heroicon-o-building-library" style="width: 1.35rem; height: 1.35rem;" />
                                 </div>
                                 <div>
-                                    <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #ffffff;">
-                                        {{ $selectedClass->name }}
-                                    </h3>
-                                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">
+                                    <h3>{{ $selectedClass->name }}</h3>
+                                    <p>
                                         {{ $selectedClass->grade->school->name ?? 'School' }} &bull; {{ $selectedClass->grade->name ?? 'Grade' }}
                                     </p>
                                 </div>
                             </div>
-                            <button type="button" wire:click="closeDetails" style="background: transparent; border: none; color: #a1a1aa; cursor: pointer; font-size: 1.25rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                                &times;
-                            </button>
+
+                            <x-filament::icon-button
+                                icon="heroicon-o-x-mark"
+                                color="gray"
+                                size="sm"
+                                label="Close class details"
+                                wire:click="closeDetails"
+                                class="so-modal-close"
+                            />
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div class="so-modal-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; background: rgba(255, 255, 255, 0.05); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem;">
+                        <div class="so-modal-body">
+                            <div class="so-modal-grid">
                                 <div><strong>Medium:</strong> {{ ucfirst($selectedClass->medium ?? 'English') }}</div>
                                 <div><strong>Status:</strong> {{ $selectedClass->is_active ? 'Active' : 'Inactive' }}</div>
                                 <div><strong>Total Students:</strong> {{ $selectedClass->students_count }}</div>
                                 <div><strong>Total Teachers:</strong> {{ $selectedClass->teachers_count }}</div>
                             </div>
 
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #3b82f6;">Assigned Teachers</h4>
-                                @forelse($selectedClass->teachers as $teacher)
-                                    <div class="so-modal-list-row" style="padding: 0.4rem 0.75rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.03); margin-bottom: 0.35rem; font-size: 0.85rem; display: flex; justify-content: space-between;">
-                                        <span>{{ $teacher->user->name ?? 'Teacher' }}</span>
-                                        <span style="opacity: 0.7;">{{ $teacher->user->email ?? '' }}</span>
-                                    </div>
-                                @empty
-                                    <p style="font-size: 0.8rem; opacity: 0.6; margin: 0;">No teachers assigned to this class.</p>
-                                @endforelse
+                            <div class="so-modal-section">
+                                <h4 class="so-modal-section-title">Assigned Teachers</h4>
+
+                                <div class="so-modal-list">
+                                    @forelse($selectedClass->teachers as $teacher)
+                                        <div class="so-modal-list-row">
+                                            <div>
+                                                <div class="so-modal-list-title">{{ $teacher->user->name ?? 'Teacher' }}</div>
+                                                <div class="so-modal-list-meta">{{ $teacher->user->email ?? '' }}</div>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <p class="so-modal-empty">No teachers assigned to this class.</p>
+                                    @endforelse
+                                </div>
                             </div>
 
-                            <!-- Assigned Lessons with View Lessons & Materials 📚 Buttons -->
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #06b6d4;">Assigned Lessons & Materials</h4>
-                                @forelse($selectedClass->lessons as $les)
-                                    <div class="so-modal-list-row" style="padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.03); margin-bottom: 0.35rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(6, 182, 212, 0.2);">
-                                        <div>
-                                            <div style="font-weight: 600; color: #ffffff;">{{ $les->title }}</div>
-                                            <div style="font-size: 0.75rem; opacity: 0.7;">Materials: {{ $les->attachments->count() }} Files</div>
+                            <div class="so-modal-section">
+                                <h4 class="so-modal-section-title">Assigned Lessons & Materials</h4>
+
+                                <div class="so-modal-list">
+                                    @forelse($selectedClass->lessons as $les)
+                                        <div class="so-modal-list-row">
+                                            <div>
+                                                <div class="so-modal-list-title">{{ $les->title }}</div>
+                                                <div class="so-modal-list-meta">Materials: {{ $les->attachments->count() }} Files</div>
+                                            </div>
+
+                                            <x-filament::button
+                                                type="button"
+                                                size="xs"
+                                                color="gray"
+                                                outlined
+                                                icon="heroicon-m-book-open"
+                                                wire:click.stop="selectLesson({{ $les->id }})"
+                                            >
+                                                View materials
+                                            </x-filament::button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            wire:click.stop="selectLesson({{ $les->id }})"
-                                            style="padding: 0.3rem 0.7rem; border-radius: 0.375rem; background: linear-gradient(135deg, #06b6d4, #3b82f6); color: white; border: none; font-size: 0.75rem; font-weight: 700; cursor: pointer;"
-                                        >
-                                            View Lessons & Materials 📚
-                                        </button>
-                                    </div>
-                                @empty
-                                    <p style="font-size: 0.8rem; opacity: 0.6; margin: 0;">No lessons listed for this class.</p>
-                                @endforelse
+                                    @empty
+                                        <p class="so-modal-empty">No lessons listed for this class.</p>
+                                    @endforelse
+                                </div>
                             </div>
 
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #10b981;">Assignments</h4>
-                                @forelse($selectedClass->assignments as $assign)
-                                    <div class="so-modal-list-row" style="padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.03); margin-bottom: 0.35rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
-                                        <div>
-                                            <div style="font-weight: 600;">{{ $assign->title }}</div>
-                                            <div style="font-size: 0.75rem; opacity: 0.7;">Max Score: {{ $assign->max_score ?? 100 }}</div>
+                            <div class="so-modal-section">
+                                <h4 class="so-modal-section-title">Assignments</h4>
+
+                                <div class="so-modal-list">
+                                    @forelse($selectedClass->assignments as $assign)
+                                        <div class="so-modal-list-row">
+                                            <div>
+                                                <div class="so-modal-list-title">{{ $assign->title }}</div>
+                                                <div class="so-modal-list-meta">Max Score: {{ $assign->max_score ?? 100 }}</div>
+                                            </div>
+
+                                            <x-filament::button
+                                                type="button"
+                                                size="xs"
+                                                color="gray"
+                                                outlined
+                                                icon="heroicon-m-eye"
+                                                wire:click.stop="selectAssignment({{ $assign->id }})"
+                                            >
+                                                View assignment
+                                            </x-filament::button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            wire:click.stop="selectAssignment({{ $assign->id }})"
-                                            style="padding: 0.25rem 0.6rem; border-radius: 0.375rem; background: #10b981; color: white; border: none; font-size: 0.75rem; font-weight: 600; cursor: pointer;"
-                                        >
-                                            View Assignment
-                                        </button>
-                                    </div>
-                                @empty
-                                    <p style="font-size: 0.8rem; opacity: 0.6; margin: 0;">No assignments listed for this class.</p>
-                                @endforelse
+                                    @empty
+                                        <p class="so-modal-empty">No assignments listed for this class.</p>
+                                    @endforelse
+                                </div>
                             </div>
                         </div>
 
-                        <div class="so-modal-footer" style="margin-top: 1.5rem; text-align: right; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem;">
-                            <button type="button" wire:click="closeDetails" style="padding: 0.5rem 1.25rem; border-radius: 0.375rem; background: #3f3f46; color: white; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
+                        <div class="so-modal-footer">
+                            <x-filament::button type="button" color="gray" wire:click="closeDetails">
                                 Close
-                            </button>
+                            </x-filament::button>
                         </div>
                     </div>
                 </div>
@@ -538,81 +869,75 @@
 
             <!-- ASSIGNMENT DETAILS MODAL / POPUP OVERLAY (z-index: 99999) -->
             @if($selectedAssignment && !$selectedSubmission && !$selectedLesson)
-                <div class="so-modal-overlay" style="position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); padding: 1rem;" wire:click.self="closeDetails">
-                    <div class="so-modal" style="background: #18181b; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.75rem; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); color: #f4f4f5;" @click.stop>
-                        
-                        <div class="so-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem; margin-bottom: 1rem;">
-                            <div class="so-modal-title-wrap" style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; background-color: rgba(16, 185, 129, 0.2); color: #10b981; display: flex; align-items: center; justify-content: center;">
-                                    <x-filament::icon icon="heroicon-o-clipboard-document-list" style="width: 1.5rem; height: 1.5rem;" />
+                <div class="so-modal-overlay" wire:click.self="closeDetails">
+                    <div class="so-modal" @click.stop>
+                        <div class="so-modal-header">
+                            <div class="so-modal-title-wrap">
+                                <div class="so-modal-icon so-modal-icon--green">
+                                    <x-filament::icon icon="heroicon-o-clipboard-document-list" style="width: 1.35rem; height: 1.35rem;" />
                                 </div>
                                 <div>
-                                    <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #ffffff;">
-                                        {{ $selectedAssignment->title }}
-                                    </h3>
-                                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">
+                                    <h3>{{ $selectedAssignment->title }}</h3>
+                                    <p>
                                         Class: {{ $selectedAssignment->learningClass->name ?? 'N/A' }} &bull; Teacher: {{ $selectedAssignment->teacher->user->name ?? 'N/A' }}
                                     </p>
                                 </div>
                             </div>
-                            <button type="button" wire:click="closeDetails" style="background: transparent; border: none; color: #a1a1aa; cursor: pointer; font-size: 1.25rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                                &times;
-                            </button>
+
+                            <x-filament::icon-button
+                                icon="heroicon-o-x-mark"
+                                color="gray"
+                                size="sm"
+                                label="Close assignment details"
+                                wire:click="closeDetails"
+                                class="so-modal-close"
+                            />
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div class="so-modal-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; background: rgba(255, 255, 255, 0.05); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem;">
+                        <div class="so-modal-body">
+                            <div class="so-modal-grid">
                                 <div><strong>Status:</strong> {{ $selectedAssignment->is_published ? 'Published' : 'Draft' }}</div>
                                 <div><strong>Max Score:</strong> {{ $selectedAssignment->max_score ?? 100 }}</div>
                                 <div><strong>Submissions:</strong> {{ $selectedAssignment->submissions_count }}</div>
                                 <div><strong>Availability:</strong> {{ ucfirst($selectedAssignment->availability_type ?? 'Always Available') }}</div>
                             </div>
 
-                            <!-- Student Submissions List with PURPLE "View Submission 📄" Buttons -->
-                            <div>
-                                <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #a855f7;">Student Submissions</h4>
-                                @forelse($selectedAssignment->submissions as $sub)
-                                    <div class="so-modal-list-row" style="padding: 0.6rem 0.85rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.04); margin-bottom: 0.4rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(168, 85, 247, 0.2);">
-                                        <div>
-                                            <div style="font-weight: 600; color: #ffffff;">{{ $sub->student->user->name ?? 'Student' }}</div>
-                                            <div style="font-size: 0.75rem; opacity: 0.7;">
-                                                Status: <span style="color: #4ade80;">{{ ucfirst($sub->status) }}</span> &bull; 
-                                                Submitted: {{ $sub->submitted_at ? $sub->submitted_at->format('M j, Y h:i A') : 'N/A' }}
-                                            </div>
-                                        </div>
-                                        <!-- PURPLE View Submission 📄 Button -->
-                                        <button
-                                            type="button"
-                                            wire:click.stop="selectSubmission({{ $sub->id }})"
-                                            style="
-                                                padding: 0.35rem 0.85rem;
-                                                border-radius: 0.375rem;
-                                                background: linear-gradient(135deg, #7c3aed, #6366f1);
-                                                color: white;
-                                                border: none;
-                                                font-size: 0.775rem;
-                                                font-weight: 700;
-                                                cursor: pointer;
-                                                box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
-                                                display: flex;
-                                                align-items: center;
-                                                gap: 0.3rem;
-                                            "
-                                        >
-                                            View Submission 📄
-                                        </button>
-                                    </div>
-                                @empty
-                                    <p style="font-size: 0.8rem; opacity: 0.6; margin: 0;">No student submissions recorded for this assignment yet.</p>
-                                @endforelse
-                            </div>
+                            <div class="so-modal-section">
+                                <h4 class="so-modal-section-title">Student Submissions</h4>
 
+                                <div class="so-modal-list">
+                                    @forelse($selectedAssignment->submissions as $sub)
+                                        <div class="so-modal-list-row">
+                                            <div>
+                                                <div class="so-modal-list-title">{{ $sub->student->user->name ?? 'Student' }}</div>
+                                                <div class="so-modal-list-meta">
+                                                    Status: <span class="so-text-success">{{ ucfirst($sub->status) }}</span> &bull;
+                                                    Submitted: {{ $sub->submitted_at ? $sub->submitted_at->format('M j, Y h:i A') : 'N/A' }}
+                                                </div>
+                                            </div>
+
+                                            <x-filament::button
+                                                type="button"
+                                                size="xs"
+                                                color="gray"
+                                                outlined
+                                                icon="heroicon-m-document-text"
+                                                wire:click.stop="selectSubmission({{ $sub->id }})"
+                                            >
+                                                View submission
+                                            </x-filament::button>
+                                        </div>
+                                    @empty
+                                        <p class="so-modal-empty">No student submissions recorded for this assignment yet.</p>
+                                    @endforelse
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="so-modal-footer" style="margin-top: 1.5rem; text-align: right; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem;">
-                            <button type="button" wire:click="closeDetails" style="padding: 0.5rem 1.25rem; border-radius: 0.375rem; background: #3f3f46; color: white; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600;">
+                        <div class="so-modal-footer">
+                            <x-filament::button type="button" color="gray" wire:click="closeDetails">
                                 Close
-                            </button>
+                            </x-filament::button>
                         </div>
                     </div>
                 </div>
@@ -620,121 +945,118 @@
 
             <!-- LESSON & MATERIALS DETAILS MODAL / POPUP OVERLAY (z-index: 999999) -->
             @if($selectedLesson)
-                <div class="so-modal-overlay" style="position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px); padding: 1rem;" wire:click.self="closeDetails">
-                    <div class="so-modal" style="background: #18181b; border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 0.75rem; max-width: 700px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 1.5rem; box-shadow: 0 25px 50px -12px rgba(6, 182, 212, 0.4); color: #f4f4f5;" @click.stop>
-                        
-                        <!-- Modal Header -->
-                        <div class="so-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem; margin-bottom: 1rem;">
-                            <div class="so-modal-title-wrap" style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; background-color: rgba(6, 182, 212, 0.25); color: #06b6d4; display: flex; align-items: center; justify-content: center;">
-                                    <x-filament::icon icon="heroicon-o-book-open" style="width: 1.5rem; height: 1.5rem;" />
+                <div class="so-modal-overlay" wire:click.self="closeDetails">
+                    <div class="so-modal" @click.stop>
+                        <div class="so-modal-header">
+                            <div class="so-modal-title-wrap">
+                                <div class="so-modal-icon so-modal-icon--cyan">
+                                    <x-filament::icon icon="heroicon-o-book-open" style="width: 1.35rem; height: 1.35rem;" />
                                 </div>
                                 <div>
-                                    <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #ffffff;">
-                                        {{ $selectedLesson->title }}
-                                    </h3>
-                                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">
-                                        Class: <strong>{{ $selectedLesson->learningClass->name ?? 'N/A' }}</strong> &bull; 
+                                    <h3>{{ $selectedLesson->title }}</h3>
+                                    <p>
+                                        Class: <strong>{{ $selectedLesson->learningClass->name ?? 'N/A' }}</strong> &bull;
                                         Teacher: {{ $selectedLesson->teacher->user->name ?? 'N/A' }}
                                     </p>
                                 </div>
                             </div>
-                            <button type="button" wire:click="closeDetails" style="background: transparent; border: none; color: #a1a1aa; cursor: pointer; font-size: 1.25rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                                &times;
-                            </button>
+
+                            <x-filament::icon-button
+                                icon="heroicon-o-x-mark"
+                                color="gray"
+                                size="sm"
+                                label="Close lesson details"
+                                wire:click="closeDetails"
+                                class="so-modal-close"
+                            />
                         </div>
 
-                        <!-- Modal Body Content -->
-                        <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-                            
-                            <!-- Badges -->
+                        <div class="so-modal-body">
                             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
                                 <x-filament::badge color="{{ $selectedLesson->is_published ? 'success' : 'gray' }}">
                                     Status: {{ $selectedLesson->is_published ? 'Published' : 'Draft' }}
                                 </x-filament::badge>
-                                
+
                                 <x-filament::badge color="cyan">
                                     Materials: {{ $selectedLesson->attachments->count() }} Files
                                 </x-filament::badge>
 
                                 @if($selectedLesson->video_url)
-                                    <a
+                                    <x-filament::button
+                                        tag="a"
                                         href="{{ $selectedLesson->video_url }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        style="padding: 0.25rem 0.6rem; border-radius: 0.375rem; background: rgba(239, 68, 68, 0.2); color: #f87171; font-size: 0.75rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 0.25rem;"
+                                        size="xs"
+                                        color="gray"
+                                        outlined
+                                        icon="heroicon-m-play"
                                     >
-                                        📺 Watch Video Lesson
-                                    </a>
+                                        Watch video lesson
+                                    </x-filament::button>
                                 @endif
                             </div>
 
-                            <!-- Description -->
                             @if($selectedLesson->description)
-                                <div>
-                                    <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.35rem 0; color: #06b6d4;">Overview</h4>
-                                    <div style="padding: 0.75rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.04); font-size: 0.85rem; line-height: 1.4;">
+                                <div class="so-modal-section">
+                                    <h4 class="so-modal-section-title">Overview</h4>
+                                    <div class="so-modal-content-box">
                                         {{ $selectedLesson->description }}
                                     </div>
                                 </div>
                             @endif
 
-                            <!-- Full Lesson Content -->
                             @if($selectedLesson->content)
-                                <div>
-                                    <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.35rem 0; color: #3b82f6;">Lesson Content & Notes</h4>
-                                    <div style="padding: 0.85rem; border-radius: 0.5rem; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.875rem; line-height: 1.5;">
+                                <div class="so-modal-section">
+                                    <h4 class="so-modal-section-title">Lesson Content & Notes</h4>
+                                    <div class="so-modal-content-box">
                                         {!! $selectedLesson->content !!}
                                     </div>
                                 </div>
                             @endif
 
-                            <!-- Learning Materials & Attachments -->
-                            <div>
-                                <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #06b6d4;">Downloadable Learning Materials</h4>
-                                @forelse($selectedLesson->attachments as $material)
-                                    <div class="so-modal-list-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.04); margin-bottom: 0.4rem; border: 1px solid rgba(6, 182, 212, 0.25);">
-                                        <div>
-                                            <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">
-                                                {{ $material->original_name ?? basename($material->file_path) }}
-                                            </div>
-                                            <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.1rem;">
-                                                Size: {{ $material->file_size ? number_format($material->file_size / 1024, 1) . ' KB' : 'N/A' }} &bull; 
-                                                Type: {{ $material->mime_type ?? 'File' }}
-                                            </div>
-                                        </div>
-                                        @if($material->file_path)
-                                            <a
-                                                href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($material->file_path) }}"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                style="
-                                                    padding: 0.35rem 0.85rem;
-                                                    border-radius: 0.375rem;
-                                                    background: linear-gradient(135deg, #06b6d4, #3b82f6);
-                                                    color: white;
-                                                    text-decoration: none;
-                                                    font-size: 0.775rem;
-                                                    font-weight: 700;
-                                                    box-shadow: 0 2px 4px rgba(6, 182, 212, 0.3);
-                                                "
-                                            >
-                                                Download Material 📥
-                                            </a>
-                                        @endif
-                                    </div>
-                                @empty
-                                    <p style="font-size: 0.8rem; opacity: 0.6; margin: 0;">No downloadable materials attached to this lesson.</p>
-                                @endforelse
-                            </div>
+                            <div class="so-modal-section">
+                                <h4 class="so-modal-section-title">Downloadable Learning Materials</h4>
 
+                                <div class="so-modal-list">
+                                    @forelse($selectedLesson->attachments as $material)
+                                        <div class="so-modal-list-row">
+                                            <div>
+                                                <div class="so-modal-list-title">
+                                                    {{ $material->original_name ?? basename($material->file_path) }}
+                                                </div>
+                                                <div class="so-modal-list-meta">
+                                                    Size: {{ $material->file_size ? number_format($material->file_size / 1024, 1) . ' KB' : 'N/A' }} &bull;
+                                                    Type: {{ $material->mime_type ?? 'File' }}
+                                                </div>
+                                            </div>
+
+                                            @if($material->file_path)
+                                                <x-filament::button
+                                                    tag="a"
+                                                    href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($material->file_path) }}"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    size="xs"
+                                                    color="gray"
+                                                    outlined
+                                                    icon="heroicon-m-arrow-down-tray"
+                                                >
+                                                    Download
+                                                </x-filament::button>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <p class="so-modal-empty">No downloadable materials attached to this lesson.</p>
+                                    @endforelse
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Modal Footer -->
-                        <div class="so-modal-footer" style="margin-top: 1.5rem; text-align: right; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem;">
-                            <button type="button" wire:click="closeDetails" style="padding: 0.5rem 1.25rem; border-radius: 0.375rem; background: #06b6d4; color: white; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 700;">
-                                Close Lesson Details
-                            </button>
+                        <div class="so-modal-footer">
+                            <x-filament::button type="button" color="gray" wire:click="closeDetails">
+                                Close
+                            </x-filament::button>
                         </div>
                     </div>
                 </div>
@@ -742,39 +1064,38 @@
 
             <!-- SUBMISSION DETAILS MODAL / POPUP OVERLAY (z-index: 999999) -->
             @if($selectedSubmission)
-                <div class="so-modal-overlay" style="position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px); padding: 1rem;" wire:click.self="closeDetails">
-                    <div class="so-modal" style="background: #18181b; border: 1px solid rgba(168, 85, 247, 0.5); border-radius: 0.75rem; max-width: 700px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 1.5rem; box-shadow: 0 25px 50px -12px rgba(124, 58, 237, 0.4); color: #f4f4f5;" @click.stop>
-                        
-                        <!-- Modal Header -->
-                        <div class="so-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem; margin-bottom: 1rem;">
-                            <div class="so-modal-title-wrap" style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; background-color: rgba(124, 58, 237, 0.25); color: #a855f7; display: flex; align-items: center; justify-content: center;">
-                                    <x-filament::icon icon="heroicon-o-document-text" style="width: 1.5rem; height: 1.5rem;" />
+                <div class="so-modal-overlay" wire:click.self="closeDetails">
+                    <div class="so-modal" @click.stop>
+                        <div class="so-modal-header">
+                            <div class="so-modal-title-wrap">
+                                <div class="so-modal-icon so-modal-icon--purple">
+                                    <x-filament::icon icon="heroicon-o-document-text" style="width: 1.35rem; height: 1.35rem;" />
                                 </div>
                                 <div>
-                                    <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #ffffff;">
-                                        Submission Details — {{ $selectedSubmission->student->user->name ?? 'Student' }}
-                                    </h3>
-                                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">
-                                        Assignment: <strong>{{ $selectedSubmission->assignment->title ?? 'N/A' }}</strong> &bull; 
+                                    <h3>Submission Details — {{ $selectedSubmission->student->user->name ?? 'Student' }}</h3>
+                                    <p>
+                                        Assignment: <strong>{{ $selectedSubmission->assignment->title ?? 'N/A' }}</strong> &bull;
                                         Submitted: {{ $selectedSubmission->submitted_at ? $selectedSubmission->submitted_at->format('d M Y, h:i A') : 'N/A' }}
                                     </p>
                                 </div>
                             </div>
-                            <button type="button" wire:click="closeDetails" style="background: transparent; border: none; color: #a1a1aa; cursor: pointer; font-size: 1.25rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                                &times;
-                            </button>
+
+                            <x-filament::icon-button
+                                icon="heroicon-o-x-mark"
+                                color="gray"
+                                size="sm"
+                                label="Close submission details"
+                                wire:click="closeDetails"
+                                class="so-modal-close"
+                            />
                         </div>
 
-                        <!-- Modal Body Content -->
-                        <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-                            
-                            <!-- Status Badges -->
+                        <div class="so-modal-body">
                             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
                                 <x-filament::badge color="{{ match($selectedSubmission->status) { 'graded' => 'success', 'submitted' => 'info', 'returned' => 'warning', default => 'gray' } }}">
                                     Status: {{ ucfirst($selectedSubmission->status) }}
                                 </x-filament::badge>
-                                
+
                                 <x-filament::badge color="{{ $selectedSubmission->is_late ? 'danger' : 'success' }}">
                                     {{ $selectedSubmission->is_late ? 'Late Submission' : 'On Time' }}
                                 </x-filament::badge>
@@ -786,33 +1107,37 @@
                                 @endif
                             </div>
 
-                            <!-- Student Answer Text -->
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.4rem 0; color: #a855f7;">Student Response / Answer</h4>
-                                <div style="padding: 0.85rem; border-radius: 0.5rem; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.875rem; line-height: 1.5;">
+                            <div class="so-modal-section">
+                                <h4 class="so-modal-section-title">Student Response / Answer</h4>
+                                <div class="so-modal-content-box">
                                     {!! $selectedSubmission->content ?: '<em>No written response provided.</em>' !!}
                                 </div>
                             </div>
 
-                            <!-- Submitted Attachments -->
                             @if($selectedSubmission->attachments->count() > 0)
-                                <div>
-                                    <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.4rem 0; color: #3b82f6;">Submitted Attachments</h4>
-                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div class="so-modal-section">
+                                    <h4 class="so-modal-section-title">Submitted Attachments</h4>
+
+                                    <div class="so-modal-list">
                                         @foreach($selectedSubmission->attachments as $file)
-                                            <div class="so-modal-list-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);">
-                                                <div style="font-size: 0.85rem; font-weight: 600; color: #e4e4e7;">
+                                            <div class="so-modal-list-row">
+                                                <div class="so-modal-list-title">
                                                     {{ $file->original_name ?? basename($file->file_path) }}
                                                 </div>
+
                                                 @if($file->file_path)
-                                                    <a
+                                                    <x-filament::button
+                                                        tag="a"
                                                         href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($file->file_path) }}"
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        style="padding: 0.3rem 0.75rem; border-radius: 0.25rem; background: #3b82f6; color: white; text-decoration: none; font-size: 0.775rem; font-weight: 600;"
+                                                        size="xs"
+                                                        color="gray"
+                                                        outlined
+                                                        icon="heroicon-m-arrow-down-tray"
                                                     >
                                                         Download / View
-                                                    </a>
+                                                    </x-filament::button>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -820,23 +1145,20 @@
                                 </div>
                             @endif
 
-                            <!-- Teacher Feedback -->
                             @if($selectedSubmission->feedback)
-                                <div>
-                                    <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.4rem 0; color: #eab308;">Teacher Feedback</h4>
-                                    <div style="padding: 0.85rem; border-radius: 0.5rem; background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); font-size: 0.875rem; line-height: 1.5; color: #fef08a;">
+                                <div class="so-modal-section">
+                                    <h4 class="so-modal-section-title">Teacher Feedback</h4>
+                                    <div class="so-modal-content-box so-modal-feedback">
                                         {!! $selectedSubmission->feedback !!}
                                     </div>
                                 </div>
                             @endif
-
                         </div>
 
-                        <!-- Modal Footer -->
-                        <div class="so-modal-footer" style="margin-top: 1.5rem; text-align: right; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem;">
-                            <button type="button" wire:click="closeDetails" style="padding: 0.5rem 1.25rem; border-radius: 0.375rem; background: #7c3aed; color: white; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 700;">
-                                Close Submission Details
-                            </button>
+                        <div class="so-modal-footer">
+                            <x-filament::button type="button" color="gray" wire:click="closeDetails">
+                                Close
+                            </x-filament::button>
                         </div>
                     </div>
                 </div>
