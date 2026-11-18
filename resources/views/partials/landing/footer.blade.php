@@ -7,10 +7,10 @@
             </a>
 
             <nav class="flex flex-wrap items-center justify-center gap-6">
-                <a href="#features" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">Features</a>
-                <a href="#portals" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">Portals</a>
-                <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">Privacy</a>
-                <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">Terms</a>
+                <a href="#features" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.features') }}</a>
+                <a href="#portals" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.portals') }}</a>
+                <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.privacy') }}</a>
+                <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.terms') }}</a>
             </nav>
 
             <p class="text-sm text-slate-500">© {{ now()->format('Y') }} {{ \App\Services\PlatformSettings::name() }}</p>

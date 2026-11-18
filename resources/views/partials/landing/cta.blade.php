@@ -7,30 +7,30 @@
         <div class="reveal mb-10">
             <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-600 text-xs font-semibold tracking-widest uppercase">
                 <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
-                Ready to Launch
+                {{ __('landing.cta.badge') }}
             </span>
         </div>
 
-        <h2 class="reveal font-display text-section-title font-semibold mb-10">Bring your school online in days, not months.</h2>
+        <h2 class="reveal font-display text-section-title font-semibold mb-10">{{ __('landing.cta.title') }}</h2>
 
         <p class="reveal text-slate-500 text-lg leading-relaxed mb-16 max-w-2xl mx-auto">
-            {{ \App\Services\PlatformSettings::name() }} is built on Laravel — battle-tested, fast, and ready to scale with your institution. Request a live demo and see it running with your own data.
+            {{ __('landing.cta.description', ['name' => \App\Services\PlatformSettings::name()]) }}
         </p>
 
         <div class="reveal flex flex-col sm:flex-row gap-5 justify-center">
             <a href="#portals" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-ink text-white font-semibold text-base rounded-xl hover:bg-ink-soft transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[52px]">
                 @include('partials.landing.icon', ['name' => 'calendar-days', 'size' => 18])
-                Request a Demo
+                {{ __('landing.cta.demo') }}
             </a>
             <a href="#portals" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-ink font-medium text-base rounded-xl border border-slate-200 hover:border-teal-500 hover:text-teal-600 transition-all duration-200 min-h-[52px]">
-                View All Portals
+                {{ __('landing.cta.portals') }}
                 @include('partials.landing.icon', ['name' => 'arrow-right', 'size' => 18])
             </a>
         </div>
 
         <p class="reveal mt-16 text-sm text-slate-500 flex items-center justify-center gap-2">
             @include('partials.landing.icon', ['name' => 'shield-check', 'size' => 15, 'iconClass' => 'text-teal-500'])
-            No setup fees. GDPR-compliant. Full data ownership for your school.
+            {{ __('landing.cta.note') }}
         </p>
     </div>
 </section>

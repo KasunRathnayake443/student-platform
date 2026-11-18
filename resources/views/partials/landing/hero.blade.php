@@ -1,20 +1,22 @@
 @php
     $floatingStats = [
-        ['emoji' => '⭐', 'label' => 'Kid Dashboard', 'sub' => 'Stars & Missions', 'grad' => 'from-violet-500 to-purple-600'],
-        ['emoji' => '🔥', 'label' => 'Junior Dashboard', 'sub' => 'Streaks & Progress', 'grad' => 'from-indigo-500 to-blue-600'],
-        ['emoji' => '📈', 'label' => 'Senior Dashboard', 'sub' => 'Analytics & Trends', 'grad' => 'from-slate-600 to-purple-700'],
+        ['emoji' => '⭐', 'label' => __('landing.hero.kid_title'), 'sub' => __('landing.hero.kid_sub'), 'grad' => 'from-violet-500 to-purple-600'],
+        ['emoji' => '🔥', 'label' => __('landing.hero.junior_title'), 'sub' => __('landing.hero.junior_sub'), 'grad' => 'from-indigo-500 to-blue-600'],
+        ['emoji' => '📈', 'label' => __('landing.hero.senior_title'), 'sub' => __('landing.hero.senior_sub'), 'grad' => 'from-slate-600 to-purple-700'],
     ];
     $roleLinks = [
-        ['label' => 'Student Portal', 'href' => '/student/login', 'icon' => 'academic-cap'],
-        ['label' => 'Teacher Portal', 'href' => '/teacher/login', 'icon' => 'book-open'],
-        ['label' => 'School Admin', 'href' => '/school-admin/login', 'icon' => 'building-office'],
+        ['label' => __('landing.hero.role_student'), 'href' => '/student/login', 'icon' => 'academic-cap'],
+        ['label' => __('landing.hero.role_teacher'), 'href' => '/teacher/login', 'icon' => 'book-open'],
+        ['label' => __('landing.hero.role_admin'), 'href' => '/school-admin/login', 'icon' => 'building-office'],
     ];
-    $heroKpis = [
-        ['label' => 'AVG SCORE', 'value' => '60.1%', 'sub' => '3 quizzes passed', 'border' => 'border-t-2 border-purple-400'],
-        ['label' => 'ASSIGNMENTS', 'value' => '6/6', 'sub' => '0 pending', 'border' => 'border-t-2 border-blue-400'],
-        ['label' => 'ACTIVE CLASSES', 'value' => '2', 'sub' => 'Grade 10', 'border' => 'border-t-2 border-green-400'],
-        ['label' => 'QUIZ ATTEMPTS', 'value' => '7', 'sub' => '3 days ago', 'border' => 'border-t-2 border-amber-400'],
-    ];
+    $heroKpis = collect(__('landing.hero.mockup.kpi'))
+        ->map(fn ($kpi, $i) => $kpi + ['border' => [
+            'border-t-2 border-purple-400',
+            'border-t-2 border-blue-400',
+            'border-t-2 border-green-400',
+            'border-t-2 border-amber-400',
+        ][$i]])
+        ->all();
 @endphp
 
 <section class="relative min-h-screen flex items-center overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #6d28d9 85%, #7c3aed 100%);" aria-label="Hero">
@@ -30,11 +32,11 @@
 
             <div id="hero-left">
                 <h1 class="reveal hero-animate font-display text-hero-xl font-semibold text-white leading-[1.1] mb-6">
-                    The LMS that <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">grows with every student.</span>
+                    {{ __('landing.hero.title_prefix') }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">{{ __('landing.hero.title_highlight') }}</span>
                 </h1>
 
                 <p class="reveal hero-animate text-white/75 text-lg leading-relaxed mb-10 max-w-xl font-light">
-                    Three adaptive dashboards for Kids, Juniors, and Seniors — automatically assigned by age. Schools create their own space, manage teachers, build grades and classes, and track every student's progress.
+                    {{ __('landing.hero.description') }}
                 </p>
 
                 <div class="reveal hero-animate flex flex-nowrap gap-2 mt-2 mb-10">
@@ -51,11 +53,11 @@
 
                 <div class="reveal hero-animate flex flex-col sm:flex-row gap-4 mb-10">
                     <a href="#portals" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-purple-800 font-semibold text-base rounded-xl hover:bg-purple-50 transition-colors duration-200 shadow-lg">
-                        Access Your Portal
+                        {{ __('landing.hero.access_portal') }}
                         @include('partials.landing.icon', ['name' => 'arrow-right', 'size' => 18])
                     </a>
                     <a href="#dashboards" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-medium text-base rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-200">
-                        See Dashboards
+                        {{ __('landing.hero.see_dashboards') }}
                         @include('partials.landing.icon', ['name' => 'chevron-down', 'size' => 18])
                     </a>
                 </div>
@@ -77,10 +79,10 @@
                     <div class="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/20 transition-shadow duration-300 group-hover:ring-2 group-hover:ring-purple-200">
                         <div class="bg-gray-50 border-b border-gray-100 px-5 py-3 flex items-center justify-between gap-3">
                             <div>
-                                <p class="font-bold text-gray-800 text-sm">Liam</p>
-                                <p class="text-xs text-gray-400">Saturday, September 5, 2026</p>
+                                <p class="font-bold text-gray-800 text-sm">{{ __('landing.showcase.dashboards.senior.hello') }}</p>
+                                <p class="text-xs text-gray-400">{{ __('landing.showcase.dashboards.senior.sub') }}</p>
                             </div>
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">Horizon International Academy › Grade 10</span>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">{{ __('landing.showcase.dashboards.senior.badge') }}</span>
                         </div>
                         <div class="grid grid-cols-4 gap-0">
                             @foreach($heroKpis as $i => $k)
@@ -92,38 +94,38 @@
                             @endforeach
                         </div>
                         <div class="p-6">
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">PERFORMANCE TREND · QUIZ SCORES</p>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">{{ __('landing.hero.mockup.chart') }}</p>
                             <div class="h-20 flex items-end gap-1.5 border-b border-gray-100 pb-1">
                                 @foreach([42, 58, 35, 70, 52, 78, 64, 92] as $i => $h)
-                                    <div class="flex-1 rounded-t-md transition-all duration-300 hover:opacity-80 hover:-translate-y-0.5" style="height:{{ $h }}%; background:{{ $i === 7 ? '#7c3aed' : '#ddd6fe' }};" title="Quiz {{ $i + 1 }}: {{ $h }}%"></div>
+                                    <div class="flex-1 rounded-t-md transition-all duration-300 hover:opacity-80 hover:-translate-y-0.5" style="height:{{ $h }}%; background:{{ $i === 7 ? '#7c3aed' : '#ddd6fe' }};" title="{{ __('landing.hero.mockup.quiz_label') }} {{ $i + 1 }}: {{ $h }}%"></div>
                                 @endforeach
                             </div>
                             <div class="flex justify-between mt-2 text-[10px] text-gray-400">
-                                <span>Quiz 1</span>
-                                <span>Quiz 8</span>
+                                <span>{{ __('landing.hero.mockup.quiz1') }}</span>
+                                <span>{{ __('landing.hero.mockup.quiz8') }}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="absolute -top-4 -right-4 bg-gradient-to-br from-violet-500 to-pink-500 rounded-2xl p-4 shadow-xl border border-white/20 w-44 transition-transform duration-300 group-hover:-translate-y-1">
-                        <p class="text-white font-bold text-sm">Hi Liam! 🌟</p>
-                        <p class="text-white/70 text-xs mt-0.5">Ready for today's adventures?</p>
+                        <p class="text-white font-bold text-sm">{{ __('landing.hero.mockup.hello') }}</p>
+                        <p class="text-white/70 text-xs mt-0.5">{{ __('landing.hero.mockup.ready') }}</p>
                         <div class="flex gap-0.5 mt-2">
                             @for($i = 0; $i < 6; $i++)<span class="text-yellow-300 text-sm">★</span>@endfor
                             @for($i = 0; $i < 4; $i++)<span class="text-white/30 text-sm">★</span>@endfor
                         </div>
-                        <p class="text-white/60 text-xs mt-1">6 / 10 stars</p>
+                        <p class="text-white/60 text-xs mt-1">{{ __('landing.hero.mockup.stars') }}</p>
                     </div>
 
                     <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 w-44 transition-transform duration-300 group-hover:translate-y-1">
                         <div class="flex items-center gap-2 mb-2">
                             <span class="text-xl">🔥</span>
-                            <span class="font-bold text-gray-800 text-sm">2-day streak!</span>
+                            <span class="font-bold text-gray-800 text-sm">{{ __('landing.hero.mockup.streak') }}</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-1.5">
                             <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full w-3/4"></div>
                         </div>
-                        <p class="text-xs text-gray-400 mt-1.5">Progress: 100% done</p>
+                        <p class="text-xs text-gray-400 mt-1.5">{{ __('landing.hero.mockup.progress') }}</p>
                     </div>
                 </div>
             </a>

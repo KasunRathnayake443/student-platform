@@ -30,3 +30,29 @@ test('the school admin login URL is reserved and reachable', function () {
         ->assertOk()
         ->assertSee('School Admin Portal');
 });
+
+test('the language switcher stores the locale and translates the landing page', function () {
+    $this->from(route('home'))
+        ->get(route('locale.switch', 'si'))
+        ->assertRedirect(route('home'));
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('සම්පූර්ණ ඉගෙනුම් කළමනාකරණ පද්ධතිය')
+        ->assertSee('සිංහල');
+});
+
+test('tamil can be selected as the landing page locale', function () {
+    $this->from(route('home'))
+        ->get(route('locale.switch', 'ta'))
+        ->assertRedirect(route('home'));
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('முழுமையான கற்றல் மேலாண்மை அமைப்பு')
+        ->assertSee('தமிழ்');
+});
+
+test('an unsupported locale is rejected', function () {
+    $this->get(route('locale.switch', 'fr'))->assertNotFound();
+});
