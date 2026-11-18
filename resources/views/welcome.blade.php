@@ -21,7 +21,7 @@
         @include('partials.landing.showcase')
         @include('partials.landing.features')
         @include('partials.landing.portals')
-        @include('partials.landing.social-proof')
+        @include('partials.landing.about')
         @include('partials.landing.cta')
         @include('partials.landing.footer')
 

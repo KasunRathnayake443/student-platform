@@ -29,35 +29,28 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
             <div id="hero-left">
-                <div class="reveal hero-animate mb-6">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-purple-200 text-sm font-semibold tracking-wide">
-                        <span class="w-2 h-2 rounded-full bg-purple-300 animate-pulse"></span>
-                        Complete Learning Management System
-                    </span>
-                </div>
-
                 <h1 class="reveal hero-animate font-display text-hero-xl font-semibold text-white leading-[1.1] mb-6">
                     The LMS that <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">grows with every student.</span>
                 </h1>
 
-                <p class="reveal hero-animate text-white/75 text-lg leading-relaxed mb-8 max-w-xl font-light">
+                <p class="reveal hero-animate text-white/75 text-lg leading-relaxed mb-10 max-w-xl font-light">
                     Three adaptive dashboards for Kids, Juniors, and Seniors — automatically assigned by age. Schools create their own space, manage teachers, build grades and classes, and track every student's progress.
                 </p>
 
-                <div class="reveal hero-animate flex flex-wrap gap-2 mb-10">
+                <div class="reveal hero-animate flex flex-wrap gap-3 mt-2 mb-10">
                     @foreach($floatingStats as $s)
-                        <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r {{ $s['grad'] }} bg-opacity-80 border border-white/10">
-                            <span class="text-base">{{ $s['emoji'] }}</span>
+                        <div class="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r {{ $s['grad'] }} bg-opacity-80 border border-white/10 shadow-md">
+                            <span class="text-2xl leading-none">{{ $s['emoji'] }}</span>
                             <div>
-                                <p class="text-white text-xs font-semibold leading-none">{{ $s['label'] }}</p>
-                                <p class="text-white/60 text-xs leading-none mt-0.5">{{ $s['sub'] }}</p>
+                                <p class="text-white text-sm font-semibold leading-tight">{{ $s['label'] }}</p>
+                                <p class="text-white/65 text-xs leading-tight mt-1">{{ $s['sub'] }}</p>
                             </div>
                         </div>
                     @endforeach
                 </div>
 
                 <div class="reveal hero-animate flex flex-col sm:flex-row gap-4 mb-10">
-                    <a href="#portals" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-purple-800 font-semibold text-base rounded-xl hover:bg-purple-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                    <a href="#portals" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-purple-800 font-semibold text-base rounded-xl hover:bg-purple-50 transition-colors duration-200 shadow-lg">
                         Access Your Portal
                         @include('partials.landing.icon', ['name' => 'arrow-right', 'size' => 18])
                     </a>
