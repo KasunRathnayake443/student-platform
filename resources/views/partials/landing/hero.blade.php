@@ -19,7 +19,7 @@
         ->all();
 @endphp
 
-<section class="relative min-h-screen flex items-center overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #6d28d9 85%, #7c3aed 100%);" aria-label="Hero">
+<section class="relative min-h-screen flex items-start overflow-hidden pt-28 sm:pt-24 md:pt-28 pb-16 md:pb-24" style="min-height:100dvh; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #6d28d9 85%, #7c3aed 100%);" aria-label="Hero">
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" style="animation-duration:4s;"></div>
         <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-violet-300/15 blur-3xl animate-pulse" style="animation-duration:6s;animation-delay:1s;"></div>
@@ -27,7 +27,7 @@
         <div class="absolute inset-0 opacity-10" style="background-image:linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px);background-size:60px 60px;"></div>
     </div>
 
-    <div class="relative z-10 w-full max-w-[1440px] mx-auto px-4 lg:px-8 py-24 md:py-32">
+    <div class="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 lg:min-h-[calc(100dvh-13rem)] lg:flex lg:items-center">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
             <div id="hero-left">
@@ -35,36 +35,36 @@
                     {{ __('landing.hero.title_prefix') }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">{{ __('landing.hero.title_highlight') }}</span>
                 </h1>
 
-                <p class="reveal hero-animate text-white/75 text-lg leading-relaxed mb-10 max-w-xl font-light">
+                <p class="reveal hero-animate text-white/75 text-base sm:text-lg leading-relaxed mb-8 sm:mb-10 max-w-xl font-light">
                     {{ __('landing.hero.description') }}
                 </p>
 
-                <div class="reveal hero-animate flex flex-nowrap gap-2 mt-2 mb-10">
+                <div class="reveal hero-animate grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 mb-8 sm:mb-10">
                     @foreach($floatingStats as $s)
-                        <div class="inline-flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-gradient-to-r {{ $s['grad'] }} bg-opacity-80 border border-white/10 shadow-md">
-                            <span class="text-2xl leading-none">{{ $s['emoji'] }}</span>
-                            <div>
-                                <p class="text-white text-sm font-semibold leading-tight whitespace-nowrap">{{ $s['label'] }}</p>
-                                <p class="text-white/65 text-xs leading-tight mt-1 whitespace-nowrap">{{ $s['sub'] }}</p>
+                        <div class="flex items-center gap-2 px-2.5 sm:gap-2.5 sm:px-3 py-2.5 rounded-2xl bg-gradient-to-r {{ $s['grad'] }} bg-opacity-80 border border-white/10 shadow-md min-w-0 {{ $loop->last ? 'col-span-2 sm:col-span-1' : '' }}">
+                            <span class="text-xl sm:text-2xl leading-none shrink-0">{{ $s['emoji'] }}</span>
+                            <div class="min-w-0">
+                                <p class="text-white text-xs sm:text-sm font-semibold leading-tight">{{ $s['label'] }}</p>
+                                <p class="text-white/65 text-[11px] sm:text-xs leading-tight mt-1">{{ $s['sub'] }}</p>
                             </div>
                         </div>
                     @endforeach
                 </div>
 
-                <div class="reveal hero-animate flex flex-col sm:flex-row gap-4 mb-10">
-                    <a href="#portals" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-purple-800 font-semibold text-base rounded-xl hover:bg-purple-50 transition-colors duration-200 shadow-lg">
+                <div class="reveal hero-animate flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10">
+                    <a href="#portals" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 bg-white text-purple-800 font-semibold text-sm sm:text-base rounded-xl hover:bg-purple-50 transition-colors duration-200 shadow-lg">
                         {{ __('landing.hero.access_portal') }}
                         @include('partials.landing.icon', ['name' => 'arrow-right', 'size' => 18])
                     </a>
-                    <a href="#dashboards" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-medium text-base rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-200">
+                    <a href="#dashboards" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 bg-white/10 backdrop-blur-sm text-white font-medium text-sm sm:text-base rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-200">
                         {{ __('landing.hero.see_dashboards') }}
                         @include('partials.landing.icon', ['name' => 'chevron-down', 'size' => 18])
                     </a>
                 </div>
 
-                <div class="reveal hero-animate flex flex-wrap gap-3">
+                <div class="reveal hero-animate flex flex-wrap gap-2 sm:gap-3">
                     @foreach($roleLinks as $role)
-                        <a href="{{ $role['href'] }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium hover:bg-white/20 hover:border-purple-300/50 hover:text-purple-200 transition-all duration-200 min-h-[44px]">
+                        <a href="{{ $role['href'] }}" class="inline-flex items-center gap-2 px-3 py-2.5 sm:px-4 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs sm:text-sm font-medium hover:bg-white/20 hover:border-purple-300/50 hover:text-purple-200 transition-all duration-200 min-h-[44px]">
                             @include('partials.landing.icon', ['name' => $role['icon'], 'size' => 16])
                             {{ $role['label'] }}
                         </a>
