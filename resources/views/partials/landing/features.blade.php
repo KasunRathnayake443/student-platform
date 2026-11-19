@@ -1,12 +1,13 @@
 @php
+    $ft = fn (int $i, string $key) => __("landing.features.items.{$i}.{$key}");
     $features = [
         [
             'id'          => 'school-space',
             'icon'        => 'building-office',
             'emoji'       => '🏫',
-            'title'       => 'Create Your School Space',
-            'description' => 'Schools get their own dedicated space in the platform. Set up your institution, customize branding, and manage everything from one place.',
-            'items'       => ['Custom school profile', 'Multi-school support', 'School-level settings', 'Branded experience'],
+            'title'       => $ft(0, 'title'),
+            'description' => $ft(0, 'description'),
+            'items'       => collect(range(0, 3))->map(fn ($j) => $ft(0, "chips.{$j}"))->all(),
             'colSpan'     => 'md:col-span-2',
             'accent'      => 'from-violet-600 to-purple-700',
             'dark'        => true,
@@ -15,9 +16,9 @@
             'id'          => 'grades-classes',
             'icon'        => 'academic-cap',
             'emoji'       => '📚',
-            'title'       => 'Grades & Classes',
-            'description' => 'Create grade levels and build classes inside each grade. Assign teachers and enroll students with ease.',
-            'items'       => ['Grade creation', 'Classes inside grades', 'Teacher assignment', 'Student enrollment'],
+            'title'       => $ft(1, 'title'),
+            'description' => $ft(1, 'description'),
+            'items'       => collect(range(0, 3))->map(fn ($j) => $ft(1, "chips.{$j}"))->all(),
             'colSpan'     => 'md:col-span-1',
             'accent'      => 'from-indigo-500 to-blue-600',
             'dark'        => false,
@@ -26,9 +27,9 @@
             'id'          => 'content',
             'icon'        => 'pencil-square',
             'emoji'       => '✏️',
-            'title'       => 'Quizzes, Assignments & Lessons',
-            'description' => 'Teachers add rich learning content — video lessons, interactive quizzes, and graded assignments — all within their classes.',
-            'items'       => ['Video lessons', 'Interactive quizzes', 'Graded assignments', 'Content library'],
+            'title'       => $ft(2, 'title'),
+            'description' => $ft(2, 'description'),
+            'items'       => collect(range(0, 3))->map(fn ($j) => $ft(2, "chips.{$j}"))->all(),
             'colSpan'     => 'md:col-span-1',
             'accent'      => 'from-purple-500 to-violet-600',
             'dark'        => false,
@@ -37,9 +38,9 @@
             'id'          => 'progress',
             'icon'        => 'chart-bar',
             'emoji'       => '📊',
-            'title'       => "Track Every Student's Progress",
-            'description' => 'Real-time dashboards show quiz scores, assignment completion, class performance, and learning trends for every student across all grades.',
-            'items'       => ['Per-student analytics', 'Quiz score history', 'Assignment tracking', 'Performance trends'],
+            'title'       => $ft(3, 'title'),
+            'description' => $ft(3, 'description'),
+            'items'       => collect(range(0, 3))->map(fn ($j) => $ft(3, "chips.{$j}"))->all(),
             'colSpan'     => 'md:col-span-2',
             'accent'      => 'from-slate-700 to-purple-800',
             'dark'        => true,
@@ -48,9 +49,9 @@
             'id'          => 'people',
             'icon'        => 'user-group',
             'emoji'       => '👥',
-            'title'       => 'Manage Students & Teachers',
-            'description' => 'Add students and teachers to your school space. Assign roles, manage class memberships, and keep your roster up to date.',
-            'items'       => ['Add students', 'Add teachers', 'Role management', 'Class rosters'],
+            'title'       => $ft(4, 'title'),
+            'description' => $ft(4, 'description'),
+            'items'       => collect(range(0, 3))->map(fn ($j) => $ft(4, "chips.{$j}"))->all(),
             'colSpan'     => 'md:col-span-1',
             'accent'      => 'from-emerald-500 to-teal-600',
             'dark'        => false,
@@ -61,10 +62,10 @@
 <section id="features" class="py-24 scroll-mt-24">
     <div class="max-w-7xl mx-auto px-6">
         <div class="reveal mb-14 max-w-2xl">
-            <span class="inline-block mb-3 text-xs font-semibold tracking-[0.18em] uppercase text-purple-600">School Management</span>
-            <h2 class="font-display text-section-title font-semibold mb-4">Everything your school needs, built in.</h2>
+            <span class="inline-block mb-3 text-xs font-semibold tracking-[0.18em] uppercase text-purple-600">{{ __('landing.features.kicker') }}</span>
+            <h2 class="font-display text-section-title font-semibold mb-4">{{ __('landing.features.title') }}</h2>
             <p class="text-slate-500 text-lg leading-relaxed">
-                From creating your school space to tracking every student's progress — the full LMS lifecycle in one platform.
+                {{ __('landing.features.description') }}
             </p>
         </div>
 

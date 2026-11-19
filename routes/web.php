@@ -7,7 +7,16 @@ use App\Http\Controllers\SchoolAdminProfilePhotoController;
 use App\Http\Controllers\SchoolLogoController;
 use App\Http\Controllers\StudentProfilePhotoController;
 use App\Http\Controllers\TeacherProfilePhotoController;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/locale/{locale}', function (string $locale) {
+    abort_unless(in_array($locale, SetLocale::LOCALES, true), 404);
+
+    session(['locale' => $locale]);
+
+    return back();
+})->name('locale.switch');
 
 Route::view('/', 'welcome')->name('home');
 

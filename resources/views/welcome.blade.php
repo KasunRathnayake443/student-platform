@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ \App\Services\PlatformSettings::name() }} — Modern School Learning Hub</title>
-        <meta name="description" content="{{ \App\Services\PlatformSettings::name() }} is a modern LMS for schools — interactive courses, progress tracking, and digital tools for students, teachers, and administrators.">
+        <title>{{ __('landing.meta.title', ['name' => \App\Services\PlatformSettings::name()]) }}</title>
+        <meta name="description" content="{{ __('landing.meta.description', ['name' => \App\Services\PlatformSettings::name()]) }}">
 
         <link rel="icon" href="{{ \App\Services\PlatformSettings::logoUrl() }}">
         <link rel="apple-touch-icon" href="{{ \App\Services\PlatformSettings::logoUrl() }}">
@@ -21,7 +21,7 @@
         @include('partials.landing.showcase')
         @include('partials.landing.features')
         @include('partials.landing.portals')
-        @include('partials.landing.social-proof')
+        @include('partials.landing.about')
         @include('partials.landing.cta')
         @include('partials.landing.footer')
 

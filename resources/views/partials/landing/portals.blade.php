@@ -1,46 +1,47 @@
 @php
+    $pt = fn (int $i, string $key) => __("landing.portals.roles.{$i}.{$key}");
     $portals = [
         [
-            'role'        => 'Student',
-            'tagline'     => 'Your learning, your pace.',
-            'description' => 'Access your enrolled classes, complete assignments, take quizzes, and watch your progress grow — with a dashboard that adapts to your age group.',
+            'role'        => $pt(0, 'role'),
+            'tagline'     => $pt(0, 'tagline'),
+            'description' => $pt(0, 'description'),
             'href'        => '/student/login',
             'icon'        => 'academic-cap',
             'emoji'       => '🎓',
-            'features'    => ['Adaptive Kid / Junior / Senior dashboard', 'My Classes & Lessons', 'Quiz & Assignment submissions', 'Progress tracking & grade reports'],
+            'features'    => collect(range(0, 3))->map(fn ($j) => $pt(0, "features.{$j}"))->all(),
             'gradient'    => 'from-violet-500 to-purple-600',
             'btnClass'    => 'bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700',
         ],
         [
-            'role'        => 'Teacher',
-            'tagline'     => 'Create. Teach. Inspire.',
-            'description' => 'Build lessons, create quizzes and assignments, manage your class roster, grade submissions, and track how each student is performing.',
+            'role'        => $pt(1, 'role'),
+            'tagline'     => $pt(1, 'tagline'),
+            'description' => $pt(1, 'description'),
             'href'        => '/teacher/login',
             'icon'        => 'book-open',
             'emoji'       => '👩‍🏫',
-            'features'    => ['Add lessons, quizzes & assignments', 'Grade book & feedback tools', 'Class performance analytics', 'Student progress visibility'],
+            'features'    => collect(range(0, 3))->map(fn ($j) => $pt(1, "features.{$j}"))->all(),
             'gradient'    => 'from-indigo-500 to-blue-600',
             'btnClass'    => 'bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700',
         ],
         [
-            'role'        => 'School Admin',
-            'tagline'     => 'Run your school smarter.',
-            'description' => "Create your school space, add teachers and students, build grade levels and classes, and get full visibility into every student's progress across the institution.",
+            'role'        => $pt(2, 'role'),
+            'tagline'     => $pt(2, 'tagline'),
+            'description' => $pt(2, 'description'),
             'href'        => '/school-admin/login',
             'icon'        => 'building-office',
             'emoji'       => '🏫',
-            'features'    => ['Create & manage school space', 'Add students & teachers', 'Create grades & classes', 'Track all student progress'],
+            'features'    => collect(range(0, 3))->map(fn ($j) => $pt(2, "features.{$j}"))->all(),
             'gradient'    => 'from-slate-700 to-purple-800',
             'btnClass'    => 'bg-gradient-to-r from-slate-700 to-purple-800 hover:from-slate-700 hover:to-purple-900',
         ],
         [
-            'role'        => 'Parent',
-            'tagline'     => 'Every milestone, within reach.',
-            'description' => "Follow your child's learning journey from one simple dashboard — see quiz scores, assignment progress, published lessons and school notifications in real time.",
+            'role'        => $pt(3, 'role'),
+            'tagline'     => $pt(3, 'tagline'),
+            'description' => $pt(3, 'description'),
             'href'        => '/parent/login',
             'icon'        => 'user-group',
             'emoji'       => '👨‍👩‍👧',
-            'features'    => ['Quiz scores & results', 'Assignment progress', 'Published lessons', 'Student notifications'],
+            'features'    => collect(range(0, 3))->map(fn ($j) => $pt(3, "features.{$j}"))->all(),
             'gradient'    => 'from-emerald-500 to-teal-600',
             'btnClass'    => 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700',
         ],
@@ -50,10 +51,10 @@
 <section id="portals" class="py-24 bg-slate-100 scroll-mt-24">
     <div class="max-w-7xl mx-auto px-6">
         <div class="reveal text-center mb-14 max-w-2xl mx-auto">
-            <span class="inline-block mb-3 text-xs font-semibold tracking-[0.18em] uppercase text-purple-600">Choose your portal</span>
-            <h2 class="font-display text-section-title font-semibold mb-4">One platform. Four doors.</h2>
+            <span class="inline-block mb-3 text-xs font-semibold tracking-[0.18em] uppercase text-purple-600">{{ __('landing.portals.kicker') }}</span>
+            <h2 class="font-display text-section-title font-semibold mb-4">{{ __('landing.portals.title') }}</h2>
             <p class="text-slate-500 text-lg leading-relaxed">
-                Every user type gets a tailored experience — sign in to the portal built for your role.
+                {{ __('landing.portals.description') }}
             </p>
         </div>
 
@@ -73,7 +74,7 @@
 
                     <div class="flex flex-col flex-1 p-7">
                         <p class="text-xs font-semibold tracking-widest uppercase mb-2 text-purple-600">{{ $p['tagline'] }}</p>
-                        <h3 class="font-display text-xl font-semibold mb-3">{{ $p['role'] }} Portal</h3>
+                        <h3 class="font-display text-xl font-semibold mb-3">{{ __('landing.portals.portal_title', ['role' => $p['role']]) }}</h3>
                         <p class="text-sm text-slate-500 leading-relaxed mb-5">{{ $p['description'] }}</p>
 
                         <ul class="space-y-2.5 mb-7 flex-1">
@@ -88,7 +89,7 @@
                         </ul>
 
                         <a href="{{ $p['href'] }}" class="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-lg text-white {{ $p['btnClass'] }}">
-                            Go to {{ $p['role'] }} Portal
+                            {{ __('landing.portals.go_to', ['role' => $p['role']]) }}
                             @include('partials.landing.icon', ['name' => 'arrow-right', 'size' => 16])
                         </a>
                     </div>
