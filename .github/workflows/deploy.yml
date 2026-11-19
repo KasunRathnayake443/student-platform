@@ -40,9 +40,10 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ./
         exclude: |
-          **/.git**
-          **/.github**
-          node_modules/
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.github/**
           .env
           tests/
           phpunit.xml
