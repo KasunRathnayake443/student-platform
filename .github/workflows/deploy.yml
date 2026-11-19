@@ -20,6 +20,18 @@ jobs:
     - name: Install Composer Dependencies
       run: composer install --no-dev --optimize-autoloader --no-interaction
 
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install Frontend Dependencies
+      run: npm ci
+
+    - name: Build Frontend Assets
+      run: npm run build
+
     - name: Sync files to cPanel via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -30,6 +42,7 @@ jobs:
         exclude: |
           **/.git**
           **/.github**
+          node_modules/
           .env
           tests/
           phpunit.xml
