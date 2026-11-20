@@ -59,6 +59,7 @@ class TeacherDashboard extends BaseDashboard
 
         $totalClasses = $allClasses->count();
         $totalStudents = $allClasses->sum('students_count');
+        $totalIntroduced = $teacher?->introducedStudents()->count() ?? 0;
         $classIds = $allClasses->pluck('id')->filter()->all();
 
         // Students Grades — full score profile for every student in the teacher's classes
@@ -191,6 +192,7 @@ class TeacherDashboard extends BaseDashboard
             'allClasses' => $allClasses,
             'totalClasses' => $totalClasses,
             'totalStudents' => $totalStudents,
+            'totalIntroduced' => $totalIntroduced,
             'pendingSubmissions' => $pendingSubmissions,
             'pendingSubmissionsCount' => $pendingSubmissionsCount,
             'totalQuizzes' => $totalQuizzes,

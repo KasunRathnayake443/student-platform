@@ -45,7 +45,7 @@ class TeacherResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
-        return TeacherInfolist::configure($schema);
+        return TeacherInfolist::configure($schema, SchoolAdminScopes::schoolIds());
     }
 
     public static function table(Table $table): Table

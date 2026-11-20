@@ -892,6 +892,18 @@
         </div>
 
         <div class="t-summary-pill">
+            <div class="t-pill-icon t-pill-teal">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0a6 6 0 11-6-6 6 6 0 016 6z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="t-pill-num">{{ number_format($totalIntroduced) }}</div>
+                <div class="t-pill-text">Students Introduced</div>
+            </div>
+        </div>
+
+        <div class="t-summary-pill">
             <div class="t-pill-icon t-pill-amber">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>

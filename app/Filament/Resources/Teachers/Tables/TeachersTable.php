@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Teachers\Tables;
 
 use App\Filament\Resources\Teachers\TeacherResource;
+use App\Models\Teacher;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -11,7 +12,10 @@ use Filament\Tables\Table;
 
 class TeachersTable
 {
-    public static function configure(Table $table, ?Action $recordAction = null): Table
+    /**
+     * @param  array<int, int>|null  $schoolIds
+     */
+    public static function configure(Table $table, ?Action $recordAction = null, ?array $schoolIds = null): Table
     {
 
         return $table
@@ -45,6 +49,16 @@ class TeachersTable
                 Tables\Columns\TextColumn::make('phone')
 
                     ->label('Phone'),
+
+                Tables\Columns\TextColumn::make('introduced_students_count')
+
+                    ->label('Students Introduced')
+
+                    ->getStateUsing(fn (Teacher $record): int => $record->introducedStudentsCount($schoolIds))
+
+                    ->badge()
+
+                    ->color('info'),
 
             ])
 

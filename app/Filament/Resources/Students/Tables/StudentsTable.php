@@ -34,6 +34,10 @@ class StudentsTable
                 Tables\Columns\TextColumn::make('currentEnrollment.grade.name')
                     ->label('Grade'),
 
+                Tables\Columns\TextColumn::make('introducedByTeacher.user.name')
+                    ->label('Introduced By')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\IconColumn::make('user.must_change_password')
                     ->label('Password Pending')
                     ->boolean(),

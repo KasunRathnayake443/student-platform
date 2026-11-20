@@ -34,6 +34,7 @@ class PlatformStatsOverviewWidget extends BaseWidget
         // 2. Students & Enrollments
         $totalStudents = Student::count();
         $activeEnrollments = StudentEnrollment::where('status', 'active')->count();
+        $totalIntroduced = Student::whereNotNull('introduced_by_teacher_id')->count();
 
         // 3. Teachers
         $totalTeachers = Teacher::count();
@@ -75,6 +76,11 @@ class PlatformStatsOverviewWidget extends BaseWidget
                 ->description('Educators Across Schools')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('info'),
+
+            Stat::make('Introduced Students', number_format($totalIntroduced))
+                ->description('Students Linked To A Teacher')
+                ->descriptionIcon('heroicon-m-user-plus')
+                ->color('warning'),
 
             Stat::make('Classes & Grades', number_format($totalClasses))
                 ->description("Across {$totalGrades} Curriculum Grades")

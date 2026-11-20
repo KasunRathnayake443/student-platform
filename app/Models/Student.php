@@ -18,6 +18,8 @@ class Student extends Model
 
         'parent_id',
 
+        'introduced_by_teacher_id',
+
         'profile_photo',
 
         'admission_no',
@@ -62,6 +64,14 @@ class Student extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    /**
+     * @return BelongsTo<Teacher, $this>
+     */
+    public function introducedByTeacher(): BelongsTo
+    {
+        return $this->belongsTo(Teacher::class, 'introduced_by_teacher_id');
     }
 
     public function getProfilePhotoUrlAttribute(): ?string

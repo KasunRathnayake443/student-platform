@@ -129,6 +129,10 @@
                         <span class="identity-meta-label">Lessons</span>
                         <span class="identity-meta-value">{{ auth()->user()?->teacher?->lessons()->count() ?? 0 }}</span>
                     </div>
+                    <div class="identity-meta-row">
+                        <span class="identity-meta-label">Students Introduced</span>
+                        <span class="identity-meta-value">{{ auth()->user()?->teacher?->introducedStudents()->count() ?? 0 }}</span>
+                    </div>
                 </div>
             </div>
         </div>

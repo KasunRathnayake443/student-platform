@@ -70,6 +70,7 @@ class EditStudent extends BaseEditStudent
 
             $record->update([
                 'profile_photo' => $data['profile_photo'] ?? $record->profile_photo,
+                'introduced_by_teacher_id' => $data['introduced_by_teacher_id'] ?? null,
                 'admission_no' => $data['admission_no'],
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'gender' => $data['gender'] ?? null,

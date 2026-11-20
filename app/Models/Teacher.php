@@ -67,6 +67,27 @@ class Teacher extends Model
     }
 
     /**
+     * @return HasMany<Student, $this>
+     */
+    public function introducedStudents(): HasMany
+    {
+        return $this->hasMany(Student::class, 'introduced_by_teacher_id');
+    }
+
+    /**
+     * @param  array<int, int>|null  $schoolIds
+     */
+    public function introducedStudentsCount(?array $schoolIds = null): int
+    {
+        return $this->introducedStudents()
+            ->when($schoolIds !== null, fn ($query) => $query->whereHas(
+                'enrollments',
+                fn ($enrollment) => $enrollment->whereIn('school_id', $schoolIds),
+            ))
+            ->count();
+    }
+
+    /**
      * @return HasMany<Lesson, $this>
      */
     public function lessons(): HasMany

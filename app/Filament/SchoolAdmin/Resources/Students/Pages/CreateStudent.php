@@ -49,6 +49,7 @@ class CreateStudent extends CreateRecord
             if (! $student) {
                 $student = Student::create([
                     'user_id' => $user->id,
+                    'introduced_by_teacher_id' => $data['introduced_by_teacher_id'] ?? null,
                     'profile_photo' => $data['profile_photo'] ?? null,
                     'admission_no' => $data['admission_no'],
                     'date_of_birth' => $data['date_of_birth'] ?? null,

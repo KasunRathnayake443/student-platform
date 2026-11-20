@@ -6,6 +6,7 @@ use App\Filament\Rules\InScope;
 use App\Models\Grade;
 use App\Models\LearningClass;
 use App\Models\School;
+use App\Models\Teacher;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -40,6 +41,14 @@ class StudentForm
             : LearningClass::query()
                 ->whereHas('grade', fn ($query) => $query->whereIn('school_id', $schoolIds))
                 ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+        $teacherIds = $schoolIds === null
+            ? null
+            : Teacher::query()
+                ->whereHas('schools', fn ($query) => $query->whereIn('schools.id', $schoolIds))
+                ->pluck('teachers.id')
                 ->map(fn ($id) => (int) $id)
                 ->all();
 
@@ -142,6 +151,56 @@ class StudentForm
                 ->maxLength(255)
 
                 ->helperText('Optional. Used to copy teacher emails to the parent or guardian.'),
+
+            Select::make('introduced_by_teacher_id')
+
+                ->label('Introduced By Teacher')
+
+                ->options(function ($get) use ($schoolIds) {
+                    $teachers = Teacher::query()
+                        ->with('user')
+                        ->when($schoolIds !== null, fn ($query) => $query->whereHas(
+                            'schools',
+                            fn ($school) => $school->whereIn('schools.id', $schoolIds),
+                        ));
+
+                    $selectedSchoolIds = $get('schools');
+
+                    if (! empty($selectedSchoolIds)) {
+                        $teachers->whereHas(
+                            'schools',
+                            fn ($school) => $school->whereIn('schools.id', $selectedSchoolIds),
+                        );
+                    }
+
+                    return $teachers
+                        ->get()
+                        ->sortBy(fn (Teacher $teacher) => $teacher->user->name)
+                        ->mapWithKeys(fn (Teacher $teacher) => [
+                            $teacher->id => trim(
+                                $teacher->user->name.
+                                ($teacher->employee_no ? ' ('.$teacher->employee_no.')' : '')
+                            ),
+                        ])
+                        ->all();
+                })
+
+                ->searchable()
+
+                ->preload()
+
+                ->nullable()
+
+                ->exists('teachers', 'id')
+
+                ->rules([
+                    new InScope(
+                        $teacherIds,
+                        'Selected teacher is not assigned to your schools.',
+                    ),
+                ])
+
+                ->helperText('Optional. The teacher who introduced this student to the system.'),
 
             Toggle::make('assign_school')
 

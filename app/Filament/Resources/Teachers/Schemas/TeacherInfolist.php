@@ -2,13 +2,17 @@
 
 namespace App\Filament\Resources\Teachers\Schemas;
 
+use App\Models\Teacher;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
 class TeacherInfolist
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array<int, int>|null  $schoolIds
+     */
+    public static function configure(Schema $schema, ?array $schoolIds = null): Schema
     {
 
         return $schema
@@ -52,6 +56,16 @@ class TeacherInfolist
                     ->listWithLineBreaks()
 
                     ->bulleted(),
+
+                TextEntry::make('introduced_students_count')
+
+                    ->label('Students Introduced')
+
+                    ->getStateUsing(fn (Teacher $record): int => $record->introducedStudentsCount($schoolIds))
+
+                    ->badge()
+
+                    ->color('info'),
 
             ]);
 

@@ -5,6 +5,7 @@
             ['label' => 'Teachers', 'value' => $totalTeachers, 'icon' => '🧑‍🏫'],
             ['label' => 'Students', 'value' => $totalStudents, 'icon' => '🎒'],
             ['label' => 'Classes', 'value' => $totalClasses, 'icon' => '📚'],
+            ['label' => 'Students Introduced', 'value' => $totalIntroduced, 'icon' => '🤝'],
         ];
     @endphp
 
@@ -18,7 +19,7 @@
 
         .sa-stat-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 1rem;
         }
         .sa-stat-card {

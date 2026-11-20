@@ -51,6 +51,10 @@ class StudentInfolist
                     ->label('Parent Email')
                     ->placeholder('Not provided'),
 
+                TextEntry::make('introducedByTeacher.user.name')
+                    ->label('Introduced By Teacher')
+                    ->placeholder('Not recorded'),
+
                 TextEntry::make('currentEnrollment.school.name')
                     ->label('School'),
 

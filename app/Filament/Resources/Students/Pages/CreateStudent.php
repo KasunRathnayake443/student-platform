@@ -65,6 +65,8 @@ class CreateStudent extends CreateRecord
 
                 'parent_id' => $this->resolveParentAccountId($data),
 
+                'introduced_by_teacher_id' => $data['introduced_by_teacher_id'] ?? null,
+
                 'profile_photo' => $data['profile_photo'] ?? null,
 
                 'admission_no' => $data['admission_no'],

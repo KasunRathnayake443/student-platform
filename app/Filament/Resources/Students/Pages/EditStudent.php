@@ -163,6 +163,8 @@ class EditStudent extends EditRecord
 
                 'parent_id' => $parentId,
 
+                'introduced_by_teacher_id' => $data['introduced_by_teacher_id'] ?? null,
+
                 'admission_no' => $data['admission_no'],
 
                 'date_of_birth' => $data['date_of_birth'] ?? null,

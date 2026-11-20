@@ -14,7 +14,7 @@ class TeachersTable
     {
         $schoolIds = SchoolAdminScopes::schoolIds();
 
-        return BaseTeachersTable::configure($table, TeacherResource::removeFromSchoolAction())
+        return BaseTeachersTable::configure($table, TeacherResource::removeFromSchoolAction(), $schoolIds)
             ->pushFilters([
                 SchoolPeopleFilters::teacherSchool($schoolIds),
                 SchoolPeopleFilters::teacherClass($schoolIds),
