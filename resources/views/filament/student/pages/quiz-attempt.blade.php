@@ -1100,6 +1100,8 @@
                     <button type="button"
                             class="qa-dot {{ ($this->answers[$_q->id] ?? null) !== null ? 'qa-dot-answered' : '' }} {{ $qIndex === $currentIndex ? 'qa-dot-current' : '' }}"
                             wire:click="goToQuestion({{ $qIndex }})"
+                            wire:loading.attr="disabled"
+                            wire:target="nextOrSubmit,previousQuestion,goToQuestion"
                             title="Question {{ $qIndex + 1 }}">
                         {{ $qIndex + 1 }}
                     </button>
@@ -1199,21 +1201,28 @@
                                     <button type="button"
                                             class="qa-nav-btn"
                                             wire:click="previousQuestion"
+                                            wire:loading.attr="disabled"
+                                            wire:target="nextOrSubmit,previousQuestion,goToQuestion"
                                             @disabled($currentIndex === 0)>
-                                        ◀ Prev
+                                        Prev
                                     </button>
 
                                     <button type="button"
                                             class="qa-nav-btn qa-nav-primary {{ ! $showCheckButton && $this->isLastQuestion() ? 'qa-nav-submit' : '' }}"
                                             wire:click="nextOrSubmit"
+                                            wire:loading.attr="disabled"
+                                            wire:target="nextOrSubmit,previousQuestion,goToQuestion"
                                             @disabled($showCheckButton && $selectedOptionId === null)>
-                                        @if($showCheckButton)
-                                            🔍 Check Answer
-                                        @elseif($this->isLastQuestion())
-                                            ✅ Submit my answers
-                                        @else
-                                            Next ▶
-                                        @endif
+                                        <span wire:loading.remove wire:target="nextOrSubmit">
+                                            @if($showCheckButton)
+                                                dY"? Check Answer
+                                            @elseif($this->isLastQuestion())
+                                                �o. Submit my answers
+                                            @else
+                                                Next
+                                            @endif
+                                        </span>
+                                        <span wire:loading wire:target="nextOrSubmit">Loading...</span>
                                     </button>
                                 </div>
                             </div>
@@ -1254,21 +1263,28 @@
                             <button type="button"
                                     class="qa-nav-btn"
                                     wire:click="previousQuestion"
+                                    wire:loading.attr="disabled"
+                                    wire:target="nextOrSubmit,previousQuestion,goToQuestion"
                                     @disabled($currentIndex === 0)>
-                                ◀ Prev
+                                Prev
                             </button>
 
                             <button type="button"
                                     class="qa-nav-btn qa-nav-primary {{ ! $showCheckButton && $this->isLastQuestion() ? 'qa-nav-submit' : '' }}"
                                     wire:click="nextOrSubmit"
+                                    wire:loading.attr="disabled"
+                                    wire:target="nextOrSubmit,previousQuestion,goToQuestion"
                                     @disabled($showCheckButton && $selectedOptionId === null)>
-                                @if($showCheckButton)
-                                    🔍 Check Answer
-                                @elseif($this->isLastQuestion())
-                                    ✅ Submit my answers
-                                @else
-                                    Next ▶
-                                @endif
+                                <span wire:loading.remove wire:target="nextOrSubmit">
+                                    @if($showCheckButton)
+                                        dY"? Check Answer
+                                    @elseif($this->isLastQuestion())
+                                        �o. Submit my answers
+                                    @else
+                                        Next
+                                    @endif
+                                </span>
+                                <span wire:loading wire:target="nextOrSubmit">Loading...</span>
                             </button>
                         </div>
                     @endif
