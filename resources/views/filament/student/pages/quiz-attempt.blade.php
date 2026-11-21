@@ -1312,6 +1312,16 @@
                 </div>
             @endif
 
+            @if($quiz->description)
+                <div class="qa-card">
+                    <h2>
+                        <span>📝</span>
+                        <span>Quiz Description</span>
+                    </h2>
+                    <div class="qa-text" style="font-size: 1rem; line-height: 1.8; color: #475569;">{!! nl2br(e($quiz->description)) !!}</div>
+                </div>
+            @endif
+
             @if($coverState === 'locked')
                 <div class="qa-card">
                     <h2>🔒 Not open yet</h2>
