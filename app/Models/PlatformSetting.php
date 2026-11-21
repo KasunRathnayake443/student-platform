@@ -44,10 +44,19 @@ class PlatformSetting extends Model
             return null;
         }
 
-        if ((string) config('filament.default_filesystem_disk', 'local') === 'public') {
-            return Storage::disk('public')->url($this->platform_logo);
+        $disk = Storage::disk((string) config('filament.default_filesystem_disk', 'local'));
+        $version = $this->updated_at?->timestamp;
+
+        if (! $version && $disk->exists($this->platform_logo)) {
+            $version = $disk->lastModified($this->platform_logo);
         }
 
-        return route('platform.logo');
+        if ((string) config('filament.default_filesystem_disk', 'local') === 'public') {
+            $url = $disk->url($this->platform_logo);
+
+            return $version ? $url.(str_contains($url, '?') ? '&' : '?').'v='.$version : $url;
+        }
+
+        return route('platform.logo', $version ? ['v' => $version] : []);
     }
 }

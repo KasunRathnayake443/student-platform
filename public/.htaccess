@@ -3,6 +3,12 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <IfModule mod_headers.c>
+        <FilesMatch "\.(?:svg|png|jpe?g|gif|webp|ico|avif)$">
+            Header set Cache-Control "public, max-age=2592000, immutable"
+        </FilesMatch>
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header

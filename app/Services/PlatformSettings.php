@@ -109,6 +109,9 @@ final class PlatformSettings
             return (string) $settings->logo_url;
         }
 
-        return (string) asset('images/platform-logo.svg');
+        $path = public_path('images/platform-logo.svg');
+        $version = is_file($path) ? filemtime($path) : null;
+
+        return (string) asset('images/platform-logo.svg'.($version ? '?v='.$version : ''));
     }
 }
