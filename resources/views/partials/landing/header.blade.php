@@ -8,23 +8,23 @@
 @endphp
 
 <header id="landing-header" class="fixed top-0 left-0 w-full z-50">
-    <div class="max-w-7xl mx-auto px-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-20 sm:h-24 md:h-28">
-            <a href="/" class="flex items-center gap-3 group">
-                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-200">
+            <a href="/" class="flex min-w-0 items-center gap-2.5 sm:gap-3 group">
+                <img src="{{ \App\Services\PlatformSettings::logoUrl() }}" alt="{{ \App\Services\PlatformSettings::name() }}" class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-200">
                 <span class="flex min-w-0 flex-col">
-                    <span class="font-display font-semibold text-lg sm:text-2xl text-white tracking-tight leading-tight truncate">{{ \App\Services\PlatformSettings::name() }}</span>
-                    <span class="mt-0.5 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-teal-300 truncate">{{ __('landing.header.tagline') }}</span>
+                    <span class="font-display font-semibold text-lg sm:text-2xl text-white tracking-tight leading-tight">{{ \App\Services\PlatformSettings::name() }}</span>
+                    <span class="mt-0.5 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.08em] sm:tracking-widest text-teal-300 leading-tight">{{ __('landing.header.tagline') }}</span>
                 </span>
             </a>
 
-            <nav class="hidden md:flex items-center gap-8">
+            <nav class="hidden lg:flex items-center gap-8">
                 <a href="#features" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.features') }}</a>
                 <a href="#portals" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.portals') }}</a>
                 <a href="#about" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.about') }}</a>
             </nav>
 
-            <div class="hidden md:flex items-center gap-3">
+            <div class="hidden lg:flex items-center gap-3">
                 <details class="relative">
                     <summary class="flex items-center gap-1.5 list-none cursor-pointer px-3 py-2 rounded-lg text-sm font-semibold text-white/90 hover:text-teal-300 hover:bg-white/10 transition-colors duration-200 [&::-webkit-details-marker]:hidden">
                         <span class="text-base leading-none">🌐</span>
@@ -46,7 +46,7 @@
                 <a href="#portals" class="px-5 py-2.5 bg-teal-500 text-ink font-semibold text-base rounded-lg hover:bg-teal-400 transition-all duration-200">{{ __('landing.header.get_started') }}</a>
             </div>
 
-            <button id="menu-btn" class="md:hidden flex flex-col gap-1.5 p-2 text-white" aria-label="Open menu" aria-expanded="false">
+            <button id="menu-btn" class="lg:hidden flex flex-col gap-1.5 p-2 shrink-0 text-white" aria-label="Open menu" aria-expanded="false">
                 <span class="block w-6 h-0.5 bg-white rounded"></span>
                 <span class="block w-6 h-0.5 bg-white rounded"></span>
                 <span class="block w-6 h-0.5 bg-white rounded"></span>
@@ -55,7 +55,7 @@
     </div>
 </header>
 
-<div id="mobile-menu" class="md:hidden fixed inset-x-0 bottom-0 top-20 sm:top-24 z-40 backdrop-blur-xl flex flex-col items-center justify-start gap-7 px-5 py-8 sm:px-8 overflow-y-auto overscroll-contain">
+<div id="mobile-menu" class="lg:hidden fixed inset-x-0 bottom-0 top-20 sm:top-24 md:top-28 z-40 backdrop-blur-xl flex flex-col items-center justify-start gap-7 px-5 py-8 sm:px-8 overflow-y-auto overscroll-contain">
     <a href="#features" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.features') }}</a>
     <a href="#portals" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.portals') }}</a>
     <a href="#about" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.about') }}</a>

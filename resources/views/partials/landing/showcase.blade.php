@@ -152,7 +152,6 @@
                                         aria-label="{{ __('landing.showcase.show_dashboard', ['name' => $d['label']]) }}"></button>
                             @endforeach
                         </div>
-                        <span class="text-xs text-slate-500">{{ __('landing.showcase.auto_cycle') }}</span>
                     </div>
                 </div>
             </div>
