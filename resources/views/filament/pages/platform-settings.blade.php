@@ -6,7 +6,7 @@
             </div>
             <div>
                 <h1>Platform Settings</h1>
-                <p>Manage the platform identity, contact details, email sender and messages submitted from the landing page.</p>
+                <p>Manage the platform identity, contact details and email sender.</p>
             </div>
         </div>
 

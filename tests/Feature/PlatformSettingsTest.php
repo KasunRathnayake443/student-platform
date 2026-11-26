@@ -1,7 +1,6 @@
 <?php
 
 use App\Filament\Pages\PlatformSettings;
-use App\Models\ContactSubmission;
 use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Services\PlatformSettings as PlatformSettingsService;
@@ -276,23 +275,10 @@ test('super admin can save landing page contact details', function () {
         ->assertSee('https://instagram.com/educloud', false);
 });
 
-test('super admin can see contact form submissions in the submissions tab', function () {
-    $submission = ContactSubmission::query()->create([
-        'name' => 'Ada Lovelace',
-        'email' => 'ada@example.test',
-        'phone' => '+94 77 111 2222',
-        'message' => 'Please send me a demo.',
-    ]);
-
-    Livewire::actingAs(psSuperAdmin())
-        ->test(PlatformSettings::class)
-        ->assertSet('activeTab', 'settings')
-        ->set('activeTab', 'submissions')
-        ->assertSet('activeTab', 'submissions')
-        ->assertSee('Ada Lovelace')
-        ->assertSee('ada@example.test')
-        ->assertSee('Please send me a demo.')
-        ->callTableAction('delete', $submission->getKey());
-
-    expect(ContactSubmission::query()->count())->toBe(0);
+test('platform settings no longer contains contact submissions', function () {
+    $this->actingAs(psSuperAdmin())
+        ->get('/admin/platform-settings')
+        ->assertOk()
+        ->assertSee('Platform Branding')
+        ->assertDontSee('No contact messages yet');
 });
