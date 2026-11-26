@@ -9,6 +9,7 @@
             <nav class="flex flex-wrap items-center justify-center gap-6">
                 <a href="#features" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.features') }}</a>
                 <a href="#portals" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.portals') }}</a>
+                <a href="#contact" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.contact') }}</a>
                 <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.privacy') }}</a>
                 <a href="#" class="text-sm font-medium text-slate-500 hover:text-ink transition-colors duration-200 min-h-[44px] flex items-center">{{ __('landing.footer.terms') }}</a>
             </nav>

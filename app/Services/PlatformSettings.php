@@ -114,4 +114,51 @@ final class PlatformSettings
 
         return (string) asset('images/platform-logo.svg'.($version ? '?v='.$version : ''));
     }
+
+    public static function contactAddress(): ?string
+    {
+        return self::contactValue('contact_address');
+    }
+
+    public static function contactEmail(): ?string
+    {
+        return self::contactValue('contact_email');
+    }
+
+    public static function contactPhone(): ?string
+    {
+        return self::contactValue('contact_phone');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function socialLinks(): array
+    {
+        $settings = self::current();
+
+        if (! $settings instanceof PlatformSetting) {
+            return [];
+        }
+
+        $links = array_filter([
+            'facebook' => $settings->facebook_url,
+            'youtube' => $settings->youtube_url,
+            'tiktok' => $settings->tiktok_url,
+            'instagram' => $settings->instagram_url,
+        ], fn ($value): bool => filled($value));
+
+        return array_map('strval', $links);
+    }
+
+    private static function contactValue(string $key): ?string
+    {
+        $settings = self::current();
+
+        if (! $settings instanceof PlatformSetting || blank($settings->{$key})) {
+            return null;
+        }
+
+        return (string) $settings->{$key};
+    }
 }

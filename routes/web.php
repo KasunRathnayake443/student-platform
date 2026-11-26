@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PlatformLogoController;
 use App\Http\Controllers\QuizImportTemplateController;
 use App\Http\Controllers\QuizQuestionMediaController;
@@ -19,6 +20,8 @@ Route::get('/locale/{locale}', function (string $locale) {
 })->name('locale.switch');
 
 Route::view('/', 'welcome')->name('home');
+
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 Route::get('/platform/logo', PlatformLogoController::class)
     ->name('platform.logo');

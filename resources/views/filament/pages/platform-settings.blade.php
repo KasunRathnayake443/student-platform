@@ -6,7 +6,7 @@
             </div>
             <div>
                 <h1>Platform Settings</h1>
-                <p>Control the global platform identity and the sender used for password reset emails.</p>
+                <p>Manage the platform identity, contact details, email sender and messages submitted from the landing page.</p>
             </div>
         </div>
 

@@ -22,6 +22,7 @@
                 <a href="#features" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.features') }}</a>
                 <a href="#portals" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.portals') }}</a>
                 <a href="#about" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.about') }}</a>
+                <a href="#contact" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.contact.nav') }}</a>
             </nav>
 
             <div class="hidden lg:flex items-center gap-3">
@@ -59,6 +60,7 @@
     <a href="#features" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.features') }}</a>
     <a href="#portals" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.portals') }}</a>
     <a href="#about" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.about') }}</a>
+    <a href="#contact" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.contact.nav') }}</a>
 
     <div class="flex flex-wrap items-center justify-center gap-2 w-full max-w-xs">
         @foreach($languages as $code => $label)

@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Pages\PlatformSettings;
+use App\Models\ContactSubmission;
 use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Services\PlatformSettings as PlatformSettingsService;
@@ -238,4 +239,60 @@ test('platform name from settings is rendered on the landing and login pages', f
     $this->get('/student/password-reset/request')
         ->assertOk()
         ->assertSee('EduCloud', false);
+});
+
+test('super admin can save landing page contact details', function () {
+    Livewire::actingAs(psSuperAdmin())
+        ->test(PlatformSettings::class)
+        ->fillForm([
+            'platform_name' => 'EduCloud',
+            'contact_address' => '123 Campus Road, Colombo',
+            'contact_email' => 'hello@educloud.test',
+            'contact_phone' => '+94 11 222 3333',
+            'facebook_url' => 'https://facebook.com/educloud',
+            'youtube_url' => 'https://youtube.com/@educloud',
+            'tiktok_url' => 'https://tiktok.com/@educloud',
+            'instagram_url' => 'https://instagram.com/educloud',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $settings = PlatformSetting::settings();
+
+    expect($settings->contact_address)->toBe('123 Campus Road, Colombo')
+        ->and($settings->contact_email)->toBe('hello@educloud.test')
+        ->and($settings->contact_phone)->toBe('+94 11 222 3333')
+        ->and($settings->facebook_url)->toBe('https://facebook.com/educloud')
+        ->and($settings->youtube_url)->toBe('https://youtube.com/@educloud')
+        ->and($settings->tiktok_url)->toBe('https://tiktok.com/@educloud')
+        ->and($settings->instagram_url)->toBe('https://instagram.com/educloud');
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('123 Campus Road, Colombo')
+        ->assertSee('hello@educloud.test')
+        ->assertSee('+94 11 222 3333')
+        ->assertSee('https://facebook.com/educloud', false)
+        ->assertSee('https://instagram.com/educloud', false);
+});
+
+test('super admin can see contact form submissions in the submissions tab', function () {
+    $submission = ContactSubmission::query()->create([
+        'name' => 'Ada Lovelace',
+        'email' => 'ada@example.test',
+        'phone' => '+94 77 111 2222',
+        'message' => 'Please send me a demo.',
+    ]);
+
+    Livewire::actingAs(psSuperAdmin())
+        ->test(PlatformSettings::class)
+        ->assertSet('activeTab', 'settings')
+        ->set('activeTab', 'submissions')
+        ->assertSet('activeTab', 'submissions')
+        ->assertSee('Ada Lovelace')
+        ->assertSee('ada@example.test')
+        ->assertSee('Please send me a demo.')
+        ->callTableAction('delete', $submission->getKey());
+
+    expect(ContactSubmission::query()->count())->toBe(0);
 });

@@ -23,6 +23,7 @@
         @include('partials.landing.portals')
         @include('partials.landing.about')
         @include('partials.landing.cta')
+        @include('partials.landing.contact')
         @include('partials.landing.footer')
 
         <script>
@@ -110,6 +111,108 @@
                     reveals.forEach((el) => io.observe(el));
                 } else {
                     reveals.forEach((el) => el.classList.add('visible'));
+                }
+
+                /* Contact form: submit without reloading the page */
+                const contactForm = document.getElementById('contact-form');
+                if (contactForm) {
+                    const feedback = document.getElementById('contact-form-feedback');
+                    const submitButton = contactForm.querySelector('button[type="submit"]');
+                    const fields = ['name', 'email', 'phone', 'message'];
+
+                    const setFeedback = (message, variant) => {
+                        if (!feedback || !message) return;
+                        feedback.textContent = message;
+                        feedback.classList.remove(
+                            'hidden', 'border-teal-200', 'bg-teal-50', 'text-teal-700',
+                            'border-rose-200', 'bg-rose-50', 'text-rose-700',
+                        );
+                        if (variant === 'success') {
+                            feedback.classList.add('border-teal-200', 'bg-teal-50', 'text-teal-700');
+                        } else {
+                            feedback.classList.add('border-rose-200', 'bg-rose-50', 'text-rose-700');
+                        }
+                    };
+
+                    const clearErrors = () => {
+                        fields.forEach((field) => {
+                            const input = contactForm.elements.namedItem(field);
+                            const error = contactForm.querySelector('[data-field-error="' + field + '"]');
+                            if (input && input.classList) {
+                                input.removeAttribute('aria-invalid');
+                                input.classList.remove('border-rose-400');
+                            }
+                            if (error) error.remove();
+                        });
+                    };
+
+                    const showFieldError = (field, message) => {
+                        const input = contactForm.elements.namedItem(field);
+                        if (!input) return;
+                        let error = contactForm.querySelector('[data-field-error="' + field + '"]');
+                        if (!error) {
+                            error = document.createElement('p');
+                            error.dataset.fieldError = field;
+                            const container = input.closest('div') || contactForm;
+                            container.appendChild(error);
+                        }
+                        error.textContent = message;
+                        error.classList.add('mt-1.5', 'text-xs', 'text-rose-600');
+                        if (input.classList) input.classList.add('border-rose-400');
+                        input.setAttribute('aria-invalid', 'true');
+                    };
+
+                    contactForm.addEventListener('submit', async (event) => {
+                        event.preventDefault();
+                        clearErrors();
+
+                        const csrf = contactForm.querySelector('input[name="_token"]');
+                        const headers = {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        };
+                        if (csrf) headers['X-CSRF-TOKEN'] = csrf.value;
+
+                        if (submitButton) submitButton.disabled = true;
+
+                        try {
+                            const response = await fetch(contactForm.action, {
+                                method: 'POST',
+                                headers,
+                                body: new FormData(contactForm),
+                            });
+                            const payload = await response.json().catch(() => ({}));
+
+                            if (response.ok) {
+                                setFeedback(payload.message || contactForm.dataset.success, 'success');
+                                contactForm.reset();
+                                return;
+                            }
+
+                            const errors = payload.errors || {};
+                            let hasFieldError = false;
+
+                            Object.keys(errors).forEach((field) => {
+                                if (!fields.includes(field)) return;
+                                const message = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+                                showFieldError(field, message);
+                                hasFieldError = true;
+                            });
+
+                            const generalMessage = errors.contact
+                                ? (Array.isArray(errors.contact) ? errors.contact[0] : errors.contact)
+                                : payload.message;
+
+                            setFeedback(
+                                generalMessage || (hasFieldError ? contactForm.dataset.error : null),
+                                'error',
+                            );
+                        } catch (error) {
+                            setFeedback(contactForm.dataset.error, 'error');
+                        } finally {
+                            if (submitButton) submitButton.disabled = false;
+                        }
+                    });
                 }
 
                 /* Hero staggered entrance */
