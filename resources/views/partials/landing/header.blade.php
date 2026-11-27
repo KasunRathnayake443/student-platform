@@ -44,7 +44,7 @@
                 </details>
 
                 <a href="/student/login" class="text-base font-medium text-white/80 hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.sign_in') }}</a>
-                <a href="#portals" class="px-5 py-2.5 bg-teal-500 text-ink font-semibold text-base rounded-lg hover:bg-teal-400 transition-all duration-200">{{ __('landing.header.get_started') }}</a>
+                <a href="{{ route('student.registration') }}" class="px-5 py-2.5 bg-teal-500 text-ink font-semibold text-base rounded-lg hover:bg-teal-400 transition-all duration-200">{{ __('landing.header.register_now') }}</a>
             </div>
 
             <button id="menu-btn" class="lg:hidden flex flex-col gap-1.5 p-2 shrink-0 text-white" aria-label="Open menu" aria-expanded="false">
@@ -73,6 +73,6 @@
 
     <div class="flex flex-col gap-4 w-full max-w-xs mt-2">
         <a href="/student/login" class="text-center py-3.5 border border-white/30 rounded-lg text-white font-medium text-lg hover:border-teal-300 hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.sign_in') }}</a>
-        <a href="#portals" class="text-center py-3.5 bg-teal-500 rounded-lg text-ink font-semibold text-lg hover:bg-teal-400 transition-colors duration-200">{{ __('landing.header.get_started') }}</a>
+        <a href="{{ route('student.registration') }}" class="text-center py-3.5 bg-teal-500 rounded-lg text-ink font-semibold text-lg hover:bg-teal-400 transition-colors duration-200">{{ __('landing.header.register_now') }}</a>
     </div>
 </div>

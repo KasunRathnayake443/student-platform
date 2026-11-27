@@ -13,6 +13,7 @@ return [
         'about' => 'About',
         'sign_in' => 'Sign In',
         'get_started' => 'Get Started',
+        'register_now' => 'Register now',
         'language' => 'Language',
     ],
 

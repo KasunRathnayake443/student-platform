@@ -151,6 +151,82 @@ final class PlatformSettings
         return array_map('strval', $links);
     }
 
+    public static function registrationFee(): ?string
+    {
+        $settings = self::current();
+
+        if (! $settings instanceof PlatformSetting || blank($settings->registration_fee)) {
+            return null;
+        }
+
+        return (string) $settings->registration_fee;
+    }
+
+    public static function registrationFeeLabel(): string
+    {
+        $fee = self::registrationFee();
+
+        return $fee === null
+            ? __('registration.hero.fee_pending')
+            : 'LKR '.number_format((float) $fee, 2);
+    }
+
+    /**
+     * @return array<string, string | null>
+     */
+    public static function paymentDetails(): array
+    {
+        $settings = self::current();
+
+        if (! $settings instanceof PlatformSetting) {
+            return [];
+        }
+
+        return [
+            'bank_name' => $settings->bank_name,
+            'bank_account_name' => $settings->bank_account_name,
+            'bank_account_number' => $settings->bank_account_number,
+            'bank_branch' => $settings->bank_branch,
+            'ezcash_number' => $settings->ezcash_number,
+            'ezcash_merchant_alias' => $settings->ezcash_merchant_alias,
+            'mcash_number' => $settings->mcash_number,
+            'mcash_merchant_id' => $settings->mcash_merchant_id,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function registrationLanguages(): array
+    {
+        $settings = self::current();
+        $languages = $settings?->registration_languages;
+
+        if (is_array($languages) && $languages !== []) {
+            return array_values(array_map('strval', array_filter($languages, 'filled')));
+        }
+
+        return ['English', 'සිංහල', 'தமிழ்'];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function registrationGrades(): array
+    {
+        $settings = self::current();
+        $grades = $settings?->registration_grades;
+
+        if (is_array($grades) && $grades !== []) {
+            return array_values(array_map('strval', array_filter($grades, 'filled')));
+        }
+
+        return array_merge(
+            array_map(fn (int $grade): string => 'Grade '.$grade, range(1, 13)),
+            ['Other'],
+        );
+    }
+
     private static function contactValue(string $key): ?string
     {
         $settings = self::current();

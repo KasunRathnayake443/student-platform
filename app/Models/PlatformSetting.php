@@ -16,6 +16,17 @@ class PlatformSetting extends Model
         'contact_address',
         'contact_email',
         'contact_phone',
+        'registration_fee',
+        'bank_name',
+        'bank_account_name',
+        'bank_account_number',
+        'bank_branch',
+        'ezcash_number',
+        'ezcash_merchant_alias',
+        'mcash_number',
+        'mcash_merchant_id',
+        'registration_languages',
+        'registration_grades',
         'facebook_url',
         'youtube_url',
         'tiktok_url',
@@ -32,6 +43,9 @@ class PlatformSetting extends Model
     protected $casts = [
         'mail_password' => 'encrypted',
         'mail_port' => 'integer',
+        'registration_fee' => 'decimal:2',
+        'registration_languages' => 'array',
+        'registration_grades' => 'array',
     ];
 
     protected $hidden = [

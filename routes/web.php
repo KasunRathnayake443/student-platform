@@ -7,6 +7,7 @@ use App\Http\Controllers\QuizQuestionMediaController;
 use App\Http\Controllers\SchoolAdminProfilePhotoController;
 use App\Http\Controllers\SchoolLogoController;
 use App\Http\Controllers\StudentProfilePhotoController;
+use App\Http\Controllers\StudentRegistrationController;
 use App\Http\Controllers\TeacherProfilePhotoController;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,12 @@ Route::get('/locale/{locale}', function (string $locale) {
 Route::view('/', 'welcome')->name('home');
 
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+Route::get('/student-registration', [StudentRegistrationController::class, 'show'])
+    ->name('student.registration');
+
+Route::post('/student-registration', [StudentRegistrationController::class, 'store'])
+    ->name('student.registration.store');
 
 Route::get('/platform/logo', PlatformLogoController::class)
     ->name('platform.logo');

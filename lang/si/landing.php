@@ -13,6 +13,7 @@ return [
         'about' => 'අප ගැන',
         'sign_in' => 'පිවිසෙන්න',
         'get_started' => 'ආරම්භ කරන්න',
+        'register_now' => 'දැන් ලියාපදිංචි වන්න',
         'language' => 'භාෂාව',
     ],
 
