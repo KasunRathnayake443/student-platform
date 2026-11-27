@@ -332,6 +332,7 @@ class QuizForm
                 */
 
                 Section::make('✨ Generate Questions with AI')
+                    ->hidden($isTeacher)
                     ->description('Describe what you need and AI will draft multiple-choice questions into the Question Builder below. Review and edit every question before saving.')
                     ->icon('heroicon-o-sparkles')
                     ->schema([

@@ -278,14 +278,13 @@ test('a failed AI request leaves the question builder unchanged', function () {
         ->assertSet('data.questions.1', null);
 });
 
-test('the AI question generator appears on quiz create pages in every dashboard', function () {
-    $cases = [
+test('the AI question generator is available to admins but hidden from teachers', function () {
+    $visibleCases = [
         ['panel' => 'admin', 'email' => 'admin1@example.com', 'page' => AdminCreateQuiz::class],
         ['panel' => 'school-admin', 'email' => 'schooladmin1@example.com', 'page' => SchoolAdminCreateQuiz::class],
-        ['panel' => 'teacher', 'email' => 'teacher1@example.com', 'page' => TeacherCreateQuiz::class],
     ];
 
-    foreach ($cases as $case) {
+    foreach ($visibleCases as $case) {
         Filament::setCurrentPanel($case['panel']);
 
         Livewire::actingAs(User::where('email', $case['email'])->firstOrFail())
@@ -293,4 +292,11 @@ test('the AI question generator appears on quiz create pages in every dashboard'
             ->assertSee('Generate Questions with AI')
             ->assertActionExists(TestAction::make('generateQuestionsWithAi')->schemaComponent());
     }
+
+    Filament::setCurrentPanel('teacher');
+
+    Livewire::actingAs(User::where('email', 'teacher1@example.com')->firstOrFail())
+        ->test(TeacherCreateQuiz::class)
+        ->assertDontSee('Generate Questions with AI')
+        ->assertActionDoesNotExist(TestAction::make('generateQuestionsWithAi')->schemaComponent());
 });
