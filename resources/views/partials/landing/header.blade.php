@@ -19,10 +19,10 @@
             </a>
 
             <nav class="hidden lg:flex items-center gap-8">
-                <a href="#features" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.features') }}</a>
-                <a href="#portals" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.portals') }}</a>
-                <a href="#about" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.about') }}</a>
-                <a href="#contact" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.contact.nav') }}</a>
+                <a href="{{ route('home') }}#features" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.features') }}</a>
+                <a href="{{ route('home') }}#portals" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.portals') }}</a>
+                <a href="{{ route('home') }}#about" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.header.about') }}</a>
+                <a href="{{ route('home') }}#contact" class="text-base font-medium text-white/80 hover:text-white transition-colors duration-200">{{ __('landing.contact.nav') }}</a>
             </nav>
 
             <div class="hidden lg:flex items-center gap-3">
@@ -57,10 +57,10 @@
 </header>
 
 <div id="mobile-menu" class="lg:hidden fixed inset-x-0 bottom-0 top-20 sm:top-24 md:top-28 z-40 backdrop-blur-xl flex flex-col items-center justify-start gap-7 px-5 py-8 sm:px-8 overflow-y-auto overscroll-contain">
-    <a href="#features" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.features') }}</a>
-    <a href="#portals" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.portals') }}</a>
-    <a href="#about" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.about') }}</a>
-    <a href="#contact" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.contact.nav') }}</a>
+    <a href="{{ route('home') }}#features" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.features') }}</a>
+    <a href="{{ route('home') }}#portals" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.portals') }}</a>
+    <a href="{{ route('home') }}#about" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.header.about') }}</a>
+    <a href="{{ route('home') }}#contact" class="text-2xl font-medium text-white hover:text-teal-300 transition-colors duration-200">{{ __('landing.contact.nav') }}</a>
 
     <div class="flex flex-wrap items-center justify-center gap-2 w-full max-w-xs">
         @foreach($languages as $code => $label)
